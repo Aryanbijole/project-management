@@ -1,0 +1,193 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Project Management Software{% endblock %}</title>
+    <!-- Inter Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Highlight.js style sheet (Default Dark) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        {% if user.is_authenticated %}
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="3" width="7" height="9" rx="2" fill="currentColor"/>
+                    <rect x="14" y="3" width="7" height="5" rx="2" fill="currentColor"/>
+                    <rect x="3" y="16" width="7" height="5" rx="2" fill="currentColor"/>
+                    <rect x="14" y="12" width="7" height="9" rx="2" fill="currentColor"/>
+                </svg>
+                <span>Basecamp PM</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <span>🏠</span> Dashboard
+                </a>
+                
+                <a href="{% url 'chat_hub' %}" class="nav-item {% if 'chat' in request.path %}active{% endif %}">
+                    <span>💬</span> Chat & Pings
+                </a>
+                
+                {% if project %}
+                <!-- Project Context Sub-navigation -->
+                <div style="margin: 20px 0 10px 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">
+                    Project: {{ project.name }}
+                </div>
+                
+                <a href="{% url 'project_detail' project.id %}" class="nav-item {% if request.resolver_match.url_name == 'project_detail' %}active{% endif %}">
+                    <span>📋</span> Workspace
+                </a>
+                
+                {% if 'todo' in enabled_keys or not enabled_keys %}
+                <a href="{% url 'todo_lists' project.id %}" class="nav-item {% if 'todo' in request.path %}active{% endif %}">
+                    <span>✅</span> {{ tool_names.todo|default:"To-Do Lists" }}
+                </a>
+                {% endif %}
+                
+                {% if 'message_board' in enabled_keys or not enabled_keys %}
+                <a href="{% url 'message_board' project.id %}" class="nav-item {% if 'message-board' in request.path %}active{% endif %}">
+                    <span>📢</span> {{ tool_names.message_board|default:"Message Board" }}
+                </a>
+                {% endif %}
+                
+                {% if 'integrations' in enabled_keys or not enabled_keys %}
+                <a href="{% url 'export_list' project.id %}" class="nav-item {% if 'exports' in request.path %}active{% endif %}">
+                    <span>📦</span> Data Exports
+                </a>
+                {% endif %}
+                
+                {% if user.role == 'admin' or project.created_by == user %}
+                <a href="{% url 'configure_tools' project.id %}" class="nav-item {% if 'configure' in request.path %}active{% endif %}">
+                    <span>⚙️</span> Tool Settings
+                </a>
+                {% endif %}
+                
+                {% endif %}
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-badge">
+                    <div class="user-avatar">
+                        {{ user.first_name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">{{ user.first_name }} {{ user.last_name }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.75rem;">{{ user.get_role_display }}</div>
+                    </div>
+                </div>
+                
+                {% if user.role == 'admin' %}
+                <a href="{% url 'merge_users' %}" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.8rem; width: 100%;">
+                    ⚙️ Merge Accounts
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'logout' %}" class="nav-item" style="color: var(--danger); opacity: 1;">
+                    <span>🚪</span> Log out
+                </a>
+            </div>
+        </aside>
+        {% endif %}
+        
+        <div class="main-wrapper">
+            {% if user.is_authenticated %}
+            <header class="top-navbar">
+                <div>
+                    <h4 style="font-weight: 700;">
+                        {% if project %}
+                            {{ project.company.name }} &raquo; {{ project.name }}
+                        {% else %}
+                            Workspace Dashboard
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="navbar-actions">
+                    <!-- Light/Dark Mode Switcher -->
+                    <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme">
+                        🌙
+                    </button>
+                </div>
+            </header>
+            {% endif %}
+            
+            <main class="content-body">
+                {% if messages %}
+                <div class="alert-container">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %}
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- CDN scripts for Markdown parsing and Syntax highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    
+    <script>
+        // Theme Toggle Script
+        const themeToggleBtn = document.getElementById('themeToggle');
+        
+        // Load initial theme
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            if(themeToggleBtn) themeToggleBtn.textContent = '☀️';
+        } else {
+            document.body.classList.remove('dark-theme');
+            if(themeToggleBtn) themeToggleBtn.textContent = '🌙';
+        }
+        
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-theme');
+                let theme = 'light';
+                if (document.body.classList.contains('dark-theme')) {
+                    theme = 'dark';
+                    themeToggleBtn.textContent = '☀️';
+                } else {
+                    themeToggleBtn.textContent = '🌙';
+                }
+                localStorage.setItem('theme', theme);
+            });
+        }
+
+        // Auto-dismiss alerts after 4 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+
+        // Highlight any pre-rendered code blocks inside Markdown
+        document.addEventListener('DOMContentLoaded', () => {
+            hljs.highlightAll();
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

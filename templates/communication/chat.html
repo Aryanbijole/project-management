@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat & Pings - Basecamp PM{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <h1 class="page-title">Private Chat & Pings</h1>
+    <p class="page-subtitle">One-to-one secure chat restricted to organization colleagues.</p>
+</div>
+
+<div class="chat-container">
+    <!-- Chat Contacts Sidebar -->
+    <aside class="chat-sidebar">
+        <div style="padding: 20px; font-weight: 700; font-size: 0.9rem; border-bottom: 1px solid var(--card-border); color: var(--text-muted); text-transform: uppercase;">
+            Contacts Directory
+        </div>
+        {% if chat_users %}
+            {% for c_user in chat_users %}
+            <a href="{% url 'chat_user' c_user.id %}" class="chat-user-item {% if active_chat_user.id == c_user.id %}active{% endif %}">
+                <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
+                    {{ c_user.first_name|slice:":1"|upper }}
+                </div>
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <div style="font-weight: 600; font-size: 0.9rem;">{{ c_user.first_name }} {{ c_user.last_name }}</div>
+                    <div style="color: var(--text-muted); font-size: 0.75rem;">{{ c_user.get_role_display }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                No contact directory members found.
+            </div>
+        {% endif %}
+    </aside>
+
+    <!-- Active Chat body -->
+    <main class="chat-body">
+        {% if active_chat_user %}
+            <!-- Chat header -->
+            <div style="padding: 16px 24px; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; background-color: var(--card-bg);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="user-avatar" style="width: 36px; height: 36px;">
+                        {{ active_chat_user.first_name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 700;">{{ active_chat_user.first_name }} {{ active_chat_user.last_name }}</h4>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ active_chat_user.email }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message feed bubbles -->
+            <div class="chat-messages" id="chatMessagesContainer">
+                {% for msg in chat_messages %}
+                <div class="chat-msg-bubble {% if msg.sender == user %}sent{% else %}received{% endif %}">
+                    <div>{{ msg.content }}</div>
+                    <div class="chat-msg-meta">{{ msg.created_at|date:"Y-m-d H:i" }}</div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; color: var(--text-muted); padding: 40px;" id="emptyChatPlaceholder">
+                    No messages exchanged. Send a ping to start!
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Chat input area -->
+            <form id="chatForm" class="chat-input-area">
+                <input type="text" id="chatInput" class="form-control" placeholder="Type a secure ping..." autocomplete="off" required>
+                <button type="submit" class="btn btn-primary" style="padding: 12px 24px;">Send</button>
+            </form>
+        {% else %}
+            <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; color: var(--text-muted);">
+                <span style="font-size: 3rem; margin-bottom: 16px;">💬</span>
+                <h3>Select a contact to begin chatting</h3>
+                <p style="font-size: 0.9rem; max-width: 300px; margin-top: 8px;">Select a colleague from the sidebar directory to ping them privately.</p>
+            </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if active_chat_user %}
+<script>
+    const container = document.getElementById('chatMessagesContainer');
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('chatInput');
+    const currentUserId = "{{ user.id }}";
+    
+    // Auto-scroll chat body to bottom
+    function scrollToBottom() {
+        container.scrollTop = container.scrollHeight;
+    }
+    scrollToBottom();
+
+    // AJAX post form handling
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const content = input.value.trim();
+        if (content === '') return;
+
+        input.value = '';
+
+        fetch(`/chat/{{ active_chat_user.id }}/send/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `content=${encodeURIComponent(content)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Remove placeholder
+                const placeholder = document.getElementById('emptyChatPlaceholder');
+                if (placeholder) placeholder.remove();
+
+                // Create and append bubble
+                appendMessageBubble(data.message.content, data.message.created_at, true);
+                scrollToBottom();
+            } else {
+                alert('Error sending message.');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to send message.');
+        });
+    });
+
+    function appendMessageBubble(content, timestamp, isSent) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-msg-bubble ${isSent ? 'sent' : 'received'}`;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.textContent = content;
+        bubble.appendChild(contentDiv);
+        
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'chat-msg-meta';
+        metaDiv.textContent = timestamp;
+        bubble.appendChild(metaDiv);
+        
+        container.appendChild(bubble);
+    }
+
+    // Dynamic message polling (every 4 seconds)
+    let lastMessageCount = container.querySelectorAll('.chat-msg-bubble').length;
+
+    function pollMessages() {
+        fetch(`/chat/{{ active_chat_user.id }}/messages/`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.messages.length > lastMessageCount) {
+                    // Refresh chat feed
+                    container.innerHTML = '';
+                    if (data.messages.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;" id="emptyChatPlaceholder">No messages exchanged. Send a ping to start!</div>';
+                    } else {
+                        data.messages.forEach(msg => {
+                            const isSent = (msg.sender_id.toString() === currentUserId);
+                            appendMessageBubble(msg.content, msg.created_at, isSent);
+                        });
+                    }
+                    lastMessageCount = data.messages.length;
+                    scrollToBottom();
+                }
+            }
+        })
+        .catch(err => console.error('Error polling chat messages: ', err));
+    }
+
+    // Start polling
+    setInterval(pollMessages, 4000);
+</script>
+{% endif %}
+{% endblock %}

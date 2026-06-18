@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Todo Lists - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+    <div>
+        <h1 class="page-title">{{ tool_names.todo|default:"To-Do Lists" }}</h1>
+        <p class="page-subtitle" style="margin-bottom: 0;">Organize and assign tasks for {{ project.name }}.</p>
+    </div>
+    <a href="{% url 'project_detail' project.id %}" class="btn btn-secondary">
+        &larr; Back to Workspace
+    </a>
+</div>
+
+<div class="grid-cols-3">
+    <!-- Main Content: Lists grid -->
+    <div style="grid-column: span 2; display: flex; flex-direction: column; gap: 20px;">
+        {% if lists %}
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                {% for list in lists %}
+                <div class="glass-card todo-list-card" style="display: flex; flex-direction: column; justify-content: space-between; height: 180px; margin-bottom: 0;">
+                    <div>
+                        <h4 style="font-weight: 700; font-size: 1.25rem; margin-bottom: 6px;">{{ list.name }}</h4>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                            {{ list.items.count }} tasks total
+                        </div>
+                        <div style="color: var(--success); font-size: 0.85rem; font-weight: 600; margin-top: 4px;">
+                            {{ list.items.all|regroup:"is_completed"|first }}
+                            <!-- Calculate completed tasks -->
+                        </div>
+                    </div>
+                    <a href="{% url 'todo_list_detail' project.id list.id %}" class="btn btn-secondary" style="align-self: flex-start; padding: 8px 16px; font-size: 0.85rem;">
+                        View Tasks &raquo;
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-card" style="text-align: center; padding: 40px;">
+                <p style="color: var(--text-muted); font-size: 1.1rem;">No todo lists have been created yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Create new list sidebar panel -->
+    <div>
+        <div class="glass-card">
+            <h3 style="font-weight: 700; margin-bottom: 20px;">📁 Create To-Do List</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name">List Name</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Design Specs, Backend Tasks" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Create List
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Write Message - {{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .editor-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background-color: var(--accent-light);
+        border: 1px solid var(--card-border);
+        border-bottom: none;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .toolbar-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-primary);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .toolbar-btn:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+    }
+    
+    .editor-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--card-border);
+        padding-bottom: 8px;
+    }
+    
+    .tab-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 6px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: var(--transition);
+    }
+    
+    .tab-btn.active {
+        background-color: var(--accent-light);
+        color: var(--accent);
+    }
+    
+    .editor-textarea {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.95rem;
+        height: 350px;
+        resize: vertical;
+    }
+    
+    .preview-panel {
+        border: 1px solid var(--card-border);
+        background-color: rgba(255, 255, 255, 0.02);
+        padding: 20px;
+        border-radius: 12px;
+        min-height: 350px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="glass-card">
+        <h1 class="page-title">Create Message</h1>
+        <p class="page-subtitle">Draft a new post for {{ project.name }} using Markdown formatting.</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="title">Message Title</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Sprint 2 Planning & Review" required>
+            </div>
+            
+            <div class="editor-tabs">
+                <button type="button" class="tab-btn active" id="writeTab">Write</button>
+                <button type="button" class="tab-btn" id="previewTab">Preview</button>
+            </div>
+            
+            <!-- Write Editor Panel -->
+            <div id="writePanel">
+                <div class="editor-toolbar">
+                    <button type="button" class="toolbar-btn" onclick="insertFormat('**', '**')"><strong>B</strong></button>
+                    <button type="button" class="toolbar-btn" onclick="insertFormat('*', '*')"><em>I</em></button>
+                    <button type="button" class="toolbar-btn" onclick="insertFormat('[Link Title](', ')')">🔗 Link</button>
+                    <button type="button" class="toolbar-btn" onclick="insertFormat('- ', '')">List</button>
+                    
+                    <!-- Language selection and Code block button -->
+                    <div style="display: inline-flex; align-items: center; gap: 4px; margin-left: auto;">
+                        <select id="codeLanguage" class="form-control" style="padding: 4px 8px; font-size: 0.8rem; width: 120px; border-radius: 6px; margin-bottom: 0;">
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                            <option value="sql">SQL</option>
+                            <option value="bash">Bash</option>
+                        </select>
+                        <button type="button" class="toolbar-btn" onclick="insertCodeBlock()">💻 Code Block</button>
+                    </div>
+                </div>
+                <textarea id="content" name="content" class="form-control editor-textarea" placeholder="Write message body in Markdown here..." required></textarea>
+            </div>
+            
+            <!-- Preview Panel -->
+            <div id="previewPanel" class="preview-panel" style="display: none;">
+                <div class="markdown-content" id="previewContainer">
+                    <p style="color: var(--text-muted);">Nothing to preview.</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px;">
+                <a href="{% url 'message_board' project.id %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Publish Post</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const contentTextarea = document.getElementById('content');
+    const writeTab = document.getElementById('writeTab');
+    const previewTab = document.getElementById('previewTab');
+    const writePanel = document.getElementById('writePanel');
+    const previewPanel = document.getElementById('previewPanel');
+    const previewContainer = document.getElementById('previewContainer');
+
+    // Tab switcher logic
+    writeTab.addEventListener('click', () => {
+        writeTab.classList.add('active');
+        previewTab.classList.remove('active');
+        writePanel.style.display = 'block';
+        previewPanel.style.display = 'none';
+    });
+
+    previewTab.addEventListener('click', () => {
+        previewTab.classList.add('active');
+        writeTab.classList.remove('active');
+        writePanel.style.display = 'none';
+        previewPanel.style.display = 'block';
+        
+        // Render Markdown content dynamically using marked.js
+        const rawContent = contentTextarea.value;
+        if (rawContent.trim() === '') {
+            previewContainer.innerHTML = '<p style="color: var(--text-muted);">Nothing to preview.</p>';
+        } else {
+            previewContainer.innerHTML = marked.parse(rawContent);
+            // Run highlight.js on preview code blocks
+            previewContainer.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
+            });
+        }
+    });
+
+    // Editor formatting toolbar function
+    function insertFormat(startTag, endTag) {
+        const text = contentTextarea.value;
+        const start = contentTextarea.selectionStart;
+        const end = contentTextarea.selectionEnd;
+        const selected = text.substring(start, end);
+        
+        const replacement = startTag + selected + endTag;
+        contentTextarea.value = text.substring(0, start) + replacement + text.substring(end);
+        contentTextarea.focus();
+        contentTextarea.setSelectionRange(start + startTag.length, start + startTag.length + selected.length);
+    }
+
+    // Code block inserting function
+    function insertCodeBlock() {
+        const lang = document.getElementById('codeLanguage').value;
+        const startTag = "```" + lang + "\n";
+        const endTag = "\n```";
+        insertFormat(startTag, endTag);
+    }
+</script>
+{% endblock %}

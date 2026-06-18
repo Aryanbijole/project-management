@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Configure Tools - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+    <div class="glass-card">
+        <h1 class="page-title">Project Tool Settings</h1>
+        <p class="page-subtitle">Enable, disable, or customize names of tools for {{ project.name }}</p>
+
+        <!-- Informational Warning -->
+        <div style="background-color: var(--accent-light); border-left: 4px solid var(--accent); padding: 14px; border-radius: 8px; margin-bottom: 24px; font-size: 0.9rem;">
+            ℹ️ <strong>Tool naming policy:</strong> Modifying these tool names applies locally to this project. Existing or other projects will remain completely unaffected, matching SRS specifications.
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 32px;">
+                {% for tool in tools %}
+                <div style="padding: 20px; border: 1px solid var(--card-border); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 20px; background-color: rgba(255, 255, 255, 0.01);">
+                    <div style="flex-grow: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <input type="checkbox" id="enabled_{{ tool.tool_key }}" name="enabled_{{ tool.tool_key }}" class="todo-checkbox" style="width: 18px; height: 18px;" {% if tool.is_enabled %}checked{% endif %}>
+                            <label for="enabled_{{ tool.tool_key }}" style="font-weight: 700; font-size: 1rem; cursor: pointer; color: var(--text-primary);">
+                                Enable {{ tool.tool_key|upper }}
+                            </label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; margin-left: 28px;">
+                            <label style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Custom Tool Name</label>
+                            <input type="text" name="name_{{ tool.tool_key }}" class="form-control" value="{{ tool.name }}" style="padding: 8px 12px; font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end;">
+                <a href="{% url 'project_detail' project.id %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

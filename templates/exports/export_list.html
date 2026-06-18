@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Exports - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+    <div>
+        <h1 class="page-title">Project Data Exports</h1>
+        <p class="page-subtitle" style="margin-bottom: 0;">Export full project data structure, historical todo logs, and message board archives.</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <a href="{% url 'project_detail' project.id %}" class="btn btn-secondary">
+            &larr; Back to Workspace
+        </a>
+    </div>
+</div>
+
+<div class="grid-cols-3">
+    <!-- Main Exports Log -->
+    <div style="grid-column: span 2;">
+        <div class="glass-card">
+            <h3 style="font-weight: 700; margin-bottom: 24px;">Export Log History</h3>
+            
+            {% if exports %}
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    {% for exp in exports %}
+                    <div style="padding: 18px; border: 1px solid var(--card-border); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 20px; background-color: rgba(255,255,255,0.01);">
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 4px;">
+                                Export ID: #{{ exp.id }}
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
+                                Requested by: <strong>{{ exp.requested_by.email }}</strong> &bull; {{ exp.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                            <div>
+                                {% if exp.status == 'pending' %}
+                                <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; font-weight: 600; background-color: rgba(245, 158, 11, 0.1); color: var(--warning);">⏳ Pending</span>
+                                {% elif exp.status == 'processing' %}
+                                <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; font-weight: 600; background-color: rgba(99, 102, 241, 0.1); color: var(--accent);">🔄 Processing...</span>
+                                {% elif exp.status == 'completed' %}
+                                <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; font-weight: 600; background-color: rgba(16, 185, 129, 0.1); color: var(--success);">✅ Completed</span>
+                                {% elif exp.status == 'failed' %}
+                                <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; font-weight: 600; background-color: rgba(239, 68, 68, 0.1); color: var(--danger);">❌ Failed</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            {% if exp.status == 'completed' and exp.export_file %}
+                            <a href="{{ exp.export_file.url }}" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.85rem;">
+                                💾 Download ZIP
+                            </a>
+                            {% else %}
+                            <button class="btn btn-secondary" style="padding: 10px 20px; font-size: 0.85rem;" disabled>
+                                Not Ready
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                    No data exports have been requested yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Request Panel -->
+    <div>
+        <div class="glass-card">
+            <h3 style="font-weight: 700; margin-bottom: 16px;">Request Export Package</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px;">
+                Initiating an export packages all project contents (details, tools configurations, list task structures, reassignment history, board posts, comment logs) into a structured JSON configuration and bundles it as a ZIP file.
+            </p>
+            <form action="{% url 'request_export' project.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary" style="width: 100%; height: 44px;">
+                    Start Export Task
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

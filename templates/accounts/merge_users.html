@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Merge Accounts - Basecamp PM{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="glass-card">
+        <h1 class="page-title">Merge Accounts</h1>
+        <p class="page-subtitle">Reassign project access, tasks, and subscriptions from one account to another.</p>
+
+        <!-- Informational box -->
+        <div style="background-color: var(--accent-light); border-left: 4px solid var(--accent); padding: 20px; border-radius: 8px; margin-bottom: 32px; font-size: 0.95rem; line-height: 1.6;">
+            <h4 style="font-weight: 700; margin-bottom: 8px; color: var(--accent);">⚠️ Account Merge Policy</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <strong style="color: var(--success);">Transferred:</strong>
+                    <ul style="margin-left: 20px; margin-top: 4px;">
+                        <li>Project access memberships</li>
+                        <li>Assigned to-do tasks</li>
+                        <li>Project subscriptions</li>
+                        <li>Ownership of projects</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong style="color: var(--danger);">Not Transferred:</strong>
+                    <ul style="margin-left: 20px; margin-top: 4px;">
+                        <li>Posted board messages</li>
+                        <li>Comments written</li>
+                        <li>Historical audit activity logs</li>
+                        <li>Initially created tasks</li>
+                    </ul>
+                </div>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary);">
+                * The source user account will be deactivated and marked as merged.
+            </p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="grid-cols-2" style="margin-bottom: 24px;">
+                <div class="form-group">
+                    <label for="source_user_id">Source User (To merge FROM)</label>
+                    <select id="source_user_id" name="source_user_id" class="form-control" required>
+                        <option value="">-- Select Source User --</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}">{{ u.email }} ({{ u.first_name }} {{ u.last_name }})</option>
+                        {% endfor %}
+                    </select>
+                    <small style="color: var(--text-muted); display: block; margin-top: 6px;">This user's data will transfer and their login will be deactivated.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="target_user_id">Target User (To merge INTO)</label>
+                    <select id="target_user_id" name="target_user_id" class="form-control" required>
+                        <option value="">-- Select Target User --</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}">{{ u.email }} ({{ u.first_name }} {{ u.last_name }})</option>
+                        {% endfor %}
+                    </select>
+                    <small style="color: var(--text-muted); display: block; margin-top: 6px;">This user will receive the transferred access, tasks, and ownership.</small>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end;">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to merge these users? This action is permanent and cannot be undone.');">
+                    Merge Accounts Now
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
