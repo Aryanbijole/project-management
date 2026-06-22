@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Kanban Board
+{% endblock %}
+
+{% block content %}
+
+<h1>Kanban Board - {{ project.name }}</h1>
+
+<div style="display:flex; gap:20px; align-items:flex-start;">
+
+    <div class="glass-card" style="width:25%;">
+        <h3>To Do ({{ todo_tasks.count }})</h3>
+
+        {% for task in todo_tasks %}
+            <div style="padding:10px; margin-bottom:10px; border:1px solid #ddd;">
+                
+                <div class="glass-card" style="margin-bottom:10px; padding:12px;">
+    <a href="{% url 'task_detail' project.id task.id %}"
+       style="font-weight:700; color:var(--accent); text-decoration:none;">
+        {{ task.title }}
+    </a>
+
+    <div style="margin-top:8px; font-size:0.85rem;">
+        👤 {{ task.assigned_to.email|default:"Unassigned" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        📅 {{ task.due_date|default:"No date" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        🔥 {{ task.get_priority_display }}
+    </div>
+</div>
+            </div>
+        {% empty %}
+            <p>No tasks</p>
+        {% endfor %}
+    </div>
+
+    <div class="glass-card" style="width:25%;">
+        <h3>In Progress ({{ in_progress_tasks.count }})</h3>
+        {% for task in in_progress_tasks %}
+            <div style="padding:10px; margin-bottom:10px; border:1px solid #ddd;">
+                <div class="glass-card" style="margin-bottom:10px; padding:12px;">
+    <a href="{% url 'task_detail' project.id task.id %}"
+       style="font-weight:700; color:var(--accent); text-decoration:none;">
+        {{ task.title }}
+    </a>
+
+    <div style="margin-top:8px; font-size:0.85rem;">
+        👤 {{ task.assigned_to.email|default:"Unassigned" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        📅 {{ task.due_date|default:"No date" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        🔥 {{ task.get_priority_display }}
+    </div>
+</div>
+            </div>
+        {% empty %}
+            <p>No tasks</p>
+        {% endfor %}
+    </div>
+
+    <div class="glass-card" style="width:25%;">
+        <h3>Review ({{ review_tasks.count }})</h3>
+
+        {% for task in review_tasks %}
+            <div style="padding:10px; margin-bottom:10px; border:1px solid #ddd;">
+                <div class="glass-card" style="margin-bottom:10px; padding:12px;">
+    <a href="{% url 'task_detail' project.id task.id %}"
+       style="font-weight:700; color:var(--accent); text-decoration:none;">
+        {{ task.title }}
+    </a>
+
+    <div style="margin-top:8px; font-size:0.85rem;">
+        👤 {{ task.assigned_to.email|default:"Unassigned" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        📅 {{ task.due_date|default:"No date" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        🔥 {{ task.get_priority_display }}
+    </div>
+</div>
+            </div>
+        {% empty %}
+            <p>No tasks</p>
+        {% endfor %}
+    </div>
+
+    <div class="glass-card" style="width:25%;">
+        <h3>Done ({{ done_tasks.count }})</h3>
+
+        {% for task in done_tasks %}
+            <div style="padding:10px; margin-bottom:10px; border:1px solid #ddd;">
+                <div class="glass-card" style="margin-bottom:10px; padding:12px;">
+    <a href="{% url 'task_detail' project.id task.id %}"
+       style="font-weight:700; color:var(--accent); text-decoration:none;">
+        {{ task.title }}
+    </a>
+
+    <div style="margin-top:8px; font-size:0.85rem;">
+        👤 {{ task.assigned_to.email|default:"Unassigned" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        📅 {{ task.due_date|default:"No date" }}
+    </div>
+
+    <div style="font-size:0.85rem;">
+        🔥 {{ task.get_priority_display }}
+    </div>
+</div>
+            </div>
+        {% empty %}
+            <p>No tasks</p>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}

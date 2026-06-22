@@ -37,9 +37,25 @@
                 <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <span>🏠</span> Dashboard
                 </a>
+
+                
+                <a href="{% url 'analytics_dashboard' %}"
+                class="nav-item {% if 'analytics' in request.path %}active{% endif %}">
+                <span>📊</span> Analytics
+                </a>
+                
+                <a href="{% url 'calendar_view' %}"
+                class="nav-item {% if 'calendar' in request.path %}active{% endif %}">
+                <span>📅</span> Calendar
+                </a>
                 
                 <a href="{% url 'chat_hub' %}" class="nav-item {% if 'chat' in request.path %}active{% endif %}">
                     <span>💬</span> Chat & Pings
+                </a>
+
+                <a href="{% url 'notifications' %}"
+                class="nav-item {% if 'notifications' in request.path %}active{% endif %}">
+                <span>🔔</span> Notifications
                 </a>
                 
                 {% if project %}

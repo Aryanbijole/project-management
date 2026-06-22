@@ -8,6 +8,8 @@ from accounts.models import User, Company, Group, CompanyMembership, Invitation
 from accounts.services import merge_users
 from projects.models import Project
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from accounts.models import Notification
 
 
 def register_view(request):
@@ -308,3 +310,21 @@ def merge_users_view(request):
     return render(request, 'accounts/merge_users.html', {
         'users': users
     })
+
+
+@login_required
+def notifications_view(request):
+
+    notifications = request.user.notifications.all()
+
+    notifications.update(
+        is_read=True
+    )
+
+    return render(
+        request,
+        'accounts/notifications.html',
+        {
+            'notifications': notifications
+        }
+    )

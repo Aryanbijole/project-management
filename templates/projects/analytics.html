@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+
+<h1>📊 Analytics Dashboard</h1>
+
+<div class="glass-card">
+
+    <h3>Total Projects</h3>
+    <p>{{ total_projects }}</p>
+
+    <h3>Total Tasks</h3>
+    <p>{{ total_tasks }}</p>
+
+    <h3>Completed Tasks</h3>
+    <p>{{ completed_tasks }}</p>
+
+    <h3>Pending Tasks</h3>
+    <p>{{ pending_tasks }}</p>
+
+    <h3>Completion %</h3>
+    <p>{{ completion_percentage }}%</p>
+
+    <h3>Total Members</h3>
+    <p>{{ total_members }}</p>
+
+</div>
+
+{% endblock %}

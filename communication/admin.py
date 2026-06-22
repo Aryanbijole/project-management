@@ -1,3 +1,14 @@
 from django.contrib import admin
+from .models import (
+    MessageBoardPost,
+    Comment,
+    PrivateMessage,
+    PostAttachment,
+    MessageAttachment
+)
 
-# Register your models here.
+admin.site.register(MessageBoardPost)
+admin.site.register(Comment)
+admin.site.register(PrivateMessage)
+admin.site.register(PostAttachment)
+admin.site.register(MessageAttachment)

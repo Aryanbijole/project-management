@@ -11,4 +11,9 @@ urlpatterns = [
     path('invite/send/', views.send_invite, name='send_invite'),
     path('invite/accept/<str:token>/', views.accept_invite, name='accept_invite'),
     path('users/merge/', views.merge_users_view, name='merge_users'),
+    path(
+    'notifications/',
+    views.notifications_view,
+    name='notifications'
+    ),
 ]

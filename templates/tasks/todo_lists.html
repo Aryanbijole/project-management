@@ -26,8 +26,7 @@
                             {{ list.items.count }} tasks total
                         </div>
                         <div style="color: var(--success); font-size: 0.85rem; font-weight: 600; margin-top: 4px;">
-                            {{ list.items.all|regroup:"is_completed"|first }}
-                            <!-- Calculate completed tasks -->
+                            Task tracking enabled
                         </div>
                     </div>
                     <a href="{% url 'todo_list_detail' project.id list.id %}" class="btn btn-secondary" style="align-self: flex-start; padding: 8px 16px; font-size: 0.85rem;">

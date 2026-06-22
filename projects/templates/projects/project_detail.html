@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ project.name }}</title>
+</head>
+<body>
+
+<h1>{{ project.name }}</h1>
+
+<p>{{ project.description }}</p>
+
+<hr>
+
+<h2>Project Information</h2>
+
+<p>Status: {{ project.status }}</p>
+
+<p>Visibility: {{ project.visibility }}</p>
+
+<p>Created By: {{ project.created_by }}</p>
+
+<p>Company: {{ project.company }}</p>
+
+<hr>
+
+<h2>Project Tools</h2>
+
+<ul>
+{% for tool in tools %}
+    <li>
+        {{ tool.name }}
+        {% if tool.is_enabled %}
+            ✅
+        {% else %}
+            ❌
+        {% endif %}
+    </li>
+{% endfor %}
+</ul>
+
+<hr>
+
+<h2>Members</h2>
+
+<ul>
+{% for member in project.members.all %}
+    <li>{{ member.email }}</li>
+{% empty %}
+    <li>No members</li>
+{% endfor %}
+</ul>
+
+</body>
+</html>

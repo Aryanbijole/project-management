@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block content %}
+
+<h1>{{ task.title }}</h1>
+
+<p>
+    <strong>Project:</strong>
+    {{ project.name }}
+</p>
+
+<p>
+    <strong>Description:</strong><br>
+    {{ task.description|default:"No description" }}
+</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <p>
+        <strong>Status:</strong>
+        <select name="status" class="form-control">
+            <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>To Do</option>
+            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="review" {% if task.status == 'review' %}selected{% endif %}>Review</option>
+            <option value="done" {% if task.status == 'done' %}selected{% endif %}>Done</option>
+        </select>
+    </p>
+
+    <button type="submit" class="btn btn-primary">
+        Update Status
+    </button>
+</form>
+
+
+<p>
+    <strong>Priority:</strong>
+    {{ task.get_priority_display }}
+</p>
+
+<p>
+    <strong>Assigned To:</strong>
+    {{ task.assigned_to|default:"Unassigned" }}
+</p>
+
+<p>
+    <strong>Due Date:</strong>
+    {{ task.due_date|default:"No due date" }}
+</p>
+
+<p>
+    <strong>Estimated Hours:</strong>
+    {{ task.estimated_hours|default:"Not set" }}
+</p>
+
+<hr>
+
+<h2>Checklist</h2>
+
+<form method="POST"
+      action="{% url 'add_checklist_item' project.id task.id %}"
+      style="margin-bottom:20px;">
+
+    {% csrf_token %}
+
+    <input
+        type="text"
+        name="title"
+        placeholder="Checklist item"
+        required
+    >
+
+    <button type="submit"
+        type="submit"
+        class="btn btn-primary"
+        style="margin-top:10px;">
+        Add Checklist Item
+    </button>
+
+</form>
+
+{% if checklist_items %}
+<ul>
+{% for item in checklist_items %}
+<li style="margin-bottom:10px;">
+    {% if item.completed %}
+        ✅
+    {% else %}
+        ⬜
+    {% endif %}
+    {{ item.title }}
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No checklist items.</p>
+{% endif %}
+
+<hr>
+
+<h2>Attachments</h2>
+<form
+    method="POST"
+    enctype="multipart/form-data"
+    action="{% url 'upload_attachment' project.id task.id %}"
+    style="margin-bottom:20px;"
+>
+    {% csrf_token %}
+
+    <input
+        type="file"
+        name="file"
+        required
+    >
+
+    <button type="submit">
+        Upload
+    </button>
+</form>
+
+{% if attachments %}
+<ul>
+    {% for attachment in attachments %}
+    <li>
+        <a href="{{ attachment.file.url }}">
+            {{ attachment.file.name }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No attachments.</p>
+{% endif %}
+
+
+<hr>
+
+<h2>Comments</h2>
+
+<form method="POST" action="{% url 'task_add_comment'  project.id task.id %}">
+    {% csrf_token %}
+
+    <textarea
+        name="comment"
+        rows="3"
+        class="form-control"
+        placeholder="Write a comment..."
+        required>
+    </textarea>
+
+    <button type="submit"
+            class="btn btn-primary"
+            style="margin-top:10px;">
+        Add Comment
+    </button>
+</form>
+
+<br>
+
+{% for comment in comments %}
+
+<div class="glass-card" style="margin-top:15px;">
+
+    <strong>
+        {{ comment.author.email }}
+    </strong>
+
+    <small>
+        {{ comment.created_at }}
+    </small>
+
+    <p style="margin-top:10px;">
+        {{ comment.content }}
+    </p>
+
+</div>
+
+{% empty %}
+
+<p>No comments yet.</p>
+
+{% endfor %}
+
+<hr>
+
+<h2>⏱ Time Tracking</h2>
+
+<a href="{% url 'start_timer' task.id %}"
+   class="btn btn-primary">
+    Start Timer
+</a>
+
+<br><br>
+
+{% for entry in task.time_entries.all %}
+
+<div class="glass-card" style="margin-top:10px;">
+
+    <strong>
+        {{ entry.user.email }}
+    </strong>
+
+    <br>
+
+    Started:
+    {{ entry.start_time }}
+
+    <br>
+
+    {% if entry.end_time %}
+
+        Ended:
+        {{ entry.end_time }}
+
+        <br>
+
+        Hours Worked:
+        {{ entry.hours }}
+
+    {% else %}
+
+        <br><br>
+
+        <a href="{% url 'stop_timer' entry.id %}"
+           class="btn btn-secondary">
+            Stop Timer
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% empty %}
+
+<p>No time entries yet.</p>
+
+{% endfor %}
+
+
+<h2>Activity History</h2>
+
+{% for activity in activities %}
+<div style="margin-bottom:10px;">
+    <strong>{{ activity.created_at }}</strong><br>
+    {{ activity.description }}
+</div>
+{% empty %}
+<p>No activity.</p>
+{% endfor %}
+
+{% endblock %}

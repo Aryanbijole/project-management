@@ -1,5 +1,4 @@
 from django.db import models
-
 class TodoList(models.Model):
     project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name='todo_lists')
     name = models.CharField(max_length=255)
@@ -10,13 +9,60 @@ class TodoList(models.Model):
 
 
 class TodoItem(models.Model):
+
+    PRIORITY_LOW = 'low'
+    PRIORITY_MEDIUM = 'medium'
+    PRIORITY_HIGH = 'high'
+    PRIORITY_URGENT = 'urgent'
+
+    PRIORITY_CHOICES = [
+        (PRIORITY_LOW, 'Low'),
+        (PRIORITY_MEDIUM, 'Medium'),
+        (PRIORITY_HIGH, 'High'),
+        (PRIORITY_URGENT, 'Urgent'),
+    ]
+
     todo_list = models.ForeignKey(TodoList, on_delete=models.CASCADE, related_name='items')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+   
+    priority = models.CharField(
+        max_length=20,
+        choices=PRIORITY_CHOICES,
+        default=PRIORITY_MEDIUM
+    )
+
+    STATUS_TODO = 'todo'
+    STATUS_IN_PROGRESS = 'in_progress'
+    STATUS_REVIEW = 'review'
+    STATUS_DONE = 'done'
+
+    STATUS_CHOICES = [
+        (STATUS_TODO, 'To Do'),
+        (STATUS_IN_PROGRESS, 'In Progress'),
+        (STATUS_REVIEW, 'Review'),
+        (STATUS_DONE, 'Done'),
+]
+    
+    status = models.CharField(
+    max_length=20,
+    choices=STATUS_CHOICES,
+    default=STATUS_TODO
+)
     is_completed = models.BooleanField(default=False)
+
+    
+    
+
     created_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, related_name='created_todos')
     assigned_to = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_todos')
     due_date = models.DateField(null=True, blank=True)
+    estimated_hours = models.DecimalField(
+    max_digits=5,
+    decimal_places=2,
+    null=True,
+    blank=True
+)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,3 +96,96 @@ class TodoActivity(models.Model):
 
     def __str__(self):
         return f"{self.todo_item.title}: {self.description}"
+    
+class TaskAttachment(models.Model):
+    task = models.ForeignKey(
+        TodoItem,
+        on_delete=models.CASCADE,
+        related_name='attachments'
+    )
+
+    file = models.FileField(
+        upload_to='task_attachments/'
+    )
+
+    uploaded_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.file.name
+
+class ChecklistItem(models.Model):
+    task = models.ForeignKey(
+        TodoItem,
+        on_delete=models.CASCADE,
+        related_name='checklist_items'
+    )
+
+    title = models.CharField(max_length=255)
+
+    completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title   
+
+class TaskComment(models.Model):
+
+    task = models.ForeignKey(
+        TodoItem,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+
+    author = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE
+    )
+
+    content  = models.TextField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.author.email}"         
+
+class TimeEntry(models.Model):
+
+    task = models.ForeignKey(
+        TodoItem,
+        on_delete=models.CASCADE,
+        related_name='time_entries'
+    )
+
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE
+    )
+
+    start_time = models.DateTimeField()
+
+    end_time = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    hours = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.task.title}"

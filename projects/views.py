@@ -4,6 +4,32 @@ from django.contrib import messages
 from accounts.models import Company, User
 from projects.models import Project, ProjectTool
 from integrations.models import ExternalTool
+from django.views.generic import ListView
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+from .models import Project, Milestone
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import ProjectInvitation
+from tasks.models import TodoItem
+
+class ProjectListView(ListView):
+    model = Project
+    template_name = 'projects/project_list.html'
+    context_object_name = 'projects'
+
+class ProjectCreateView(CreateView):
+    model = Project
+    fields = [
+        'name',
+        'description',
+        'company',
+        'owner',
+        'visibility',
+        'status'
+    ]
+    template_name = 'projects/project_form.html'
+    success_url = reverse_lazy('project-list')
 
 @login_required
 def create_project(request):
@@ -67,6 +93,8 @@ def project_detail(request, project_id):
         is_active=True
     ).exclude(id__in=project.members.all())
 
+    milestones = project.milestones.all()
+
     return render(request, 'projects/project_detail.html', {
         'project': project,
         'tools': tools,
@@ -74,6 +102,7 @@ def project_detail(request, project_id):
         'tool_names': tool_names,
         'external_tools': external_tools,
         'company_users': company_users,
+        'milestones': milestones,
     })
 
 
@@ -124,3 +153,160 @@ def configure_tools(request, project_id):
         'project': project,
         'tools': tools
     })
+
+@login_required
+def invite_project_member(request, project_id):
+
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
+
+    if request.method == 'POST':
+
+        email = request.POST.get('email')
+
+        invite = ProjectInvitation.objects.create(
+            project=project,
+            email=email,
+            invited_by=request.user
+        )
+
+        invite_link = (
+            f"http://127.0.0.1:8000/"
+            f"invitations/{invite.token}/"
+        )
+
+        send_mail(
+            subject='Project Invitation',
+            message=f'''
+You have been invited to join project:
+{project.name}
+
+Open:
+{invite_link}
+''',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False
+        )
+
+        messages.success(
+            request,
+            "Invitation email sent."
+        )
+
+    return redirect(
+        'project_detail',
+        project_id=project.id
+    )
+
+@login_required
+def accept_invitation(request, token):
+
+    invite = get_object_or_404(
+        ProjectInvitation,
+        token=token,
+        accepted=False
+    )
+
+    invite.project.members.add(
+        request.user
+    )
+
+    invite.accepted = True
+    invite.save()
+
+    messages.success(
+        request,
+        "You joined the project."
+    )
+
+    return redirect(
+        'project_detail',
+        project_id=invite.project.id
+    )
+
+@login_required
+def add_milestone(request, project_id):
+
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
+
+    if request.method == "POST":
+
+        Milestone.objects.create(
+            project=project,
+            title=request.POST.get("title"),
+            description=request.POST.get("description"),
+            due_date=request.POST.get("due_date")
+        )
+
+        messages.success(
+            request,
+            "Milestone created."
+        )
+
+    return redirect(
+        "project_detail",
+        project_id=project.id
+    )
+
+
+
+@login_required
+def analytics_dashboard(request):
+
+    total_projects = Project.objects.count()
+
+    total_tasks = TodoItem.objects.count()
+
+    completed_tasks = TodoItem.objects.filter(
+        status='done'
+    ).count()
+
+    pending_tasks = total_tasks - completed_tasks
+
+    completion_percentage = 0
+
+    if total_tasks > 0:
+        completion_percentage = round(
+            (completed_tasks / total_tasks) * 100,
+            2
+        )
+
+    total_members = User.objects.count()
+
+    return render(
+        request,
+        'projects/analytics.html',
+        {
+            'total_projects': total_projects,
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'pending_tasks': pending_tasks,
+            'completion_percentage': completion_percentage,
+            'total_members': total_members,
+        }
+    )
+
+
+@login_required
+def calendar_view(request):
+
+    tasks = TodoItem.objects.exclude(
+        due_date__isnull=True
+    )
+
+    milestones = Milestone.objects.all()
+
+    return render(
+        request,
+        'projects/calendar.html',
+        {
+            'tasks': tasks,
+            'milestones': milestones,
+        }
+    )
