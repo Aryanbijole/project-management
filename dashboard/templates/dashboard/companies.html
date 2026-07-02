@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Company Management{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🏢 Company Management</h2>
+
+    <a href="{% url 'admin_company_create' %}" class="btn btn-primary">
+        + Create Company
+    </a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Created</th>
+            <th width="180">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for company in companies %}
+
+        <tr>
+
+            <td>{{ company.name }}</td>
+
+            <td>{{ company.slug }}</td>
+
+            <td>{{ company.created_at|date:"d M Y" }}</td>
+
+            <td>
+
+                <a href="{% url 'admin_company_edit' company.id %}"
+                   class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+
+                <a href="{% url 'admin_company_delete' company.id %}"
+                   class="btn btn-danger btn-sm">
+                    Delete
+                </a>
+
+            </td>
+
+        </tr>
+
+    {% empty %}
+
+        <tr>
+            <td colspan="4">
+                No companies found.
+            </td>
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

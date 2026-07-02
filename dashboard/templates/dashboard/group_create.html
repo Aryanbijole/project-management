@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Create Group{% endblock %}
+
+{% block content %}
+
+<h2>Create Group</h2>
+
+<form method="post">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label>Group Name</label>
+        <input
+            type="text"
+            name="name"
+            class="form-control"
+            required>
+    </div>
+
+    <div class="mb-3">
+        <label>Company</label>
+
+        <select
+            name="company"
+            class="form-control"
+            required>
+
+            {% for company in companies %}
+                <option value="{{ company.id }}">
+                    {{ company.name }}
+                </option>
+            {% endfor %}
+
+        </select>
+    </div>
+
+    <div class="mb-3">
+
+        <label>Members</label>
+
+        <select
+            name="members"
+            class="form-control"
+            multiple
+            size="8">
+
+            {% for user in users %}
+
+                <option value="{{ user.id }}">
+                    {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <small>
+            Hold Ctrl (Windows) or Cmd (Mac) to select multiple members.
+        </small>
+
+    </div>
+
+    <button
+        type="submit"
+        class="btn btn-primary">
+
+        Create Group
+
+    </button>
+
+    <a
+        href="{% url 'admin_group_list' %}"
+        class="btn btn-secondary">
+
+        Cancel
+
+    </a>
+
+</form>
+
+{% endblock %}

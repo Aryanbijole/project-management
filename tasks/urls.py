@@ -51,15 +51,17 @@ path(
     name='add_task_comment'
 ),
 
+
+
 path(
-    'timer/start/<int:task_id>/',
-    views.start_timer,
-    name='start_timer'
+    'projects/<int:project_id>/tasks/<int:task_id>/log-time/',
+    views.log_time,
+    name='log_time'
 ),
 
 path(
-    'timer/stop/<int:entry_id>/',
-    views.stop_timer,
-    name='stop_timer'
+    "projects/<int:project_id>/gantt/",
+    views.gantt_view,
+    name="gantt_view",
 ),
 ]

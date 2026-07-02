@@ -1,0 +1,101 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path(
+    "reports/",
+    views.admin_reports,
+    name="admin_reports",
+    ),
+    path("users/", views.user_list, name="admin_users"),
+
+    path(
+    "users/create/",
+    views.user_create,
+    name="admin_user_create"
+),
+
+path(
+    "users/<int:user_id>/edit/",
+    views.user_edit,
+    name="admin_user_edit"
+),
+
+path(
+    "users/<int:user_id>/delete/",
+    views.user_delete,
+    name="admin_user_delete"
+),
+
+path(
+    "projects/",
+    views.project_list,
+    name="admin_project_list",
+),
+
+path(
+    "projects/create/",
+    views.project_create,
+    name="admin_project_create",
+),
+
+path(
+    "projects/<int:project_id>/edit/",
+    views.project_edit,
+    name="admin_project_edit",
+),
+
+path(
+    "projects/<int:project_id>/delete/",
+    views.project_delete,
+    name="admin_project_delete",
+),
+
+path(
+    "companies/",
+    views.company_list,
+    name="admin_company_list",
+),
+
+path(
+    "companies/create/",
+    views.company_create,
+    name="admin_company_create",
+),
+
+path(
+    "companies/<int:company_id>/edit/",
+    views.company_edit,
+    name="admin_company_edit",
+),
+
+path(
+    "companies/<int:company_id>/delete/",
+    views.company_delete,
+    name="admin_company_delete",
+),
+
+path(
+    "groups/",
+    views.group_list,
+    name="admin_group_list",
+),
+
+path(
+    "groups/create/",
+    views.group_create,
+    name="admin_group_create",
+),
+
+path(
+    "groups/<int:group_id>/edit/",
+    views.group_edit,
+    name="admin_group_edit",
+),
+
+path(
+    "groups/<int:group_id>/delete/",
+    views.group_delete,
+    name="admin_group_delete",
+),
+]

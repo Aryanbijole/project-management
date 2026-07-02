@@ -232,5 +232,39 @@
 
 {% endfor %}
 
+<div style="padding:20px; border:1px solid var(--card-border); border-radius:12px;">
+    <h4>📁 Documents</h4>
+
+    <p>
+        Central project file storage.
+    </p>
+
+    <a href="{% url 'project_documents' project.id %}"
+       class="btn btn-primary">
+       Open Documents
+    </a>
+</div>
+
+<div style="padding:20px; border:1px solid var(--card-border); border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; height:160px;">
+
+    <div>
+
+        <h4>📅 Gantt Timeline</h4>
+
+        <p>
+            View project schedule and deadlines.
+        </p>
+
+    </div>
+
+    <a href="{% url 'gantt_view' project.id %}"
+       class="btn btn-primary">
+
+        Open Timeline
+
+    </a>
+
+</div>
+
 {% endblock %}
 

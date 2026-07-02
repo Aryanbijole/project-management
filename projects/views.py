@@ -10,8 +10,11 @@ from django.urls import reverse_lazy
 from .models import Project, Milestone
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import ProjectInvitation
+from .models import ProjectInvitation,ProjectDocument
 from tasks.models import TodoItem
+from django.db.models import Q
+from accounts.models import Notification
+
 
 class ProjectListView(ListView):
     model = Project
@@ -237,12 +240,22 @@ def add_milestone(request, project_id):
 
     if request.method == "POST":
 
-        Milestone.objects.create(
+        milestone =Milestone.objects.create(
             project=project,
             title=request.POST.get("title"),
             description=request.POST.get("description"),
             due_date=request.POST.get("due_date")
         )
+
+        for member in project.members.all():
+
+            if member != request.user:
+
+                Notification.objects.create(
+                    user=member,
+                    title="New Milestone",
+                    message=f"Milestone '{milestone.title}' was added to project '{project.name}'."
+                )
 
         messages.success(
             request,
@@ -308,5 +321,94 @@ def calendar_view(request):
         {
             'tasks': tasks,
             'milestones': milestones,
+        }
+    )
+
+@login_required
+def global_search(request):
+
+    query = request.GET.get('q', '')
+
+    projects = Project.objects.none()
+    tasks = TodoItem.objects.none()
+    users = User.objects.none()
+    milestones = Milestone.objects.none()
+
+    if query:
+
+        projects = Project.objects.filter(
+            name__icontains=query
+        )
+
+        tasks = TodoItem.objects.filter(
+            title__icontains=query
+        )
+
+        users = User.objects.filter(
+            email__icontains=query
+        )
+
+        milestones = Milestone.objects.filter(
+            title__icontains=query
+        )
+
+    return render(
+        request,
+        'projects/search.html',
+        {
+            'query': query,
+            'projects': projects,
+            'tasks': tasks,
+            'users': users,
+            'milestones': milestones,
+        }
+    )
+
+@login_required
+def upload_project_document(
+    request,
+    project_id
+):
+
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
+
+    if request.method == "POST":
+
+        ProjectDocument.objects.create(
+            project=project,
+            title=request.POST.get("title"),
+            file=request.FILES["file"],
+            uploaded_by=request.user
+        )
+
+    return redirect(
+        "project_documents",
+        project_id=project.id
+    )
+
+@login_required
+def project_documents(
+    request,
+    project_id
+):
+
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
+
+    documents = ProjectDocument.objects.filter(
+        project=project
+    )
+
+    return render(
+        request,
+        "projects/project_documents.html",
+        {
+            "project": project,
+            "documents": documents
         }
     )

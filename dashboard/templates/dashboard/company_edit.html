@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Company{% endblock %}
+
+{% block content %}
+
+<h2>Edit Company</h2>
+
+<form method="post">
+
+    {% csrf_token %}
+
+    <div class="form-group">
+
+        <label>Company Name</label>
+
+        <input
+            type="text"
+            name="name"
+            value="{{ company.name }}"
+            class="form-control"
+            required
+        >
+
+    </div>
+
+    <br>
+
+    <button class="btn btn-primary">
+        Update Company
+    </button>
+
+    <a href="{% url 'admin_company_list' %}"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>
+
+{% endblock %}

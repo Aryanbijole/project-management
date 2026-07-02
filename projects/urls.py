@@ -72,4 +72,22 @@ path(
     views.calendar_view,
     name='calendar_view'
 ),
+
+path(
+    'search/',
+    views.global_search,
+    name='global_search'
+),
+
+path(
+    'projects/<int:project_id>/documents/',
+    views.project_documents,
+    name='project_documents'
+),
+
+path(
+    'projects/<int:project_id>/documents/upload/',
+    views.upload_project_document,
+    name='upload_project_document'
+),
 ]

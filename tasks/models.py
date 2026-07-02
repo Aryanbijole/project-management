@@ -63,6 +63,15 @@ class TodoItem(models.Model):
     null=True,
     blank=True
 )
+    
+    is_recurring = models.BooleanField(
+    default=False
+    )
+
+    repeat_days = models.PositiveIntegerField(
+    null=True,
+    blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -189,3 +198,32 @@ class TimeEntry(models.Model):
 
     def __str__(self):
         return f"{self.task.title}"
+    
+class TimeEntry(models.Model):
+
+    task = models.ForeignKey(
+        TodoItem,
+        on_delete=models.CASCADE,
+        related_name='time_entries'
+    )
+
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE
+    )
+
+    hours = models.DecimalField(
+        max_digits=5,
+        decimal_places=2
+    )
+
+    note = models.TextField(
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.user.email} - {self.hours}h"    

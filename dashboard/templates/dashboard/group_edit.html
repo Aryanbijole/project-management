@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Group{% endblock %}
+
+{% block content %}
+
+<h2>Edit Group</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label>Group Name</label>
+        <input
+            type="text"
+            name="name"
+            class="form-control"
+            value="{{ group.name }}"
+            required>
+    </div>
+
+    <div class="mb-3">
+        <label>Company</label>
+
+        <select name="company" class="form-control">
+
+            {% for company in companies %}
+
+                <option value="{{ company.id }}"
+                    {% if company.id == group.company.id %}selected{% endif %}>
+                    {{ company.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+    </div>
+
+    <div class="mb-3">
+
+        <label>Members</label>
+
+        <select
+            name="members"
+            class="form-control"
+            multiple
+            size="8">
+
+            {% for user in users %}
+
+                <option value="{{ user.id }}"
+                    {% if user in group.members.all %}selected{% endif %}>
+
+                    {{ user.first_name }} {{ user.last_name }}
+
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+    <button class="btn btn-primary">
+        Update Group
+    </button>
+
+    <a href="{% url 'admin_group_list' %}" class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>
+
+{% endblock %}

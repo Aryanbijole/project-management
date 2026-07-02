@@ -15,6 +15,8 @@ from tasks.models import (
     TaskComment,
 )
 from accounts.models import User
+from accounts.models import Notification
+
 
 @login_required
 def todo_lists_view(request, project_id):
@@ -81,7 +83,9 @@ def create_todo_item(request, project_id, list_id):
                 due_date=due_date if due_date else None,
                 priority=priority,
                 status=status,
-                estimated_hours=estimated_hours if estimated_hours else None
+                estimated_hours=estimated_hours if estimated_hours else None,
+                is_recurring='is_recurring' in request.POST,
+                repeat_days=int(request.POST.get("repeat_days")) if request.POST.get("repeat_days") else None,
             )
 
             # Log creation
@@ -172,6 +176,10 @@ def task_detail(request, project_id, task_id):
         todo_list__project=project
     )
 
+    time_entries = TimeEntry.objects.filter(
+        task=task
+    ).order_by('-created_at')
+
     if request.method == 'POST':
 
         new_status = request.POST.get('status')
@@ -208,10 +216,9 @@ def task_detail(request, project_id, task_id):
             'activities': task.activities.all().order_by('-created_at'),
             'checklist_items': task.checklist_items.all(),
             'attachments': task.attachments.all(),
-            'comments': task.comments.all().order_by('-created_at'),
+            'time_entries': time_entries,
         }
     )
-
 
 @login_required
 def add_checklist_item(request, project_id, task_id):
@@ -323,7 +330,13 @@ def add_comment(request, project_id, task_id):
             TaskComment.objects.create(
                 task=task,
                 author=request.user,
-                comment=comment_text
+                content=comment_text
+            )
+
+            Notification.objects.create(
+            user=task.created_by,
+            title="New Task Comment",
+            message=f"{request.user.email} commented on task '{task.title}'."
             )
 
     return redirect(
@@ -405,4 +418,45 @@ def stop_timer(request, entry_id):
         'task_detail',
         project_id=entry.task.todo_list.project.id,
         task_id=entry.task.id
+    )
+
+@login_required
+def log_time(request, project_id, task_id):
+
+    task = get_object_or_404(
+        TodoItem,
+        id=task_id
+    )
+
+    if request.method == "POST":
+
+        TimeEntry.objects.create(
+            task=task,
+            user=request.user,
+            hours=request.POST.get("hours"),
+            note=request.POST.get("note")
+        )
+
+    return redirect(
+        "task_detail",
+        project_id=project_id,
+        task_id=task.id
+    )
+
+@login_required
+def gantt_view(request, project_id):
+
+    project = get_object_or_404(Project, id=project_id)
+
+    tasks = TodoItem.objects.filter(
+        todo_list__project=project
+    ).order_by("due_date")
+
+    return render(
+        request,
+        "tasks/gantt.html",
+        {
+            "project": project,
+            "tasks": tasks,
+        }
     )

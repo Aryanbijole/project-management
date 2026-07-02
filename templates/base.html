@@ -38,6 +38,10 @@
                     <span>🏠</span> Dashboard
                 </a>
 
+                <a href="{% url 'admin_project_list' %}"  class="nav-item {% if request.resolver_match.url_name == 'Projects' %}active{% endif %}"> 
+                    <span>📁</span> Projects
+                </a>
+
                 
                 <a href="{% url 'analytics_dashboard' %}"
                 class="nav-item {% if 'analytics' in request.path %}active{% endif %}">
@@ -49,6 +53,11 @@
                 <span>📅</span> Calendar
                 </a>
                 
+                <a href="{% url 'global_search' %}"
+                class="nav-item">
+                <span>🔍</span> Search
+                </a>
+                
                 <a href="{% url 'chat_hub' %}" class="nav-item {% if 'chat' in request.path %}active{% endif %}">
                     <span>💬</span> Chat & Pings
                 </a>
@@ -58,6 +67,41 @@
                 <span>🔔</span> Notifications
                 </a>
                 
+                {% if user.role == 'admin' or user.is_superuser %}
+
+                <hr style="margin:20px 0; opacity:.2;">
+
+                <p style="padding:0 18px;
+                font-size:12px;
+                font-weight:700;
+                color:#888;
+                letter-spacing:1px;">
+                ADMINISTRATION
+                </p>
+
+                <a href="{% url 'admin_users' %}" class="nav-item">
+                <span>👥</span> User Management
+                </a>
+
+                <a href="{% url 'admin_project_list' %}" class="nav-item">
+                <span>📂</span> Project Management
+                </a>
+
+                <a href="{% url 'admin_company_list' %}" class="nav-item">
+                <span>🏢</span> Company Management
+                </a>
+
+                <a href="{% url 'admin_group_list' %}"
+                class="nav-item {% if 'groups' in request.path %}active{% endif %}">
+                <span>👥</span> Group Management
+                </a>
+
+                <a href="{% url 'admin_reports' %}" class="nav-item">
+                <span>📊</span> Reports
+                </a>
+
+                {% endif %}
+
                 {% if project %}
                 <!-- Project Context Sub-navigation -->
                 <div style="margin: 20px 0 10px 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">

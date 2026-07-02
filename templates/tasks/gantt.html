@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Gantt Timeline{% endblock %}
+
+{% block content %}
+
+<h1>📅 Project Timeline</h1>
+
+<p><strong>Project:</strong> {{ project.name }}</p>
+
+<div class="glass-card">
+
+<table style="width:100%; border-collapse:collapse;">
+
+    <thead>
+
+        <tr style="border-bottom:1px solid #444;">
+            <th style="padding:10px;">Task</th>
+            <th>Assigned</th>
+            <th>Status</th>
+            <th>Due Date</th>
+            <th>Priority</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for task in tasks %}
+
+        <tr style="border-bottom:1px solid #333;">
+
+            <td style="padding:12px;">
+                {{ task.title }}
+            </td>
+
+            <td>
+                {{ task.assigned_to.email|default:"Unassigned" }}
+            </td>
+
+            <td>
+
+                {% if task.status == "todo" %}
+                    🔴 To Do
+
+                {% elif task.status == "in_progress" %}
+                    🟡 In Progress
+
+                {% elif task.status == "review" %}
+                    🔵 Review
+
+                {% else %}
+                    🟢 Done
+                {% endif %}
+
+            </td>
+
+            <td>
+                {{ task.due_date }}
+            </td>
+
+            <td>
+                {{ task.get_priority_display }}
+            </td>
+
+        </tr>
+
+    {% empty %}
+
+        <tr>
+
+            <td colspan="5">
+
+                No tasks available.
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

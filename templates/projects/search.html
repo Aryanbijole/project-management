@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>🔍 Global Search</h1>
+
+<form method="GET">
+    <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Search..."
+    >
+
+    <button type="submit">
+        Search
+    </button>
+</form>
+
+<hr>
+
+<h2>Projects</h2>
+
+{% for project in projects %}
+<p>{{ project.name }}</p>
+{% empty %}
+<p>No projects found.</p>
+{% endfor %}
+
+<hr>
+
+<h2>Tasks</h2>
+
+{% for task in tasks %}
+<p>{{ task.title }}</p>
+{% empty %}
+<p>No tasks found.</p>
+{% endfor %}
+
+<hr>
+
+<h2>Users</h2>
+
+{% for user in users %}
+<p>{{ user.email }}</p>
+{% empty %}
+<p>No users found.</p>
+{% endfor %}
+
+<hr>
+
+<h2>Milestones</h2>
+
+{% for milestone in milestones %}
+<p>{{ milestone.title }}</p>
+{% empty %}
+<p>No milestones found.</p>
+{% endfor %}
+
+{% endblock %}

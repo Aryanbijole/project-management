@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'exports',
     'rest_framework',
     'ckeditor',
+    'dashboard',
 ]
 
 MIDDLEWARE = [

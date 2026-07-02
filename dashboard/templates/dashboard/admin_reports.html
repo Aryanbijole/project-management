@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Reports{% endblock %}
+
+{% block content %}
+
+<h1>Admin Reports</h1>
+
+<div class="grid-cols-3">
+
+    <div class="glass-card">
+        <h3>Total Users</h3>
+        <h2>{{ total_users }}</h2>
+    </div>
+
+    <div class="glass-card">
+        <h3>Total Projects</h3>
+        <h2>{{ total_projects }}</h2>
+    </div>
+
+    <div class="glass-card">
+        <h3>Total Tasks</h3>
+        <h2>{{ total_tasks }}</h2>
+    </div>
+
+    <div class="glass-card">
+        <h3>Completed Tasks</h3>
+        <h2>{{ completed_tasks }}</h2>
+    </div>
+
+    <div class="glass-card">
+        <h3>Active Tasks</h3>
+        <h2>{{ active_tasks }}</h2>
+    </div>
+
+    <div class="glass-card">
+        <h3>Total Milestones</h3>
+        <h2>{{ milestones }}</h2>
+    </div>
+
+</div>
+
+<h2 style="margin-top:40px;">Recent Projects</h2>
+
+<table class="table">
+    <tr>
+        <th>Name</th>
+    </tr>
+
+    {% for project in recent_projects %}
+    <tr>
+        <td>{{ project.name }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2 style="margin-top:40px;">Recent Tasks</h2>
+
+<table class="table">
+    <tr>
+        <th>Task</th>
+    </tr>
+
+    {% for task in recent_tasks %}
+    <tr>
+        <td>{{ task.title }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

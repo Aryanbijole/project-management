@@ -183,60 +183,6 @@
 
 {% endfor %}
 
-<hr>
-
-<h2>⏱ Time Tracking</h2>
-
-<a href="{% url 'start_timer' task.id %}"
-   class="btn btn-primary">
-    Start Timer
-</a>
-
-<br><br>
-
-{% for entry in task.time_entries.all %}
-
-<div class="glass-card" style="margin-top:10px;">
-
-    <strong>
-        {{ entry.user.email }}
-    </strong>
-
-    <br>
-
-    Started:
-    {{ entry.start_time }}
-
-    <br>
-
-    {% if entry.end_time %}
-
-        Ended:
-        {{ entry.end_time }}
-
-        <br>
-
-        Hours Worked:
-        {{ entry.hours }}
-
-    {% else %}
-
-        <br><br>
-
-        <a href="{% url 'stop_timer' entry.id %}"
-           class="btn btn-secondary">
-            Stop Timer
-        </a>
-
-    {% endif %}
-
-</div>
-
-{% empty %}
-
-<p>No time entries yet.</p>
-
-{% endfor %}
 
 
 <h2>Activity History</h2>
@@ -249,5 +195,78 @@
 {% empty %}
 <p>No activity.</p>
 {% endfor %}
+
+
+
+
+<!-- PASTE TIME TRACKING HERE -->
+
+<hr>
+
+<div class="glass-card">
+
+    <h2>⏱ Time Tracking</h2>
+
+    <form method="POST"
+          action="{% url 'log_time' project.id task.id %}">
+
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Hours Worked</label>
+            <input
+                type="number"
+                step="0.25"
+                name="hours"
+                class="form-control"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Work Note</label>
+            <textarea
+                name="note"
+                class="form-control"
+                rows="3">
+            </textarea>
+        </div>
+
+        <button
+            type="submit"
+            class="btn btn-primary">
+            Log Time
+        </button>
+
+    </form>
+
+</div>
+
+<br>
+
+<div class="glass-card">
+
+    <h3>Logged Time Entries</h3>
+
+    {% for entry in time_entries %}
+
+        <div style="padding:10px;border-bottom:1px solid #ddd;">
+
+            <strong>{{ entry.user.email }}</strong>
+
+            <p>{{ entry.hours }} hours</p>
+
+            <p>{{ entry.note }}</p>
+
+            <small>{{ entry.created_at }}</small>
+
+        </div>
+
+    {% empty %}
+
+        <p>No time logged yet.</p>
+
+    {% endfor %}
+
+</div>
 
 {% endblock %}

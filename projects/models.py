@@ -172,4 +172,33 @@ class Milestone(models.Model):
     )
 
     def __str__(self):
-        return self.title    
+        return self.title   
+
+class ProjectDocument(models.Model):
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='documents'
+    )
+
+    title = models.CharField(
+        max_length=255
+    )
+
+    file = models.FileField(
+        upload_to='project_documents/'
+    )
+
+    uploaded_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.title     
