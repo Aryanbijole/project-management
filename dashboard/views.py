@@ -3,6 +3,7 @@ from django.http import HttpResponseForbidden
 from projects.models import Project, Milestone
 from tasks.models import TodoItem
 from django.contrib import messages
+from audit.utils import create_audit_log
 from django.shortcuts import get_object_or_404, redirect, render
 from accounts.models import (
     User,
@@ -586,38 +587,41 @@ def role_create(request):
 
     if request.method == "POST":
 
-        Role.objects.create(
+      role = Role.objects.create(
 
-            name=request.POST["name"],
+        name=request.POST["name"],
 
-            description=request.POST["description"],
+        description=request.POST["description"],
 
-            can_manage_users="can_manage_users" in request.POST,
-            can_manage_projects="can_manage_projects" in request.POST,
-            can_manage_companies="can_manage_companies" in request.POST,
-            can_manage_groups="can_manage_groups" in request.POST,
+        can_manage_users="can_manage_users" in request.POST,
+        can_manage_projects="can_manage_projects" in request.POST,
+        can_manage_companies="can_manage_companies" in request.POST,
+        can_manage_groups="can_manage_groups" in request.POST,
 
-            can_create_projects="can_create_projects" in request.POST,
-            can_edit_projects="can_edit_projects" in request.POST,
-            can_delete_projects="can_delete_projects" in request.POST,
+        can_create_projects="can_create_projects" in request.POST,
+        can_edit_projects="can_edit_projects" in request.POST,
+        can_delete_projects="can_delete_projects" in request.POST,
 
-            can_create_tasks="can_create_tasks" in request.POST,
-            can_edit_tasks="can_edit_tasks" in request.POST,
-            can_delete_tasks="can_delete_tasks" in request.POST,
+        can_create_tasks="can_create_tasks" in request.POST,
+        can_edit_tasks="can_edit_tasks" in request.POST,
+        can_delete_tasks="can_delete_tasks" in request.POST,
 
-            can_upload_files="can_upload_files" in request.POST,
+        can_upload_files="can_upload_files" in request.POST,
 
-            can_view_reports="can_view_reports" in request.POST,
-        )
-
-        messages.success(request, "Role created successfully.")
-
-        return redirect("admin_role_list")
-
-    return render(
-        request,
-        "dashboard/role_create.html",
+        can_view_reports="can_view_reports" in request.POST,
     )
+
+    # ✅ AUDIT LOG ADDED HERE
+    create_audit_log(
+        request,
+        module="Role",
+        action="CREATE",
+        description=f"Created role '{role.name}'",
+    )
+
+    messages.success(request, "Role created successfully.")
+
+    return redirect("admin_role_list")
 
 @login_required
 def role_edit(request, role_id):
@@ -628,8 +632,15 @@ def role_edit(request, role_id):
         role.description = request.POST.get("description", "")
         role.save()
 
+        create_audit_log(
+            request,
+            module="Role",
+            action="UPDATE",
+            description=f"Updated role '{role.name}'",
+        )
+
         messages.success(request, "Role updated successfully.")
-        return redirect("role_list")
+        return redirect("admin_role_list")
 
     return render(
         request,
@@ -641,13 +652,56 @@ def role_edit(request, role_id):
 def role_delete(request, role_id):
     role = get_object_or_404(Role, id=role_id)
 
-    if request.method == "POST":
-        role.delete()
-        messages.success(request, "Role deleted successfully.")
-        return redirect("role_list")
+    # store name BEFORE deleting
+    role_name = role.name
+
+    role.delete()
+
+    create_audit_log(
+        request,
+        module="Role",
+        action="DELETE",
+        description=f"Deleted role '{role_name}'",
+    )
+
+    messages.success(request, "Role deleted successfully.")
+    return redirect("admin_role_list")
+
+from audit.models import AuditLog
+from django.core.paginator import Paginator
+
+
+@login_required
+def audit_logs(request):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    logs = AuditLog.objects.select_related("user").all()
+
+    # Search
+    q = request.GET.get("q")
+    if q:
+        logs = logs.filter(description__icontains=q)
+
+    # Filter by action
+    action = request.GET.get("action")
+    if action:
+        logs = logs.filter(action=action)
+
+    paginator = Paginator(logs, 20)
+
+    page = request.GET.get("page")
+
+    logs = paginator.get_page(page)
 
     return render(
         request,
-        "dashboard/role_delete.html",
-        {"role": role},
+        "dashboard/audit_logs.html",
+        {
+            "logs": logs,
+        },
     )

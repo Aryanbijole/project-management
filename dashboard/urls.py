@@ -153,4 +153,10 @@ path(
     views.role_delete,
     name="admin_role_delete",
 ),
+
+path(
+    "audit-logs/",
+    views.audit_logs,
+    name="admin_audit_logs",
+),
 ]

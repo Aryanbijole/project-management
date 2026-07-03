@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+
+<div class="glass-card">
+
+    <h2 class="mb-4">📋 Audit Logs</h2>
+
+    <form method="GET" class="row g-3 mb-4">
+
+        <div class="col-md-5">
+            <input
+                type="text"
+                name="q"
+                value="{{ request.GET.q }}"
+                placeholder="Search description..."
+                class="form-control">
+        </div>
+
+        <div class="col-md-3">
+            <select name="action" class="form-select">
+
+                <option value="">All Actions</option>
+
+                <option value="CREATE">Create</option>
+                <option value="UPDATE">Update</option>
+                <option value="DELETE">Delete</option>
+                <option value="LOGIN">Login</option>
+                <option value="LOGOUT">Logout</option>
+                <option value="UPLOAD">Upload</option>
+
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100">
+                Search
+            </button>
+        </div>
+
+    </form>
+
+
+    <div class="table-responsive">
+
+        <table class="table table-hover table-bordered align-middle">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Module</th>
+                    <th>Action</th>
+                    <th>Description</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for log in logs %}
+
+                <tr>
+
+                    <td>{{ log.created_at|date:"d M Y H:i" }}</td>
+
+                    <td>{{ log.user }}</td>
+
+                    <td>{{ log.module }}</td>
+
+                    <td>
+
+                        {% if log.action == "CREATE" %}
+                            <span class="badge bg-success">Create</span>
+
+                        {% elif log.action == "UPDATE" %}
+                            <span class="badge bg-warning text-dark">Update</span>
+
+                        {% elif log.action == "DELETE" %}
+                            <span class="badge bg-danger">Delete</span>
+
+                        {% elif log.action == "LOGIN" %}
+                            <span class="badge bg-primary">Login</span>
+
+                        {% elif log.action == "LOGOUT" %}
+                            <span class="badge bg-secondary">Logout</span>
+
+                        {% else %}
+                            <span class="badge bg-info">{{ log.action }}</span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>{{ log.description }}</td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="5" class="text-center">
+                        No audit logs found.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="mt-3">
+
+        {% if logs.has_previous %}
+            <a class="btn btn-outline-primary"
+               href="?page={{ logs.previous_page_number }}">
+                Previous
+            </a>
+        {% endif %}
+
+        <span class="mx-3">
+
+            Page {{ logs.number }}
+            of
+            {{ logs.paginator.num_pages }}
+
+        </span>
+
+        {% if logs.has_next %}
+            <a class="btn btn-outline-primary"
+               href="?page={{ logs.next_page_number }}">
+                Next
+            </a>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

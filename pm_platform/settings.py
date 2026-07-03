@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ckeditor',
     'dashboard',
+    'audit',
 ]
 
 MIDDLEWARE = [
@@ -58,9 +59,21 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit.middleware.AuditMiddleware',
 ]
 
 ROOT_URLCONF = 'pm_platform.urls'
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
+    }
+}
 
 TEMPLATES = [
     {

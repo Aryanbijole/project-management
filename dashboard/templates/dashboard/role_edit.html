@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Role{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+<h2>Edit Role</h2>
+
+<form method="post">
+
+{% csrf_token %}
+
+<label>Role Name</label>
+<input
+    type="text"
+    name="name"
+    class="form-control"
+    value="{{ role.name }}"
+    required>
+
+<br>
+
+<label>Description</label>
+<textarea
+    name="description"
+    class="form-control">{{ role.description }}</textarea>
+
+<hr>
+
+<h4>Permissions</h4>
+
+<label>
+<input
+    type="checkbox"
+    name="can_manage_users"
+    {% if role.can_manage_users %}checked{% endif %}>
+Manage Users
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_manage_projects"
+    {% if role.can_manage_projects %}checked{% endif %}>
+Manage Projects
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_manage_companies"
+    {% if role.can_manage_companies %}checked{% endif %}>
+Manage Companies
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_manage_groups"
+    {% if role.can_manage_groups %}checked{% endif %}>
+Manage Groups
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_create_projects"
+    {% if role.can_create_projects %}checked{% endif %}>
+Create Projects
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_edit_projects"
+    {% if role.can_edit_projects %}checked{% endif %}>
+Edit Projects
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_delete_projects"
+    {% if role.can_delete_projects %}checked{% endif %}>
+Delete Projects
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_create_tasks"
+    {% if role.can_create_tasks %}checked{% endif %}>
+Create Tasks
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_edit_tasks"
+    {% if role.can_edit_tasks %}checked{% endif %}>
+Edit Tasks
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_delete_tasks"
+    {% if role.can_delete_tasks %}checked{% endif %}>
+Delete Tasks
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_upload_files"
+    {% if role.can_upload_files %}checked{% endif %}>
+Upload Files
+</label><br>
+
+<label>
+<input
+    type="checkbox"
+    name="can_view_reports"
+    {% if role.can_view_reports %}checked{% endif %}>
+View Reports
+</label><br><br>
+
+<button class="btn btn-success">
+Update Role
+</button>
+
+<a href="{% url 'admin_role_list' %}" class="btn btn-secondary">
+Cancel
+</a>
+
+</form>
+
+</div>
+
+{% endblock %}
