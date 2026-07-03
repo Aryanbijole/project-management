@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Organization Members{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
+        <h2>🏢 Organization Members</h2>
+    </div>
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for membership in memberships %}
+
+        <tr>
+
+            <td>
+                {{ membership.user.first_name }}
+                {{ membership.user.last_name }}
+            </td>
+
+            <td>{{ membership.user.email }}</td>
+
+            <td>{{ membership.company.name }}</td>
+
+            <td>{{ membership.get_role_display }}</td>
+
+            <td>
+
+               <a href="{% url 'organization_member_edit' membership.id %}"
+               class="btn btn-primary btn-sm">
+               Edit
+               </a>
+
+               <a href="{% url 'organization_member_delete' membership.id %}"
+               class="btn btn-danger btn-sm">
+               Remove
+               </a>
+
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="4">
+                No organization members found.
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

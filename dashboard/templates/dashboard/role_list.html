@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Role Management{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
+
+        <h2>🔐 Role Management</h2>
+
+        <a href="{% url 'admin_role_create' %}" class="btn btn-primary">
+            + Create Role
+        </a>
+
+    </div>
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+                <th>Role Name</th>
+                <th>Description</th>
+                <th>Users</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for role in roles %}
+
+        <tr>
+
+            <td>{{ role.name }}</td>
+
+            <td>{{ role.description }}</td>
+
+            <td>{{ role.users.count }}</td>
+
+            <td>
+
+                <a href="{% url 'admin_role_edit' role.id %}"
+                   class="btn btn-primary btn-sm">
+                    Edit
+                </a>
+
+                <a href="{% url 'admin_role_delete' role.id %}"
+                   class="btn btn-danger btn-sm">
+                    Delete
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="4">
+                No custom roles created.
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

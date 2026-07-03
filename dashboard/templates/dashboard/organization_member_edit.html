@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Organization Member{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2>Edit Organization Member</h2>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label>Name</label>
+            <input
+                type="text"
+                class="form-control"
+                value="{{ membership.user.first_name }} {{ membership.user.last_name }}"
+                readonly>
+        </div>
+
+        <div class="mb-3">
+            <label>Email</label>
+            <input
+                type="email"
+                class="form-control"
+                value="{{ membership.user.email }}"
+                readonly>
+        </div>
+
+        <div class="mb-3">
+            <label>Company</label>
+            <input
+                type="text"
+                class="form-control"
+                value="{{ membership.company.name }}"
+                readonly>
+        </div>
+
+        <div class="mb-3">
+            <label>Role</label>
+
+            <select
+                name="role"
+                class="form-control">
+
+                {% for value,label in roles %}
+
+                    <option
+                        value="{{ value }}"
+                        {% if membership.role == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <button class="btn btn-primary">
+            Save Changes
+        </button>
+
+        <a href="{% url 'organization_members' %}"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Remove Member{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2>Remove Organization Member</h2>
+
+    <p>
+        Are you sure you want to remove
+        <strong>{{ membership.user.first_name }} {{ membership.user.last_name }}</strong>
+        from
+        <strong>{{ membership.company.name }}</strong>?
+    </p>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <button class="btn btn-danger">
+            Remove Member
+        </button>
+
+        <a href="{% url 'organization_members' %}"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

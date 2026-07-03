@@ -8,7 +8,14 @@ class User(AbstractUser):
     ROLE_MEMBER = 'member'
     ROLE_CLIENT = 'client'
     ROLE_COLLABORATOR = 'collaborator'
-    
+
+    role = models.ForeignKey(
+    "Role",
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name="users"
+    )
     ROLE_CHOICES = [
         (ROLE_ADMIN, 'Admin'),
         (ROLE_MEMBER, 'Organization Member'),
@@ -18,6 +25,13 @@ class User(AbstractUser):
     
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_MEMBER)
+    custom_role = models.ForeignKey(
+    "Role",
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name="users",
+    )
     is_merged = models.BooleanField(default=False)
     merged_into = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='merged_accounts')
 
@@ -74,6 +88,31 @@ class Group(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.company.name})"
+    
+class Role(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    description = models.TextField(blank=True)
+
+    can_manage_users = models.BooleanField(default=False)
+    can_manage_projects = models.BooleanField(default=False)
+    can_manage_companies = models.BooleanField(default=False)
+    can_manage_groups = models.BooleanField(default=False)
+
+    can_create_projects = models.BooleanField(default=False)
+    can_edit_projects = models.BooleanField(default=False)
+    can_delete_projects = models.BooleanField(default=False)
+
+    can_create_tasks = models.BooleanField(default=False)
+    can_edit_tasks = models.BooleanField(default=False)
+    can_delete_tasks = models.BooleanField(default=False)
+
+    can_upload_files = models.BooleanField(default=False)
+
+    can_view_reports = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name    
 
 
 class Invitation(models.Model):

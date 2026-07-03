@@ -31,7 +31,9 @@
         {% for group in groups %}
 
         <tr>
-            <td>{{ group.name }}</td>
+            <a href="{% url 'admin_group_detail' group.id %}">
+            {{ group.name }}
+            </a>
             <td>{{ group.company.name }}</td>
             <td>{{ group.members.count }}</td>
             <td>{{ group.created_at|date:"d M Y" }}</td>

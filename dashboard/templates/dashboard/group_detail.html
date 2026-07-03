@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
+        <h2>👥 {{ group.name }}</h2>
+    </div>
+
+    <h4>Current Members</h4>
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for member in group.members.all %}
+
+        <tr>
+
+            <td>{{ member.first_name }} {{ member.last_name }}</td>
+
+            <td>{{ member.email }}</td>
+
+            <td>{{ member.get_role_display }}</td>
+
+            <td>
+                <a href="{% url 'remove_group_member' group.id member.id %}"
+                   class="btn btn-danger btn-sm">
+                    Remove
+                </a>
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="4">
+                No members added yet.
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <hr>
+
+    <h4>Add Member</h4>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <div class="mb-3">
+
+            <select
+                name="user"
+                class="form-control"
+                required>
+
+                {% for user in users %}
+
+                    <option value="{{ user.id }}">
+                        {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <button class="btn btn-primary">
+            Add Member
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

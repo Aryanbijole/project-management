@@ -38,26 +38,58 @@
 
     <div class="mb-3">
 
-        <label>Members</label>
+        <h3>Current Members</h3>
 
-        <select
-            name="members"
-            class="form-control"
-            multiple
-            size="8">
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Keep in Group</th>
+        </tr>
+    </thead>
 
-            {% for user in users %}
+    <tbody>
+        {% for member in group.members.all %}
+        <tr>
+            <td>{{ member.first_name }} {{ member.last_name }}</td>
+            <td>{{ member.email }}</td>
+            <td>{{ member.get_role_display }}</td>
 
-                <option value="{{ user.id }}"
-                    {% if user in group.members.all %}selected{% endif %}>
+            <td>
+                <input
+                    type="checkbox"
+                    name="members"
+                    value="{{ member.id }}"
+                    checked
+                >
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No members in this group.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-                    {{ user.first_name }} {{ user.last_name }}
+<hr>
 
-                </option>
+<h3>Add Members</h3>
 
-            {% endfor %}
+<select name="members" multiple size="8">
+    {% for user in available_users %}
+    <option value="{{ user.id }}">
+        {{ user.first_name }} {{ user.last_name }}
+        ({{ user.email }})
+    </option>
+    {% endfor %}
+</select>
 
-        </select>
+<p style="margin-top:10px;">
+Hold <b>Ctrl</b> (Windows) or <b>Cmd</b> (Mac) to select multiple users.
+</p>
 
     </div>
 

@@ -98,4 +98,59 @@ path(
     views.group_delete,
     name="admin_group_delete",
 ),
+
+path(
+    "admin/groups/<int:group_id>/",
+    views.group_detail,
+    name="admin_group_detail",
+),
+
+path(
+    "groups/<int:group_id>/remove/<int:user_id>/",
+    views.remove_group_member,
+    name="remove_group_member",
+),
+
+path(
+    "organization/members/",
+    views.organization_members,
+    name="organization_members",
+),
+
+path(
+    "organization/members/<int:membership_id>/edit/",
+    views.organization_member_edit,
+    name="organization_member_edit",
+),
+
+path(
+    "organization/members/<int:membership_id>/delete/",
+    views.organization_member_delete,
+    name="organization_member_delete",
+),
+
+# Role Management
+path(
+    "roles/",
+    views.role_list,
+    name="admin_role_list",
+),
+
+path(
+    "roles/create/",
+    views.role_create,
+    name="admin_role_create",
+),
+
+path(
+    "roles/<int:role_id>/edit/",
+    views.role_edit,
+    name="admin_role_edit",
+),
+
+path(
+    "roles/<int:role_id>/delete/",
+    views.role_delete,
+    name="admin_role_delete",
+),
 ]

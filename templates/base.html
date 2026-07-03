@@ -96,6 +96,16 @@
                 <span>👥</span> Group Management
                 </a>
 
+                <a href="{% url 'organization_members' %}"
+                class="nav-item {% if 'organization/members' in request.path %}active{% endif %}">
+                <span>🏢</span> Organization Members
+                </a>
+
+                <a href="{% url 'admin_role_list' %}"
+                class="nav-item {% if 'roles' in request.path %}active{% endif %}">
+                <span>🔐</span> Role Management
+                </a>
+
                 <a href="{% url 'admin_reports' %}" class="nav-item">
                 <span>📊</span> Reports
                 </a>

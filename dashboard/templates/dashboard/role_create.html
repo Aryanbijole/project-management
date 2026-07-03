@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Create Role{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+<h2>Create Role</h2>
+
+<form method="post">
+
+{% csrf_token %}
+
+<label>Role Name</label>
+<input type="text" name="name" class="form-control" required>
+
+<br>
+
+<label>Description</label>
+<textarea name="description" class="form-control"></textarea>
+
+<hr>
+
+<h4>Permissions</h4>
+
+<label><input type="checkbox" name="can_manage_users"> Manage Users</label><br>
+
+<label><input type="checkbox" name="can_manage_projects"> Manage Projects</label><br>
+
+<label><input type="checkbox" name="can_manage_companies"> Manage Companies</label><br>
+
+<label><input type="checkbox" name="can_manage_groups"> Manage Groups</label><br>
+
+<label><input type="checkbox" name="can_create_projects"> Create Projects</label><br>
+
+<label><input type="checkbox" name="can_edit_projects"> Edit Projects</label><br>
+
+<label><input type="checkbox" name="can_delete_projects"> Delete Projects</label><br>
+
+<label><input type="checkbox" name="can_create_tasks"> Create Tasks</label><br>
+
+<label><input type="checkbox" name="can_edit_tasks"> Edit Tasks</label><br>
+
+<label><input type="checkbox" name="can_delete_tasks"> Delete Tasks</label><br>
+
+<label><input type="checkbox" name="can_upload_files"> Upload Files</label><br>
+
+<label><input type="checkbox" name="can_view_reports"> View Reports</label><br><br>
+
+<button class="btn btn-primary">
+Create Role
+</button>
+
+<a href="{% url 'admin_role_list' %}" class="btn btn-secondary">
+Cancel
+</a>
+
+</form>
+
+</div>
+
+{% endblock %}
