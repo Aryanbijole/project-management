@@ -38,9 +38,19 @@
                     <span>🏠</span> Dashboard
                 </a>
 
-                <a href="{% url 'admin_project_list' %}"  class="nav-item {% if request.resolver_match.url_name == 'Projects' %}active{% endif %}"> 
-                    <span>📁</span> Projects
-                </a>
+                {% if request.user.is_superuser or request.user.role == User.ROLE_ADMIN %}
+
+                  <a href="{% url 'admin_project_list' %}" class="nav-item">
+                      <span>📂</span> Project Management
+                  </a>
+
+                {% else %}
+
+                   <a href="{% url 'project_list' %}" class="nav-item">
+                      <span>📂</span> My Projects
+                   </a>
+ 
+                {% endif %}
 
                 
                 <a href="{% url 'analytics_dashboard' %}"
@@ -83,9 +93,35 @@
                 <span>👥</span> User Management
                 </a>
 
-                <a href="{% url 'admin_project_list' %}" class="nav-item">
-                <span>📂</span> Project Management
-                </a>
+                {% if request.user.is_superuser or request.user.role == request.user.ROLE_ADMIN %}
+
+                  <div class="nav-group">
+
+                      <div class="nav-item">
+                          <span>📂</span> Project Management
+                      </div>
+
+                      <div class="nav-submenu">
+
+                          <a href="{% url 'admin_project_list' %}" class="nav-subitem">
+                              <span>📂</span>Active Projects
+                          </a>
+
+                          <a href="{% url 'admin_archived_projects' %}" class="nav-subitem">
+                              <span>📂</span>Archived Projects
+                          </a>
+
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <a href="{% url 'project_list' %}" class="nav-item">
+                        <span>📂</span> My Projects
+                    </a>
+  
+                {% endif %}
 
                 <a href="{% url 'admin_company_list' %}" class="nav-item">
                 <span>🏢</span> Company Management

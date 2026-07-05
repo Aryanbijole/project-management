@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}My Projects{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+        <h2>My Projects</h2>
+
+    </div>
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Visibility</th>
+                <th>Action</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for project in projects %}
+
+        <tr>
+
+            <td>{{ project.name }}</td>
+
+            <td>{{ project.company.name }}</td>
+
+            <td>{{ project.owner }}</td>
+
+            <td>{{ project.get_status_display }}</td>
+
+            <td>{{ project.get_visibility_display }}</td>
+
+            <td>
+
+                <a href="{% url 'project_detail' project.id %}"
+                   class="btn btn-primary btn-sm">
+
+                    Open
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="6">
+
+                No projects assigned.
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

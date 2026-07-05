@@ -12,6 +12,11 @@ from accounts.models import (
     CompanyMembership,
     Role,
 )
+from projects.forms import ProjectForm
+from django.core.paginator import Paginator
+from django.db.models import Q
+
+
 
 
 @login_required
@@ -61,7 +66,7 @@ def user_create(request):
 
         email = request.POST["email"]
 
-        User.objects.create_user(
+        user = User.objects.create_user(
             username=email,
             email=email,
             first_name=request.POST["first_name"],
@@ -70,96 +75,27 @@ def user_create(request):
             role=request.POST["role"],
         )
 
+        create_audit_log(
+            request,
+            module="User",
+            action="CREATE",
+            description=f"Created user '{user.email}'",
+        )
+
         messages.success(request, "User created successfully.")
         return redirect("admin_users")
 
     return render(request, "dashboard/user_create.html")
 
-@login_required
-def user_edit(request, user_id):
-
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
-
-    return render(
-        request,
-        "dashboard/user_edit.html"
-    )
-
-
-@login_required
-def user_delete(request, user_id):
-
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
-
-    user = get_object_or_404(User, id=user_id)
-
-    if user != request.user:
-        user.delete()
-
-    return redirect("admin_users")
-
-@login_required
-def project_list(request):
-
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
-
-    projects = Project.objects.all().order_by("-created_at")
-
-    return render(
-        request,
-        "dashboard/projects.html",
-        {
-            "projects": projects,
-        }
-    )
-
-
-@login_required
-def project_create(request):
-
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
-
-    return render(
-        request,
-        "dashboard/project_create.html"
-    )
-
-
-@login_required
-def project_edit(request, project_id):
-
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
-
-    project = get_object_or_404(Project, id=project_id)
-
-    return render(
-        request,
-        "dashboard/project_edit.html",
-        {
-            "project": project,
-        }
-    )
-
-
-@login_required
-def project_delete(request, project_id):
-
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
-
-    project = get_object_or_404(Project, id=project_id)
-    project.delete()
-
-    return redirect("admin_project_list")
-
 
 def user_edit(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
+
+    if not (
+    request.user.is_superuser or
+    request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
 
     if request.method == "POST":
         user_obj.first_name = request.POST.get("first_name")
@@ -181,6 +117,13 @@ def user_edit(request, user_id):
         user_obj.save()
         messages.success(request, "User updated successfully.")
         return redirect("admin_users")
+    
+    create_audit_log(
+           request,
+           module="User",
+           action="UPDATE",
+           description=f"Updated user '{user_obj.email}'",
+    )
 
     return render(
         request,
@@ -191,6 +134,261 @@ def user_edit(request, user_id):
         },
     )
 
+
+@login_required
+def user_delete(request, user_id):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    user = get_object_or_404(User, id=user_id)
+
+    # Prevent admin from deleting themselves
+    if user == request.user:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect("admin_users")
+
+    # Save details before deletion
+    email = user.email
+
+    # Delete the user
+    user.delete()
+
+    # Create audit log
+    create_audit_log(
+        request,
+        module="User",
+        action="DELETE",
+        description=f"Deleted user '{email}'",
+    )
+
+    messages.success(request, "User deleted successfully.")
+
+    return redirect("admin_users")
+
+
+@login_required
+def project_list(request):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    search = request.GET.get("search", "")
+    status = request.GET.get("status", "")
+
+    projects = Project.objects.filter(
+    is_archived=False
+    ).select_related(
+       "company",
+       "owner",
+       "created_by",
+    )  
+
+    if search:
+        projects = projects.filter(
+            Q(name__icontains=search) |
+            Q(company__name__icontains=search) |
+            Q(owner__first_name__icontains=search) |
+            Q(owner__last_name__icontains=search)
+        )
+
+    if status:
+        projects = projects.filter(status=status)
+
+    paginator = Paginator(projects, 10)
+
+    page_number = request.GET.get("page")
+    projects = paginator.get_page(page_number)
+
+    context = {
+        "projects": projects,
+        "search": search,
+        "status": status,
+        "total_projects": Project.objects.count(),
+        "active_projects": Project.objects.filter(status=Project.STATUS_ACTIVE).count(),
+        "completed_projects": Project.objects.filter(status=Project.STATUS_COMPLETED).count(),
+        "archived_projects": Project.objects.filter(is_archived=True).count(),
+    }
+
+    return render(
+        request,
+        "dashboard/projects.html",
+        context,
+    )
+
+
+@login_required
+def project_create(request):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    if request.method == "POST":
+
+        form = ProjectForm(request.POST)
+
+        if form.is_valid():
+
+            project = form.save(commit=False)
+
+            project.created_by = request.user
+
+            project.save()
+
+            form.save_m2m()
+
+            create_audit_log(
+                request,
+                module="Project",
+                action="CREATE",
+                description=f"Created project '{project.name}'",
+            )
+
+            messages.success(request, "Project created successfully.")
+
+            return redirect("admin_project_list")
+
+    else:
+
+        form = ProjectForm()
+
+    return render(
+        request,
+        "dashboard/project_create.html",
+        {
+            "form": form,
+        },
+    )
+
+@login_required
+def project_edit(request, project_id):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    project = get_object_or_404(Project, id=project_id)
+
+    if request.method == "POST":
+
+        form = ProjectForm(request.POST, instance=project)
+
+        if form.is_valid():
+
+            project = form.save()
+
+            create_audit_log(
+                request,
+                module="Project",
+                action="UPDATE",
+                description=f"Updated project '{project.name}'",
+            )
+
+            messages.success(request, "Project updated successfully.")
+
+            return redirect("admin_project_list")
+
+    else:
+
+        form = ProjectForm(instance=project)
+
+    return render(
+        request,
+        "dashboard/project_edit.html",
+        {
+            "form": form,
+            "project": project,
+        },
+    )
+
+@login_required
+def project_delete(request, project_id):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    project = get_object_or_404(Project, id=project_id)
+
+    project_name = project.name
+
+    project.delete()
+
+    create_audit_log(
+        request,
+        module="Project",
+        action="DELETE",
+        description=f"Deleted project '{project_name}'",
+    )
+
+    messages.success(request, "Project deleted successfully.")
+
+    return redirect("admin_project_list")
+
+@login_required
+def project_detail(request, project_id):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    project = get_object_or_404(
+        Project.objects.select_related(
+            "company",
+            "owner",
+            "created_by",
+        ).prefetch_related("members"),
+        id=project_id,
+    )
+
+    tasks = TodoItem.objects.filter(
+        todo_list__project=project
+    )
+
+    total_tasks = tasks.count()
+
+    completed_tasks = tasks.filter(
+        status=TodoItem.STATUS_DONE
+    ).count()
+
+    pending_tasks = total_tasks - completed_tasks
+
+    progress = (
+        int((completed_tasks / total_tasks) * 100)
+        if total_tasks else 0
+    )
+
+    recent_tasks = tasks.order_by("-created_at")[:5]
+
+    context = {
+        "project": project,
+        "total_tasks": total_tasks,
+        "completed_tasks": completed_tasks,
+        "pending_tasks": pending_tasks,
+        "progress": progress,
+        "recent_tasks": recent_tasks,
+    }
+
+    return render(
+        request,
+        "dashboard/project_detail.html",
+        context,
+    )
 
 @login_required
 def company_list(request):
@@ -704,4 +902,109 @@ def audit_logs(request):
         {
             "logs": logs,
         },
+    )
+
+@login_required
+def project_archive(request, project_id):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    project = get_object_or_404(Project, id=project_id)
+
+    project.is_archived = not project.is_archived
+    project.save()
+
+    if project.is_archived:
+        action = "ARCHIVE"
+        message = "Project archived successfully."
+    else:
+        action = "UNARCHIVE"
+        message = "Project restored successfully."
+
+    create_audit_log(
+        request,
+        module="Project",
+        action=action,
+        description=f"{action.title()} project '{project.name}'",
+    )
+
+    messages.success(request, message)
+
+    return redirect("admin_project_list")
+
+@login_required
+def archived_projects(request):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    projects = Project.objects.filter(
+        is_archived=True
+    ).select_related(
+        "company",
+        "owner",
+        "created_by",
+    )
+
+    context = {
+        "projects": projects,
+    }
+
+    return render(
+        request,
+        "dashboard/project_archive_list.html",
+        context,
+    )
+
+@login_required
+def restore_project(request, project_id):
+
+    if not (
+        request.user.is_superuser or
+        request.user.role == User.ROLE_ADMIN
+    ):
+        return HttpResponseForbidden()
+
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
+
+    project.is_archived = False
+    project.save()
+
+    messages.success(
+        request,
+        "Project restored successfully."
+    )
+
+    return redirect(
+        "admin_archived_projects"
+    )
+
+
+@login_required
+def user_project_list(request):
+
+    projects = Project.objects.filter(
+        members=request.user
+    ).distinct()
+
+    return render(
+
+        request,
+
+        "dashboard/projects_user.html",
+
+        {
+            "projects": projects
+        }
+
     )

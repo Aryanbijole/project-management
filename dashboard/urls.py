@@ -27,11 +27,14 @@ path(
     name="admin_user_delete"
 ),
 
+# Admin
 path(
-    "projects/",
+    "admin/projects/",
     views.project_list,
     name="admin_project_list",
 ),
+
+
 
 path(
     "projects/create/",
@@ -158,5 +161,35 @@ path(
     "audit-logs/",
     views.audit_logs,
     name="admin_audit_logs",
+),
+
+path(
+    "admin/projects/<int:project_id>/",
+    views.project_detail,
+    name="admin_project_detail",
+),
+
+path(
+    "admin/projects/archived/",
+    views.archived_projects,
+    name="admin_archived_projects",
+),
+
+path(
+   "admin/projects/<int:project_id>/archive/",
+   views.project_archive,
+   name="admin_project_archive", 
+ ),
+
+path(
+    "projects/<int:project_id>/restore/",
+    views.restore_project,
+    name="admin_project_restore",
+),
+
+path(
+    "projects/",
+    views.user_project_list,
+    name="project_list",
 ),
 ]

@@ -634,3 +634,68 @@ body {
     padding: 0;
     border-radius: 0;
 }
+
+.progress-container{
+    width:100%;
+    height:24px;
+    background:#e5e7eb;
+    border-radius:12px;
+    overflow:hidden;
+    margin:15px 0;
+}
+
+.progress-fill{
+    height:100%;
+    background:#4f46e5;
+    color:white;
+    text-align:center;
+    line-height:24px;
+    font-weight:600;
+    transition:width .3s ease;
+}
+
+.nav-group{
+    margin-bottom:10px;
+}
+
+.nav-submenu{
+    margin-left:35px;
+    display:flex;
+    flex-direction:column;
+}
+
+.nav-subitem{
+    color:#d1d5db;
+    text-decoration:none;
+    padding:8px 0;
+    font-size:14px;
+}
+
+.nav-subitem:hover{
+    color:white;
+}
+
+.nav-submenu{
+    display:flex;
+    flex-direction:column;
+    margin-left:25px;
+    margin-top:8px;
+    margin-bottom:12px;
+    gap:6px;
+}
+
+.nav-subitem{
+    display:block !important;
+    width:100%;
+    padding:8px 15px;
+    color:#cfd8ff !important;
+    text-decoration:none !important;
+    border-radius:8px;
+    font-size:14px;
+    transition:0.25s;
+}
+
+.nav-subitem:hover{
+    background:#4f46e5;
+    color:white !important;
+}

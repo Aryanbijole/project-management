@@ -4,74 +4,360 @@
 
 {% block content %}
 
-<div class="container">
+<div class="container mt-4">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <h2>Project Management</h2>
+    <!-- Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-0">Project Management</h2>
+            <small class="text-muted">
+                Manage all organization projects
+            </small>
+        </div>
 
         <a href="{% url 'admin_project_create' %}" class="btn btn-primary">
             + Create Project
         </a>
+
     </div>
 
-    <table class="table">
 
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Company</th>
-                <th>Owner</th>
-                <th>Created</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    <!-- Statistics -->
 
-        <tbody>
+    <div class="row mb-4">
 
-        {% for project in projects %}
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Total Projects</h6>
+                    <h3>{{ total_projects }}</h3>
+                </div>
+            </div>
+        </div>
 
-            <tr>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-success">
+                <div class="card-body text-center">
+                    <h6>Active</h6>
+                    <h3 class="text-success">
+                        {{ active_projects }}
+                    </h3>
+                </div>
+            </div>
+        </div>
 
-                <td>{{ project.name }}</td>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-primary">
+                <div class="card-body text-center">
+                    <h6>Completed</h6>
+                    <h3 class="text-primary">
+                        {{ completed_projects }}
+                    </h3>
+                </div>
+            </div>
+        </div>
 
-                <td>{{ project.company.name }}</td>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-secondary">
+                <div class="card-body text-center">
+                    <h6>Archived</h6>
+                    <h3 class="text-secondary">
+                        {{ archived_projects }}
+                    </h3>
+                </div>
+            </div>
+        </div>
 
-                <td>{{ project.created_by }}</td>
+    </div>
 
-                <td>{{ project.created_at|date:"d M Y" }}</td>
 
-                <td>
+    <!-- Search -->
 
-                    <a href="{% url 'admin_project_edit' project.id %}">
-                        Edit
+    <form method="get" class="row g-3 mb-4">
+
+        <div class="col-md-6">
+
+            <input
+                type="text"
+                class="form-control"
+                name="search"
+                placeholder="Search project..."
+                value="{{ search }}">
+
+        </div>
+
+        <div class="col-md-3">
+
+            <select
+                class="form-select"
+                name="status">
+
+                <option value="">All Status</option>
+
+                <option value="active"
+                    {% if status == "active" %}selected{% endif %}>
+                    Active
+                </option>
+
+                <option value="completed"
+                    {% if status == "completed" %}selected{% endif %}>
+                    Completed
+                </option>
+
+                <option value="on_hold"
+                    {% if status == "on_hold" %}selected{% endif %}>
+                    On Hold
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <button class="btn btn-dark w-100">
+                Search
+            </button>
+
+        </div>
+
+    </form>
+
+
+    <!-- Table -->
+
+    <div class="table-responsive">
+
+        <table class="table table-hover table-bordered align-middle">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>Project</th>
+                    <th>Company</th>
+                    <th>Owner</th>
+                    <th>Status</th>
+                    <th>Visibility</th>
+                    <th>Archived</th>
+                    <th>Created</th>
+                    <th width="180">Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for project in projects %}
+
+                <tr {% if project.is_archived %}class="table-secondary"{% endif %}>
+
+                    <td>
+                        <strong>{{ project.name }}</strong>
+                    </td>
+
+                    <td>
+                        {{ project.company.name }}
+                    </td>
+
+                    <td>
+
+                        {% if project.owner %}
+                            {{ project.owner.get_full_name|default:project.owner.email }}
+                        {% else %}
+                            -
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if project.status == "active" %}
+                            <span class="badge bg-success">
+                                Active
+                            </span>
+
+                        {% elif project.status == "completed" %}
+                            <span class="badge bg-primary">
+                                Completed
+                            </span>
+
+                        {% else %}
+                            <span class="badge bg-warning text-dark">
+                                On Hold
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if project.visibility == "private" %}
+                            <span class="badge bg-secondary">
+                                Private
+                            </span>
+
+                        {% elif project.visibility == "internal" %}
+                            <span class="badge bg-info">
+                                Internal
+                            </span>
+
+                        {% else %}
+                            <span class="badge bg-success">
+                                Public
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if project.is_archived %}
+                            <span class="badge bg-danger">
+                                Yes
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">
+                                No
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {{ project.created_at|date:"d M Y" }}
+
+                    </td>
+
+                    <td>
+
+                        <a href="{% url 'admin_project_detail' project.id %}"
+                           class="btn btn-sm btn-info">
+
+                           View
+
+                        </a>   
+
+                        <a
+                            href="{% url 'admin_project_edit' project.id %}"
+                            class="btn btn-sm btn-warning">
+
+                            Edit
+
+                        </a>
+
+                        {% if project.is_archived %}
+
+                          <a href="{% url 'admin_project_archive' project.id %}"
+                            class="btn btn-sm btn-success">
+                            Restore
+                         </a>
+
+                        {% else %}
+
+                         <a href="{% url 'admin_project_archive' project.id %}"
+                            class="btn btn-sm btn-secondary">
+                            Archive
+                         </a>
+
+                        {% endif %}
+
+                        <a
+                            href="{% url 'admin_project_delete' project.id %}"
+                            class="btn btn-sm btn-danger">
+
+                            Delete
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="8" class="text-center">
+
+                        No projects found.
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- Pagination -->
+
+    {% if projects.has_other_pages %}
+
+    <nav>
+
+        <ul class="pagination justify-content-center">
+
+            {% if projects.has_previous %}
+
+                <li class="page-item">
+
+                    <a class="page-link"
+                       href="?page={{ projects.previous_page_number }}">
+
+                        Previous
+
                     </a>
 
-                    |
+                </li>
 
-                    <a href="{% url 'admin_project_delete' project.id %}"
-                       style="color:red;">
-                        Delete
+            {% endif %}
+
+            {% for i in projects.paginator.page_range %}
+
+                <li class="page-item {% if projects.number == i %}active{% endif %}">
+
+                    <a class="page-link"
+                       href="?page={{ i }}">
+
+                        {{ i }}
+
                     </a>
 
-                </td>
+                </li>
 
-            </tr>
+            {% endfor %}
 
-        {% empty %}
+            {% if projects.has_next %}
 
-            <tr>
+                <li class="page-item">
 
-                <td colspan="5">
-                    No projects found.
-                </td>
+                    <a class="page-link"
+                       href="?page={{ projects.next_page_number }}">
 
-            </tr>
+                        Next
 
-        {% endfor %}
+                    </a>
 
-        </tbody>
+                </li>
 
-    </table>
+            {% endif %}
+
+        </ul>
+
+    </nav>
+
+    {% endif %}
 
 </div>
 
