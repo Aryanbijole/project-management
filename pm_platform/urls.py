@@ -20,7 +20,12 @@ urlpatterns = [
     path('', include('communication.urls')),
     path('', include('integrations.urls')),
     path('', include('exports.urls')),
+    path(
+    "notifications/",
+    include("accounts.urls_notifications"),
+    ),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    

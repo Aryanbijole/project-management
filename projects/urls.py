@@ -90,4 +90,28 @@ path(
     views.upload_project_document,
     name='upload_project_document'
 ),
+
+path(
+    "<int:project_id>/documents/",
+    views.project_documents,
+    name="project_documents",
+),
+
+path(
+    "<int:project_id>/documents/upload/",
+    views.project_document_upload,
+    name="project_document_upload",
+),
+
+path(
+    "documents/<int:document_id>/download/",
+    views.download_document,
+    name="download_document",
+),
+
+path(
+    "documents/<int:document_id>/delete/",
+    views.delete_document,
+    name="delete_document",
+),
 ]

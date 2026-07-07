@@ -201,6 +201,71 @@
 
 <!-- PASTE TIME TRACKING HERE -->
 
+<div class="card mt-4">
+
+    <div class="card-header">
+        <h5>⏱ Time Tracker</h5>
+    </div>
+
+    <div class="card-body">
+
+        {% if running_timer %}
+
+           <button class="btn btn-success" disabled>
+
+              ▶ Timer Running
+
+            </button>
+
+        {% else %}
+
+            <a href="{% url 'start_timer' project.id task.id %}"
+                class="btn btn-success">
+ 
+                  ▶ Start Timer
+
+            </a>
+
+        {% endif %}
+
+
+        {% if running_timer %}
+
+           <a href="{% url 'stop_timer' project.id task.id %}"
+              class="btn btn-danger">
+
+                 ■ Stop Timer
+
+            </a>
+
+        {% else %}
+
+            <button class="btn btn-danger" disabled>
+
+                ■ Stop Timer
+
+            </button>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<div class="text-center mb-4">
+
+    <h1 id="liveTimer" style="font-size:50px;font-weight:bold;">
+
+        {% if running_timer %}
+            00:00:00
+        {% else %}
+            00:00:00
+        {% endif %}
+
+    </h1>
+
+</div>
+
 <hr>
 
 <div class="glass-card">
@@ -268,5 +333,88 @@
     {% endfor %}
 
 </div>
+
+<hr>
+
+<h6>Time Sessions</h6>
+
+<table class="table table-bordered">
+
+    <thead>
+
+        <tr>
+
+            <th>Start</th>
+            <th>End</th>
+            <th>Hours</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for entry in time_entries %}
+
+        <tr>
+
+            <td>{{ entry.start_time }}</td>
+
+            <td>{{ entry.end_time|default:"Running..." }}</td>
+
+            <td>{{ entry.hours }}</td>
+
+        </tr>
+
+    {% empty %}
+
+        <tr>
+
+            <td colspan="3">
+
+                No time recorded.
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+<script>
+
+{% if running_timer %}
+
+const startTime = new Date("{{ running_timer.start_time|date:'c' }}").getTime();
+
+function updateTimer(){
+
+    let now = new Date().getTime();
+
+    let diff = now - startTime;
+
+    let hrs = Math.floor(diff / 3600000);
+
+    let mins = Math.floor((diff % 3600000)/60000);
+
+    let secs = Math.floor((diff % 60000)/1000);
+
+    document.getElementById("liveTimer").innerHTML =
+        String(hrs).padStart(2,'0') + ":" +
+        String(mins).padStart(2,'0') + ":" +
+        String(secs).padStart(2,'0');
+
+}
+
+updateTimer();
+
+setInterval(updateTimer,1000);
+
+{% endif %}
+
+</script>
 
 {% endblock %}

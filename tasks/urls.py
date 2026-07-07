@@ -64,4 +64,16 @@ path(
     views.gantt_view,
     name="gantt_view",
 ),
+
+path(
+    "<int:project_id>/tasks/<int:task_id>/start-timer/",
+    views.start_timer,
+    name="start_timer",
+),
+
+path(
+    "<int:project_id>/tasks/<int:task_id>/stop-timer/",
+    views.stop_timer,
+    name="stop_timer",
+),
 ]

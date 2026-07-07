@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Project Documents{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between mb-4">
+
+        <h2>{{ project.name }} Documents</h2>
+
+        <a href="{% url 'project_document_upload' project.id %}"
+           class="btn btn-primary">
+
+            Upload Document
+
+        </a>
+
+    </div>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Title</th>
+                <th>Uploaded By</th>
+                <th>Date</th>
+                <th>Actions</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for document in documents %}
+
+            <tr>
+
+                <td>{{ document.title }}</td>
+
+                <td>{{ document.uploaded_by }}</td>
+
+                <td>{{ document.uploaded_at|date:"d M Y H:i" }}</td>
+
+                <td>
+
+                    <a href="{% url 'download_document' document.id %}"
+                       class="btn btn-success btn-sm">
+
+                        Download
+
+                    </a>
+
+                    <a href="{% url 'delete_document' document.id %}"
+                       class="btn btn-danger btn-sm">
+
+                        Delete
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="4" class="text-center">
+
+                    No documents uploaded.
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,6 +1,7 @@
 from django import forms
 from .models import Project
 from accounts.models import Company, User
+from .models import ProjectDocument
 
 
 class ProjectForm(forms.ModelForm):
@@ -57,3 +58,29 @@ class ProjectForm(forms.ModelForm):
             }),
 
         }
+
+
+
+
+class ProjectDocumentForm(forms.ModelForm):
+
+    class Meta:
+        model = ProjectDocument
+        fields = [
+            "title",
+            "description",
+            "file",
+        ]
+
+        widgets = {
+            "title": forms.TextInput(attrs={
+                "class": "form-control"
+            }),
+            "description": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3
+            }),
+            "file": forms.FileInput(attrs={
+                "class": "form-control"
+            }),
+        }        

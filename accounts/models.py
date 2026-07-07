@@ -129,28 +129,48 @@ class Invitation(models.Model):
 
 class Notification(models.Model):
 
+    TYPE_TASK = "task"
+    TYPE_PROJECT = "project"
+    TYPE_COMMENT = "comment"
+    TYPE_SYSTEM = "system"
+
+    TYPE_CHOICES = [
+        (TYPE_TASK, "Task"),
+        (TYPE_PROJECT, "Project"),
+        (TYPE_COMMENT, "Comment"),
+        (TYPE_SYSTEM, "System"),
+    ]
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='notifications'
+        related_name="notifications"
     )
 
-    title = models.CharField(
-        max_length=255
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sent_notifications"
     )
+
+    title = models.CharField(max_length=255)
 
     message = models.TextField()
 
-    is_read = models.BooleanField(
-        default=False
+    notification_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default=TYPE_SYSTEM
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
+    is_read = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.title

@@ -217,6 +217,9 @@
         
         <div class="main-wrapper">
             {% if user.is_authenticated %}
+
+            
+             
             <header class="top-navbar">
                 <div>
                     <h4 style="font-weight: 700;">
@@ -227,6 +230,32 @@
                         {% endif %}
                     </h4>
                 </div>
+
+                <div class="notification-wrapper">
+
+                    <button id="notificationButton" class="notification-btn">
+
+                        🔔
+
+                        {% if notification_count > 0 %}
+                           <span class="notification-badge">
+                               {{ notification_count }}
+                           </span>
+                        {% endif %}
+
+                    </button>
+
+                    <div id="notificationMenu" class="notification-menu">
+
+                       {% include "notifications/dropdown.html" %}
+
+                    </div>
+
+                </div>
+
+
+
+
                 <div class="navbar-actions">
                     <!-- Light/Dark Mode Switcher -->
                     <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme">
@@ -235,6 +264,8 @@
                 </div>
             </header>
             {% endif %}
+
+            
             
             <main class="content-body">
                 {% if messages %}
@@ -301,5 +332,32 @@
         });
     </script>
     {% block extra_js %}{% endblock %}
+
+    <script>
+
+        const bell = document.getElementById("notificationButton");
+        const menu = document.getElementById("notificationMenu");
+
+        if (bell){
+
+            bell.addEventListener("click",function(e){
+
+            e.stopPropagation();
+
+            if(menu.style.display==="block"){
+               menu.style.display="none";
+            }else{
+               menu.style.display="block";
+            } 
+
+        });
+
+        document.addEventListener("click",function(){
+           menu.style.display="none";
+        });
+
+    }
+
+    </script>
 </body>
 </html>

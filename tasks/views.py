@@ -16,6 +16,7 @@ from tasks.models import (
 )
 from accounts.models import User
 from accounts.models import Notification
+from decimal import Decimal
 
 
 @login_required
@@ -205,6 +206,13 @@ def task_detail(request, project_id, task_id):
             project_id=project.id,
             task_id=task.id
         )
+    
+    running_timer = TimeEntry.objects.filter(
+    task=task,
+    user=request.user,
+    end_time__isnull=True,
+    is_manual=False
+     ).first()
 
     return render(
         request,
@@ -217,6 +225,7 @@ def task_detail(request, project_id, task_id):
             'checklist_items': task.checklist_items.all(),
             'attachments': task.attachments.all(),
             'time_entries': time_entries,
+            'running_timer': running_timer,
         }
     )
 
@@ -372,53 +381,93 @@ def add_task_comment(request, project_id, task_id):
     )
 
 @login_required
-def start_timer(request, task_id):
+def start_timer(request, project_id, task_id):
+
+    project = get_object_or_404(Project, id=project_id)
 
     task = get_object_or_404(
         TodoItem,
-        id=task_id
+        id=task_id,
+        todo_list__project=project
     )
 
-    TimeEntry.objects.create(
-        task=task,
-        user=request.user,
-        start_time=timezone.now()
-    )
+    running = TimeEntry.objects.filter(
+    task=task,
+    user=request.user,
+    end_time__isnull=True,
+    start_time__isnull=False,
+    is_manual=False
+    ).first()  
+
+
+    if not running:
+
+        TimeEntry.objects.create(
+            task=task,
+            user=request.user,
+            start_time=timezone.now(),
+            is_manual=False
+        )
+
+        messages.success(request, "Timer started.")
+
+    else:
+
+        messages.warning(request, "A timer is already running.")
 
     return redirect(
-        'task_detail',
-        project_id=task.todo_list.project.id,
+        "task_detail",
+        project_id=project.id,
         task_id=task.id
     )
 
 
 @login_required
-def stop_timer(request, entry_id):
+def stop_timer(request, project_id, task_id):
 
-    entry = get_object_or_404(
-        TimeEntry,
-        id=entry_id
+    project = get_object_or_404(Project, id=project_id)
+
+    task = get_object_or_404(
+        TodoItem,
+        id=task_id,
+        todo_list__project=project
     )
 
-    entry.end_time = timezone.now()
+    timer = TimeEntry.objects.filter(
+        task=task,
+        user=request.user,
+        end_time__isnull=True,
+        start_time__isnull=False,
+        is_manual=False
+    ).first()
 
-    seconds = (
-        entry.end_time -
-        entry.start_time
-    ).total_seconds()
+    if not timer or not timer.start_time:
+        messages.error(request, "No active timer found.")
+        return redirect(
+            "task_detail",
+            project_id=project.id,
+            task_id=task.id
+        )
 
-    entry.hours = round(
-        seconds / 3600,
+    timer.end_time = timezone.now()
+
+    seconds = (timer.end_time - timer.start_time).total_seconds()
+
+    timer.hours = round(
+        Decimal(seconds / 3600),
         2
     )
 
-    entry.save()
+    timer.save()
+
+    messages.success(request, "Timer stopped successfully.")
 
     return redirect(
-        'task_detail',
-        project_id=entry.task.todo_list.project.id,
-        task_id=entry.task.id
+        "task_detail",
+        project_id=project.id,
+        task_id=task.id
     )
+
 
 @login_required
 def log_time(request, project_id, task_id):

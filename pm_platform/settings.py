@@ -85,6 +85,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.notification_context',
             ],
         },
     },
@@ -163,5 +164,6 @@ EMAIL_HOST_USER = 'yourgmail@gmail.com'
 EMAIL_HOST_PASSWORD = 'your-app-password'
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 

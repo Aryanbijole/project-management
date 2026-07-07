@@ -7,14 +7,15 @@ from integrations.models import ExternalTool
 from django.views.generic import ListView
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
-from .models import Project, Milestone
+from .models import Project, Milestone, ProjectDocument
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import ProjectInvitation,ProjectDocument
 from tasks.models import TodoItem
 from django.db.models import Q
 from accounts.models import Notification
-
+from .forms import ProjectDocumentForm
+from django.http import FileResponse
 
 class ProjectListView(ListView):
     model = Project
@@ -411,4 +412,103 @@ def project_documents(
             "project": project,
             "documents": documents
         }
+    )
+
+@login_required
+def project_document_upload(request, project_id):
+
+    project = get_object_or_404(Project, id=project_id)
+
+    if request.method == "POST":
+
+        form = ProjectDocumentForm(
+            request.POST,
+            request.FILES
+        )
+
+        if form.is_valid():
+
+            document = form.save(commit=False)
+
+            document.project = project
+            document.uploaded_by = request.user
+
+            document.save()
+
+            messages.success(
+                request,
+                "Document uploaded successfully."
+            )
+
+            return redirect(
+                "project_documents",
+                project.id
+            )
+
+    else:
+
+        form = ProjectDocumentForm()
+
+    return render(
+        request,
+        "projects/document_upload.html",
+        {
+            "project": project,
+            "form": form
+        }
+    )
+
+@login_required
+def project_documents(request, project_id):
+
+    project = get_object_or_404(Project, id=project_id)
+
+    documents = ProjectDocument.objects.filter(
+        project=project
+    ).order_by("-uploaded_at")
+
+    return render(
+        request,
+        "projects/document_list.html",
+        {
+            "project": project,
+            "documents": documents
+        }
+    )
+
+@login_required
+def download_document(request, document_id):
+
+    document = get_object_or_404(
+        ProjectDocument,
+        id=document_id
+    )
+
+    return FileResponse(
+        document.file.open("rb"),
+        as_attachment=True,
+        filename=document.filename
+    )
+
+@login_required
+def delete_document(request, document_id):
+
+    document = get_object_or_404(
+        ProjectDocument,
+        id=document_id
+    )
+
+    project_id = document.project.id
+
+    document.file.delete(save=False)
+    document.delete()
+
+    messages.success(
+        request,
+        "Document deleted successfully."
+    )
+
+    return redirect(
+        "project_documents",
+        project_id
     )

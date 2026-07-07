@@ -15,6 +15,7 @@ from accounts.models import (
 from projects.forms import ProjectForm
 from django.core.paginator import Paginator
 from django.db.models import Q
+from accounts.utils import create_notification
 
 
 
@@ -252,6 +253,18 @@ def project_create(request):
                 action="CREATE",
                 description=f"Created project '{project.name}'",
             )
+
+            if project.owner:
+
+              create_notification(
+
+                user=project.owner,
+
+                title="New Project Assigned",
+
+                message=f"You have been assigned to project '{project.name}'."
+
+                )
 
             messages.success(request, "Project created successfully.")
 
@@ -917,6 +930,22 @@ def project_archive(request, project_id):
 
     project.is_archived = not project.is_archived
     project.save()
+
+    if project.is_archived:
+
+        create_notification(
+        user=project.owner,
+        title="Project Archived",
+        message=f"Project '{project.name}' has been archived."
+    )
+
+    else:
+
+        create_notification(
+        user=project.owner,
+        title="Project Restored",
+        message=f"Project '{project.name}' has been restored."
+    )
 
     if project.is_archived:
         action = "ARCHIVE"

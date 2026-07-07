@@ -699,3 +699,57 @@ body {
     background:#4f46e5;
     color:white !important;
 }
+
+.notification-wrapper{
+    position:relative;
+    display:inline-block;
+}
+
+.notification-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:24px;
+    position:relative;
+}
+
+.notification-badge{
+    position:absolute;
+    top:-6px;
+    right:-8px;
+    background:red;
+    color:white;
+    border-radius:50%;
+    padding:2px 6px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.notification-menu{
+    display:none;
+    position:absolute;
+    right:0;
+    top:40px;
+    width:340px;
+    background:white;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    z-index:9999;
+    overflow:hidden;
+}
+
+.notification-item{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+
+.dropdown-header{
+    padding:15px;
+    font-weight:bold;
+    background:#f8f9fa;
+}
+
+.dropdown-footer{
+    text-align:center;
+    padding:12px;
+}

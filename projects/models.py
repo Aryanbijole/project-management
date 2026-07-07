@@ -186,6 +186,10 @@ class ProjectDocument(models.Model):
         max_length=255
     )
 
+    description = models.TextField(
+        blank=True
+    )
+
     file = models.FileField(
         upload_to='project_documents/'
     )
@@ -200,5 +204,13 @@ class ProjectDocument(models.Model):
         auto_now_add=True
     )
 
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
     def __str__(self):
-        return self.title     
+        return self.title
+
+    @property
+    def filename(self):
+        return self.file.name.split("/")[-1]
