@@ -3,40 +3,75 @@
 {% block title %}Dashboard - Basecamp PM{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 40px;">
+
+<div style="margin-bottom: 32px;">
     <h1 class="page-title">Welcome, {{ user.first_name }}!</h1>
     <p class="page-subtitle">Your central hub for projects, organizations, and communication.</p>
 </div>
 
+<!-- Dashboard Statistics -->
+<div class="grid-cols-4">
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Projects</span>
+            <div class="stat-icon icon-blue">📁</div>
+        </div>
+        <div class="stat-value">{{ total_projects }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Active Projects</span>
+            <div class="stat-icon icon-purple">🚀</div>
+        </div>
+        <div class="stat-value">{{ active_projects }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Organizations</span>
+            <div class="stat-icon icon-amber">🏢</div>
+        </div>
+        <div class="stat-value">{{ total_companies }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Team Members</span>
+            <div class="stat-icon icon-pink">👥</div>
+        </div>
+        <div class="stat-value">{{ total_members }}</div>
+    </div>
+
+</div>
+
 <!-- Main Dashboard Grid -->
 <div class="grid-cols-3">
+
     <!-- Organizations Column -->
     <div>
         <div class="glass-card">
-            <h3 style="font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-                <span>🏢 Organizations</span>
-            </h3>
-            
+            <h3 class="section-card-title"><span>🏢 Organizations</span></h3>
+
             {% if companies %}
-                <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                <ul class="stacked-list">
                     {% for company in companies %}
-                    <li style="padding: 12px; background-color: var(--accent-light); border-radius: 8px; font-weight: 600;">
-                        {{ company.name }}
-                    </li>
+                    <li class="org-item">{{ company.name }}</li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">You do not belong to any organizations yet.</p>
+                <p class="empty-hint">You do not belong to any organizations yet.</p>
             {% endif %}
 
             {% if user.role == 'admin' %}
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Create New Organization</h4>
+            <h4 class="form-divider-heading">Create New Organization</h4>
             <form action="{% url 'create_company' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
                     <input type="text" name="name" class="form-control" placeholder="Company/Organization Name" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px 16px; font-size: 0.9rem;">
+                <button type="submit" class="btn btn-primary btn-block">
                     Add Organization
                 </button>
             </form>
@@ -44,22 +79,23 @@
         </div>
 
         <div class="glass-card">
-            <h3 style="font-weight: 700; margin-bottom: 20px;">👥 Teams & Groups</h3>
+            <h3 class="section-card-title"><span>👥 Teams &amp; Groups</span></h3>
+
             {% if groups %}
-                <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                <ul class="stacked-list">
                     {% for group in groups %}
-                    <li style="padding: 12px; border: 1px solid var(--card-border); border-radius: 8px;">
-                        <div style="font-weight: 600;">{{ group.name }}</div>
-                        <div style="color: var(--text-muted); font-size: 0.8rem;">{{ group.company.name }} &bull; {{ group.members.count }} members</div>
+                    <li class="group-item">
+                        <div class="group-item-name">{{ group.name }}</div>
+                        <div class="group-item-meta">{{ group.company.name }} &bull; {{ group.members.count }} members</div>
                     </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">No custom groups formed yet.</p>
+                <p class="empty-hint">No custom groups formed yet.</p>
             {% endif %}
 
             {% if user.role == 'admin' and companies %}
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Create Group</h4>
+            <h4 class="form-divider-heading">Create Group</h4>
             <form action="{% url 'create_group' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -79,9 +115,9 @@
                         <option value="{{ u.id }}">{{ u.first_name }} ({{ u.email }})</option>
                         {% endfor %}
                     </select>
-                    <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">Hold Ctrl / Cmd to select multiple.</small>
+                    <small class="form-hint">Hold Ctrl / Cmd to select multiple.</small>
                 </div>
-                <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 8px 16px; font-size: 0.9rem;">
+                <button type="submit" class="btn btn-secondary btn-block">
                     Create Group
                 </button>
             </form>
@@ -92,14 +128,15 @@
     <!-- Projects Column -->
     <div>
         <div class="glass-card">
-            <h3 style="font-weight: 700; margin-bottom: 20px;">📋 Active Projects</h3>
+            <h3 class="section-card-title"><span>📋 Active Projects</span></h3>
+
             {% if projects %}
-                <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+                <div class="project-card-list">
                     {% for proj in projects %}
-                    <a href="{% url 'project_detail' proj.id %}" style="text-decoration: none; color: inherit; display: block; padding: 16px; border: 1px solid var(--card-border); border-radius: 12px; background-color: rgba(255,255,255,0.02); transition: var(--transition);">
-                        <div style="font-weight: 700; font-size: 1.1rem; color: var(--accent); margin-bottom: 4px;">{{ proj.name }}</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">{{ proj.description|truncatewords:15 }}</div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+                    <a href="{% url 'project_detail' proj.id %}" class="project-card-link">
+                        <div class="project-card-title">{{ proj.name }}</div>
+                        <div class="project-card-desc">{{ proj.description|truncatewords:15 }}</div>
+                        <div class="project-card-meta">
                             <span>🏢 {{ proj.company.name }}</span>
                             <span>👥 {{ proj.members.count }} members</span>
                         </div>
@@ -107,11 +144,11 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">You are not associated with any projects yet.</p>
+                <p class="empty-hint">You are not associated with any projects yet.</p>
             {% endif %}
 
             {% if companies %}
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Start New Project</h4>
+            <h4 class="form-divider-heading">Start New Project</h4>
             <form action="{% url 'create_project' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -135,7 +172,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px 16px; font-size: 0.9rem;">
+                <button type="submit" class="btn btn-primary btn-block">
                     Launch Project
                 </button>
             </form>
@@ -147,7 +184,7 @@
     <div>
         {% if user.role == 'admin' and companies %}
         <div class="glass-card">
-            <h3 style="font-weight: 700; margin-bottom: 20px;">📩 Invite New Users</h3>
+            <h3 class="section-card-title"><span>📩 Invite New Users</span></h3>
             <form action="{% url 'send_invite' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -170,26 +207,26 @@
                         {% endfor %}
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px 16px; font-size: 0.9rem;">
+                <button type="submit" class="btn btn-primary btn-block">
                     Send Invite Link
                 </button>
             </form>
-            
+
             {% if sent_invites %}
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-top: 20px; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Sent Invites</h4>
-            <div style="max-height: 150px; overflow-y: auto;">
-                <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+            <h4 class="form-divider-heading" style="margin-top: 20px;">Sent Invites</h4>
+            <div class="invite-list-wrap">
+                <ul class="stacked-list" style="gap: 8px;">
                     {% for invite in sent_invites %}
-                    <li style="font-size: 0.8rem; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                    <li class="invite-item">
                         <div>
-                            <div><strong>{{ invite.email }}</strong></div>
-                            <div style="color: var(--text-muted);">{{ invite.company.name }} &bull; {{ invite.get_role_display }}</div>
+                            <div class="invite-item-email">{{ invite.email }}</div>
+                            <div class="invite-item-meta">{{ invite.company.name }} &bull; {{ invite.get_role_display }}</div>
                         </div>
                         <div>
                             {% if invite.is_accepted %}
-                            <span style="color: var(--success); font-weight: 700;">Accepted</span>
+                            <span class="status-badge status-accepted">Accepted</span>
                             {% else %}
-                            <span style="color: var(--warning);">Pending</span>
+                            <span class="status-badge status-pending">Pending</span>
                             {% endif %}
                         </div>
                     </li>
@@ -201,30 +238,32 @@
         {% endif %}
 
         <div class="glass-card">
-            <h3 style="font-weight: 700; margin-bottom: 20px;">💬 Active Users</h3>
+            <h3 class="section-card-title"><span>💬 Active Users</span></h3>
+
             {% if company_users %}
-                <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
                     {% for c_user in company_users %}
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--card-border);">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="user-avatar" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                    <div class="user-row">
+                        <div class="user-row-info">
+                            <div class="user-avatar user-avatar-sm">
                                 {{ c_user.first_name|slice:":1"|upper }}
                             </div>
                             <div>
-                                <div style="font-weight: 600; font-size: 0.9rem;">{{ c_user.first_name }} {{ c_user.last_name }}</div>
-                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ c_user.get_role_display }}</div>
+                                <div class="user-row-name">{{ c_user.first_name }} {{ c_user.last_name }}</div>
+                                <div class="user-row-role">{{ c_user.get_role_display }}</div>
                             </div>
                         </div>
-                        <a href="{% url 'chat_user' c_user.id %}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px;">
+                        <a href="{% url 'chat_user' c_user.id %}" class="btn btn-secondary btn-ping">
                             Ping
                         </a>
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <p style="color: var(--text-muted); font-size: 0.95rem;">No active members in your organization directory.</p>
+                <p class="empty-hint" style="margin-bottom: 0;">No active members in your organization directory.</p>
             {% endif %}
         </div>
     </div>
 </div>
+
 {% endblock %}

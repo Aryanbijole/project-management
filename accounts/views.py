@@ -111,15 +111,33 @@ def dashboard_view(request):
     # Pending invites
     sent_invites = Invitation.objects.filter(invited_by=request.user)
 
-    return render(request, 'accounts/dashboard.html', {
-        'companies': companies,
-        'projects': projects,
-        'groups': groups,
-        'company_users': company_users,
-        'sent_invites': sent_invites,
-        'roles': User.ROLE_CHOICES,
-    })
+    # Dashboard Statistics
+    total_projects = projects.count()
+    total_companies = companies.count()
+    total_members = company_users.count() + 1
 
+    active_projects = projects.filter(
+        status="active"
+    ).count()
+
+    completed_projects = projects.filter(
+        status="completed"
+    ).count()
+
+    return render(request, 'accounts/dashboard.html', {
+    'companies': companies,
+    'projects': projects,
+    'groups': groups,
+    'company_users': company_users,
+    'sent_invites': sent_invites,
+    'roles': User.ROLE_CHOICES,
+
+    'total_projects': total_projects,
+    'total_companies': total_companies,
+    'total_members': total_members,
+    'active_projects': active_projects,
+    'completed_projects': completed_projects,
+})
 
 
 @login_required

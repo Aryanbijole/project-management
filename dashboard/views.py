@@ -798,41 +798,43 @@ def role_create(request):
 
     if request.method == "POST":
 
-      role = Role.objects.create(
+        role = Role.objects.create(
+            name=request.POST["name"],
+            description=request.POST["description"],
 
-        name=request.POST["name"],
+            can_manage_users="can_manage_users" in request.POST,
+            can_manage_projects="can_manage_projects" in request.POST,
+            can_manage_companies="can_manage_companies" in request.POST,
+            can_manage_groups="can_manage_groups" in request.POST,
 
-        description=request.POST["description"],
+            can_create_projects="can_create_projects" in request.POST,
+            can_edit_projects="can_edit_projects" in request.POST,
+            can_delete_projects="can_delete_projects" in request.POST,
 
-        can_manage_users="can_manage_users" in request.POST,
-        can_manage_projects="can_manage_projects" in request.POST,
-        can_manage_companies="can_manage_companies" in request.POST,
-        can_manage_groups="can_manage_groups" in request.POST,
+            can_create_tasks="can_create_tasks" in request.POST,
+            can_edit_tasks="can_edit_tasks" in request.POST,
+            can_delete_tasks="can_delete_tasks" in request.POST,
 
-        can_create_projects="can_create_projects" in request.POST,
-        can_edit_projects="can_edit_projects" in request.POST,
-        can_delete_projects="can_delete_projects" in request.POST,
+            can_upload_files="can_upload_files" in request.POST,
 
-        can_create_tasks="can_create_tasks" in request.POST,
-        can_edit_tasks="can_edit_tasks" in request.POST,
-        can_delete_tasks="can_delete_tasks" in request.POST,
+            can_view_reports="can_view_reports" in request.POST,
+        )
 
-        can_upload_files="can_upload_files" in request.POST,
+        create_audit_log(
+            request,
+            module="Role",
+            action="CREATE",
+            description=f"Created role '{role.name}'",
+        )
 
-        can_view_reports="can_view_reports" in request.POST,
-    )
+        messages.success(request, "Role created successfully.")
 
-    # ✅ AUDIT LOG ADDED HERE
-    create_audit_log(
+        return redirect("admin_role_list")
+
+    return render(
         request,
-        module="Role",
-        action="CREATE",
-        description=f"Created role '{role.name}'",
+        "dashboard/role_create.html",
     )
-
-    messages.success(request, "Role created successfully.")
-
-    return redirect("admin_role_list")
 
 @login_required
 def role_edit(request, role_id):
