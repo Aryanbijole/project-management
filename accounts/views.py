@@ -10,6 +10,7 @@ from projects.models import Project
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from accounts.models import Notification
+from projects.models import ProjectActivity
 
 
 def register_view(request):
@@ -110,6 +111,11 @@ def dashboard_view(request):
 
     # Pending invites
     sent_invites = Invitation.objects.filter(invited_by=request.user)
+
+    recent_activities = ProjectActivity.objects.select_related(
+    "project",
+    "user"
+    ).order_by("-created_at")[:10]
 
     return render(request, 'accounts/dashboard.html', {
         'companies': companies,

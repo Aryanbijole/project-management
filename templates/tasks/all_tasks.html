@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>{{ title }}</h2>
+
+<hr>
+
+{% if tasks %}
+
+{% for task in tasks %}
+
+<div class="glass-card">
+
+    <h3>{{ task.title }}</h3>
+
+    <p>{{ task.description }}</p>
+
+    <p>
+
+        <strong>Project:</strong>
+
+        {{ task.todo_list.project.name }}
+
+    </p>
+
+    <p>
+
+        <strong>Status:</strong>
+
+        {{ task.get_status_display }}
+
+    </p>
+
+    <p>
+
+        <strong>Priority:</strong>
+
+        {{ task.get_priority_display }}
+
+    </p>
+
+    <p>
+
+        <strong>Assigned To:</strong>
+
+        {{ task.assigned_to|default:"Unassigned" }}
+
+    </p>
+
+    <a
+    href="{% url 'task_detail' task.todo_list.project.id task.id %}"
+    class="btn btn-primary">
+
+        Open Task
+
+    </a>
+
+</div>
+
+<br>
+
+{% endfor %}
+
+{% else %}
+
+<p>No tasks found.</p>
+
+{% endif %}
+
+{% endblock %}

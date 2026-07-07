@@ -214,3 +214,33 @@ class ProjectDocument(models.Model):
     @property
     def filename(self):
         return self.file.name.split("/")[-1]
+    
+class ProjectActivity(models.Model):
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='activities'
+    )
+
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    action = models.CharField(
+        max_length=255
+    )
+
+    description = models.TextField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.project.name} - {self.action}"    

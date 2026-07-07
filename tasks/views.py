@@ -17,6 +17,7 @@ from tasks.models import (
 from accounts.models import User
 from accounts.models import Notification
 from decimal import Decimal
+from projects.models import ProjectActivity
 
 
 @login_required
@@ -89,6 +90,13 @@ def create_todo_item(request, project_id, list_id):
                 repeat_days=int(request.POST.get("repeat_days")) if request.POST.get("repeat_days") else None,
             )
 
+            ProjectActivity.objects.create(
+              project=todo_list.project,
+              user=request.user,
+              action="Task Created",
+              description=f"Created task '{item.title}'."
+            )
+
             # Log creation
             TodoActivity.objects.create(
                 todo_item=item,
@@ -150,6 +158,13 @@ def reassign_todo_item(request, project_id, item_id):
             new_user = get_object_or_404(User, id=assigned_to_id)
             
         item.reassign(new_user, actor=request.user)
+
+        ProjectActivity.objects.create(
+            project=item.todo_list.project,
+            user=request.user,
+            action="Task Reassigned",
+            description=f"Reassigned '{item.title}' to {new_user.get_full_name() or new_user.username}."
+        )
 
         if new_user:
 
@@ -507,5 +522,62 @@ def gantt_view(request, project_id):
         {
             "project": project,
             "tasks": tasks,
+        }
+    )
+
+@login_required
+def all_tasks(request):
+
+    tasks = TodoItem.objects.select_related(
+        "todo_list",
+        "assigned_to"
+    )
+
+    return render(
+        request,
+        "tasks/all_tasks.html",
+        {
+            "tasks": tasks,
+            "title": "All Tasks"
+        }
+    )
+
+
+@login_required
+def pending_tasks(request):
+
+    tasks = TodoItem.objects.exclude(
+        status="done"
+    ).select_related(
+        "todo_list",
+        "assigned_to"
+    )
+
+    return render(
+        request,
+        "tasks/all_tasks.html",
+        {
+            "tasks": tasks,
+            "title": "Pending Tasks"
+        }
+    )
+
+
+@login_required
+def completed_tasks(request):
+
+    tasks = TodoItem.objects.filter(
+        status="done"
+    ).select_related(
+        "todo_list",
+        "assigned_to"
+    )
+
+    return render(
+        request,
+        "tasks/all_tasks.html",
+        {
+            "tasks": tasks,
+            "title": "Completed Tasks"
         }
     )

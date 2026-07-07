@@ -76,4 +76,22 @@ path(
     views.stop_timer,
     name="stop_timer",
 ),
+
+path(
+    "all/",
+    views.all_tasks,
+    name="all_tasks"
+),
+
+path(
+    "pending/",
+    views.pending_tasks,
+    name="pending_tasks"
+),
+
+path(
+    "completed/",
+    views.completed_tasks,
+    name="completed_tasks"
+),
 ]

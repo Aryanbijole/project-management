@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Completed Projects</h2>
+
+<hr>
+
+{% if projects %}
+
+    {% for project in projects %}
+
+    <div class="glass-card">
+
+        <h3>
+
+            {{ project.name }}
+
+        </h3>
+
+        <p>
+
+            {{ project.description }}
+
+        </p>
+
+        <p>
+
+            Status :
+
+            <strong>
+
+                {{ project.status }}
+
+            </strong>
+
+        </p>
+
+        <p>
+
+            Members :
+
+            {{ project.members.count }}
+
+        </p>
+
+        <a
+        href="{% url 'project_detail' project.id %}"
+        class="btn btn-primary">
+
+            Open Project
+
+        </a>
+
+    </div>
+
+    <br>
+
+    {% endfor %}
+
+{% else %}
+
+<p>
+
+No completed projects.
+
+</p>
+
+{% endif %}
+
+{% endblock %}

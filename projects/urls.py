@@ -6,45 +6,45 @@ urlpatterns = [
 
     # Project List Page
     path(
-        'projects/',
-        ProjectListView.as_view(),
-        name='project-list'
+    '',
+    ProjectListView.as_view(),
+    name='project-list'
     ),
 
     # New Project Form Page
     path(
-        'projects/new/',
+        'new/',
         ProjectCreateView.as_view(),
         name='project-create'
     ),
 
     # Existing Project Functions
     path(
-        'projects/create/',
+        'create/',
         views.create_project,
         name='create_project'
     ),
 
     path(
-        'projects/<int:project_id>/',
+        '<int:project_id>/',
         views.project_detail,
         name='project_detail'
     ),
 
     path(
-        'projects/<int:project_id>/members/add/',
+        '<int:project_id>/members/add/',
         views.add_project_member,
         name='add_project_member'
     ),
 
     path(
-        'projects/<int:project_id>/configure/',
+        '<int:project_id>/configure/',
         views.configure_tools,
         name='configure_tools'
     ),
 
     path(
-    'projects/<int:project_id>/invite/',
+    '<int:project_id>/invite/',
     views.invite_project_member,
     name='invite_project_member'
 ),
@@ -56,7 +56,7 @@ path(
 ),
 
 path(
-    'projects/<int:project_id>/milestone/add/',
+    '<int:project_id>/milestone/add/',
     views.add_milestone,
     name='add_milestone'
 ),
@@ -91,17 +91,6 @@ path(
     name='upload_project_document'
 ),
 
-path(
-    "<int:project_id>/documents/",
-    views.project_documents,
-    name="project_documents",
-),
-
-path(
-    "<int:project_id>/documents/upload/",
-    views.project_document_upload,
-    name="project_document_upload",
-),
 
 path(
     "documents/<int:document_id>/download/",
@@ -114,4 +103,29 @@ path(
     views.delete_document,
     name="delete_document",
 ),
+
+path(
+    "<int:project_id>/activity/",
+    views.project_activity,
+    name="project_activity"
+),
+
+path(
+    "summary/all/",
+    views.all_projects,
+    name="all_projects"
+),
+
+path(
+    "summary/active/",
+    views.active_projects,
+    name="active_projects"
+),
+
+path(
+    "summary/completed/",
+    views.completed_projects,
+    name="completed_projects"
+),
+
 ]
