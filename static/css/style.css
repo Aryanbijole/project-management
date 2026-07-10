@@ -1270,3 +1270,150 @@ input:focus-visible,
     font-size: 0.75rem;
     border-radius: 8px;
 }
+
+
+
+
+/* ============ Calendar Page ============ */
+.calendar-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--card-border);
+    transition: var(--transition);
+}
+
+.calendar-item:last-child {
+    border-bottom: none;
+}
+
+.calendar-item:hover {
+    background-color: var(--accent-light);
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.calendar-item-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+}
+
+.calendar-item-body {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.calendar-item-title {
+    font-weight: 700;
+    font-size: 0.98rem;
+    margin-bottom: 4px;
+}
+
+.calendar-item-due {
+    display: flex;
+    align-items: center;
+}
+
+.due-badge {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background-color: rgba(99, 102, 241, 0.08);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.calendar-empty {
+    padding: 32px 12px;
+}
+
+.calendar-empty h4 {
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+}
+
+
+
+
+
+/* ============ Global Search Page ============ */
+.search-form-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.search-box-lg {
+    flex-grow: 1;
+    min-width: 240px;
+}
+
+.search-box-lg input {
+    width: 100%;
+    padding: 12px 16px;
+}
+
+.search-results-grid {
+    margin-top: 4px;
+}
+
+.search-result-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--card-border);
+    transition: var(--transition);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: var(--accent-light);
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.search-result-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+}
+
+.search-empty {
+    padding: 24px 12px;
+}
+
+.search-empty p {
+    margin: 0;
+}
+
+@media (max-width: 1024px) {
+    .search-form-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

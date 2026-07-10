@@ -17,6 +17,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from accounts.utils import create_notification
 
+from audit.models import AuditLog
+from django.core.paginator import Paginator
 
 
 
@@ -880,8 +882,6 @@ def role_delete(request, role_id):
     messages.success(request, "Role deleted successfully.")
     return redirect("admin_role_list")
 
-from audit.models import AuditLog
-from django.core.paginator import Paginator
 
 
 @login_required

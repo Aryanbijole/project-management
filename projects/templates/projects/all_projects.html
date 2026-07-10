@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>All Projects</h2>
+
+<hr>
+
+{% if projects %}
+
+<table class="table">
+
+    <thead>
+
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Company</th>
+            <th>Members</th>
+            <th></th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for project in projects %}
+
+        <tr>
+
+            <td>{{ project.name }}</td>
+
+            <td>{{ project.get_status_display }}</td>
+
+            <td>{{ project.company.name }}</td>
+
+            <td>{{ project.members.count }}</td>
+
+            <td>
+
+                <a
+                href="{% url 'project_detail' project.id %}"
+                class="btn btn-primary">
+
+                    Open
+
+                </a>
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<p>No projects found.</p>
+
+{% endif %}
+
+{% endblock %}

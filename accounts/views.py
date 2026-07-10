@@ -10,6 +10,7 @@ from projects.models import Project
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from accounts.models import Notification
+from projects.models import ProjectActivity
 
 
 def register_view(request):
@@ -111,18 +112,17 @@ def dashboard_view(request):
     # Pending invites
     sent_invites = Invitation.objects.filter(invited_by=request.user)
 
-    # Dashboard Statistics
+    # Dashboard statistics
     total_projects = projects.count()
     total_companies = companies.count()
-    total_members = company_users.count() + 1
+    total_members = company_users.count() + 1  # +1 includes the logged-in user
+    active_projects = projects.filter(status='active').count()
+    completed_projects = projects.filter(status='completed').count()
 
-    active_projects = projects.filter(
-        status="active"
-    ).count()
-
-    completed_projects = projects.filter(
-        status="completed"
-    ).count()
+    recent_activities = ProjectActivity.objects.select_related(
+    "project",
+    "user"
+    ).order_by("-created_at")[:10]
 
     return render(request, 'accounts/dashboard.html', {
     'companies': companies,
@@ -346,3 +346,5 @@ def notifications_view(request):
             'notifications': notifications
         }
     )
+
+

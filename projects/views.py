@@ -7,7 +7,7 @@ from integrations.models import ExternalTool
 from django.views.generic import ListView
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
-from .models import Project, Milestone, ProjectDocument
+from .models import Project, Milestone, ProjectDocument, ProjectActivity
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import ProjectInvitation,ProjectDocument
@@ -51,6 +51,13 @@ def create_project(request):
                 description=description,
                 company=company,
                 created_by=request.user
+            )
+
+            ProjectActivity.objects.create(
+                project=project,
+                user=request.user,
+                action="Project Created",
+                description=f"{request.user.get_full_name() or request.user.username} created the project '{project.name}'."
             )
             # Add creator as member
             project.members.add(request.user)
@@ -346,7 +353,9 @@ def global_search(request):
         )
 
         users = User.objects.filter(
-            email__icontains=query
+            Q(email__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query)
         )
 
         milestones = Milestone.objects.filter(
@@ -512,3 +521,71 @@ def delete_document(request, document_id):
         "project_documents",
         project_id
     )
+
+@login_required
+def project_activity(request, project_id):
+
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
+
+    activities = project.activities.select_related(
+        'user'
+    ).order_by('-created_at')
+
+    return render(
+        request,
+        'projects/activity_timeline.html',
+        {
+            'project': project,
+            'activities': activities,
+        }
+    )
+
+@login_required
+def completed_projects(request):
+
+    projects = Project.objects.filter(
+        status='completed'
+    )
+
+    return render(
+        request,
+        'projects/completed_projects.html',
+        {
+            'projects': projects
+        }
+    )
+
+
+@login_required
+def active_projects(request):
+
+    projects = Project.objects.filter(
+        status='active'
+    )
+
+    return render(
+        request,
+        'projects/active_projects.html',
+        {
+            'projects': projects
+        }
+    )
+
+
+@login_required
+def all_projects(request):
+
+    projects = Project.objects.all()
+
+    return render(
+        request,
+        'projects/all_projects.html',
+        {
+            'projects': projects
+        }
+    )
+
+

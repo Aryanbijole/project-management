@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2>🟢 Active Projects</h2>
+
+    <hr>
+
+    {% if projects %}
+
+        <table class="table table-hover">
+
+            <thead>
+
+                <tr>
+                    <th>Project Name</th>
+                    <th>Description</th>
+                    <th>Company</th>
+                    <th>Members</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for project in projects %}
+
+                <tr>
+
+                    <td>
+                        <strong>{{ project.name }}</strong>
+                    </td>
+
+                    <td>
+                        {{ project.description|truncatechars:50 }}
+                    </td>
+
+                    <td>
+                        {{ project.company.name }}
+                    </td>
+
+                    <td>
+                        {{ project.members.count }}
+                    </td>
+
+                    <td>
+
+                        <span class="badge bg-success">
+
+                            {{ project.get_status_display }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <a
+                            href="{% url 'project_detail' project.id %}"
+                            class="btn btn-primary btn-sm">
+
+                            Open
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <div class="alert alert-info">
+
+            No active projects found.
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
