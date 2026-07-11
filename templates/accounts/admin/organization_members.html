@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}
+Organization Members
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2>Organization Members</h2>
+
+    {% if not is_superuser_panel %}
+        <h5>{{ company.name }}</h5>
+    {% endif %}
+
+    <table class="table">
+
+        <thead>
+
+        <tr>
+
+            <th>Name</th>
+
+            <th>Email</th>
+
+            <th>Role</th>
+
+            {% if is_superuser_panel %}
+            <th>Company</th>
+            {% endif %}
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for membership in memberships %}
+
+        <tr>
+
+            <td>
+
+                {{ membership.user.first_name }}
+                {{ membership.user.last_name }}
+
+            </td>
+
+            <td>
+
+                {{ membership.user.email }}
+
+            </td>
+
+            <td>
+
+                {{ membership.get_role_display }}
+
+            </td>
+
+            {% if is_superuser_panel %}
+
+            <td>
+
+                {{ membership.company.name }}
+
+            </td>
+
+            {% endif %}
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="4">
+
+                No members found.
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

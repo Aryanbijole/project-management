@@ -18,11 +18,38 @@ from accounts.models import User
 from accounts.models import Notification
 from decimal import Decimal
 from projects.models import ProjectActivity
+from accounts.decorators import company_required
+
+
+
+
+
+
+
+
+
+
+
+from .forms import (
+    TodoListForm,
+    TodoItemForm,
+    ChecklistItemForm,
+    TaskCommentForm,
+    TaskAttachmentForm,
+    TimeEntryForm,
+)
 
 
 @login_required
+@company_required
 def todo_lists_view(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     lists = TodoList.objects.filter(project=project)
     
     if request.method == 'POST':
@@ -41,8 +68,16 @@ def todo_lists_view(request, project_id):
 
 
 @login_required
+@company_required
 def todo_list_detail(request, project_id, list_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
+    
     todo_list = get_object_or_404(TodoList, id=list_id, project=project)
     items = todo_list.items.all()
     project_members = project.members.all()
@@ -56,8 +91,15 @@ def todo_list_detail(request, project_id, list_id):
 
 
 @login_required
+@company_required
 def create_todo_item(request, project_id, list_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     todo_list = get_object_or_404(TodoList, id=list_id, project=project)
 
     if request.method == 'POST':
@@ -70,11 +112,16 @@ def create_todo_item(request, project_id, list_id):
         priority = request.POST.get('priority', 'medium')
         status = request.POST.get('status', 'todo')
         estimated_hours = request.POST.get('estimated_hours')
+        company = request.user.memberships.first().company
 
         if title:
             assigned_to = None
             if assigned_to_id:
-                assigned_to = get_object_or_404(User, id=assigned_to_id)
+                assigned_to = get_object_or_404(
+                    User,
+                    id=assigned_to_id,
+                    memberships__company=company
+                )
 
             item = TodoItem.objects.create(
                 todo_list=todo_list,
@@ -124,8 +171,16 @@ def create_todo_item(request, project_id, list_id):
 
 
 @login_required
+@company_required
 def toggle_todo_item(request, project_id, item_id):
-    item = get_object_or_404(TodoItem, id=item_id, todo_list__project_id=project_id)
+    company = request.user.memberships.first().company
+
+    item = get_object_or_404(
+        TodoItem,
+        id=item_id,
+        todo_list__project_id=project_id,
+        todo_list__project__company=company
+    )
     
     if request.method == 'POST':
         item.is_completed = not item.is_completed
@@ -148,14 +203,26 @@ def toggle_todo_item(request, project_id, item_id):
 
 
 @login_required
+@company_required
 def reassign_todo_item(request, project_id, item_id):
-    item = get_object_or_404(TodoItem, id=item_id, todo_list__project_id=project_id)
+    company = request.user.memberships.first().company
+
+    item = get_object_or_404(
+        TodoItem,
+        id=item_id,
+        todo_list__project_id=project_id,
+        todo_list__project__company=company
+    )
     
     if request.method == 'POST':
         assigned_to_id = request.POST.get('assigned_to')
         new_user = None
         if assigned_to_id:
-            new_user = get_object_or_404(User, id=assigned_to_id)
+            new_user = get_object_or_404(
+                User,
+                id=assigned_to_id,
+                memberships__company=company
+            )
             
         item.reassign(new_user, actor=request.user)
 
@@ -182,9 +249,16 @@ def reassign_todo_item(request, project_id, item_id):
 
 
 @login_required
+@company_required
 def task_detail(request, project_id, task_id):
 
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
 
     task = get_object_or_404(
         TodoItem,
@@ -245,13 +319,16 @@ def task_detail(request, project_id, task_id):
     )
 
 @login_required
+@company_required
 def add_checklist_item(request, project_id, task_id):
+    company = request.user.memberships.first().company
+
     task = get_object_or_404(
         TodoItem,
         id=task_id,
-        todo_list__project_id=project_id
+        todo_list__project_id=project_id,
+        todo_list__project__company=company
     )
-
     if request.method == 'POST':
         title = request.POST.get('title')
 
@@ -268,12 +345,16 @@ def add_checklist_item(request, project_id, task_id):
     )
 
 @login_required
+@company_required
 def upload_attachment(request, project_id, task_id):
+
+    company = request.user.memberships.first().company
 
     task = get_object_or_404(
         TodoItem,
         id=task_id,
-        todo_list__project_id=project_id
+        todo_list__project_id=project_id,
+        todo_list__project__company=company
     )
 
     if request.method == 'POST':
@@ -300,10 +381,16 @@ def upload_attachment(request, project_id, task_id):
     )
 
 @login_required
+@company_required
 def kanban_board(request, project_id):
 
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
 
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     todo_tasks = TodoItem.objects.filter(
         todo_list__project=project,
         status='todo'
@@ -337,12 +424,16 @@ def kanban_board(request, project_id):
     )
 
 @login_required
+@company_required
 def add_comment(request, project_id, task_id):
+
+    company = request.user.memberships.first().company
 
     task = get_object_or_404(
         TodoItem,
         id=task_id,
-        todo_list__project_id=project_id
+        todo_list__project_id=project_id,
+        todo_list__project__company=company
     )
 
     if request.method == 'POST':
@@ -370,11 +461,15 @@ def add_comment(request, project_id, task_id):
     )
 
 @login_required
+@company_required
 def add_task_comment(request, project_id, task_id):
+
+    company = request.user.memberships.first().company
 
     task = get_object_or_404(
         TodoItem,
-        id=task_id
+        id=task_id,
+        todo_list__project__company=company
     )
 
     if request.method == 'POST':
@@ -396,9 +491,16 @@ def add_task_comment(request, project_id, task_id):
     )
 
 @login_required
+@company_required
 def start_timer(request, project_id, task_id):
 
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
 
     task = get_object_or_404(
         TodoItem,
@@ -438,9 +540,16 @@ def start_timer(request, project_id, task_id):
 
 
 @login_required
+@company_required
 def stop_timer(request, project_id, task_id):
 
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
 
     task = get_object_or_404(
         TodoItem,
@@ -485,11 +594,15 @@ def stop_timer(request, project_id, task_id):
 
 
 @login_required
+@company_required
 def log_time(request, project_id, task_id):
+
+    company = request.user.memberships.first().company
 
     task = get_object_or_404(
         TodoItem,
-        id=task_id
+        id=task_id,
+        todo_list__project__company=company
     )
 
     if request.method == "POST":
@@ -508,10 +621,16 @@ def log_time(request, project_id, task_id):
     )
 
 @login_required
+@company_required
 def gantt_view(request, project_id):
 
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
 
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     tasks = TodoItem.objects.filter(
         todo_list__project=project
     ).order_by("due_date")
@@ -526,9 +645,14 @@ def gantt_view(request, project_id):
     )
 
 @login_required
+@company_required
 def all_tasks(request):
 
-    tasks = TodoItem.objects.select_related(
+    company = request.user.memberships.first().company
+
+    tasks = TodoItem.objects.filter(
+        todo_list__project__company=company
+    ).select_related(
         "todo_list",
         "assigned_to"
     )
@@ -544,9 +668,14 @@ def all_tasks(request):
 
 
 @login_required
+@company_required
 def pending_tasks(request):
 
-    tasks = TodoItem.objects.exclude(
+    company = request.user.memberships.first().company
+
+    tasks = TodoItem.objects.filter(
+        todo_list__project__company=company
+    ).exclude(
         status="done"
     ).select_related(
         "todo_list",
@@ -564,9 +693,13 @@ def pending_tasks(request):
 
 
 @login_required
+@company_required
 def completed_tasks(request):
 
+    company = request.user.memberships.first().company
+
     tasks = TodoItem.objects.filter(
+        todo_list__project__company=company,
         status="done"
     ).select_related(
         "todo_list",

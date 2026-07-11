@@ -1,5 +1,6 @@
 from django.urls import path
 from accounts import views
+from accounts import admin_views
 
 urlpatterns = [
     path('register/', views.register_view, name='register'),
@@ -16,4 +17,43 @@ urlpatterns = [
     views.notifications_view,
     name='notifications'
     ),
+
+    path(
+    "company/setup/",
+    views.company_setup,
+    name="company_setup",
+    ),
+
+
+    path(
+    "company/join/",
+    views.join_company,
+    name="join_company",
+    ),
+
+    path(
+    "administration/users/",
+    admin_views.admin_users,
+    name="admin_users",
+    ),
+
+    path(
+    "administration/organization-members/",
+    admin_views.organization_members,
+    name="organization_members",
+    ),
+
+    path(
+    "administration/",
+    admin_views.administration_dashboard,
+    name="administration_dashboard",
+    ),
+
+    path(
+    "administration/users/",
+    views.admin_users,
+    name="admin_users",
+    ),
+
+    
 ]

@@ -22,18 +22,14 @@
     <div class="mb-3">
         <label>Company</label>
 
-        <select
-            name="company"
+        <label>Company</label>
+
+        <input
+            type="text"
             class="form-control"
-            required>
-
-            {% for company in companies %}
-                <option value="{{ company.id }}">
-                    {{ company.name }}
-                </option>
-            {% endfor %}
-
-        </select>
+            value="{{ company.name }}"
+            readonly
+        >
     </div>
 
     <div class="mb-3">

@@ -1,4 +1,6 @@
 from rest_framework.permissions import BasePermission
+from accounts.models import CompanyMembership, User
+
 
 
 class IsAdmin(BasePermission):
@@ -31,3 +33,14 @@ class IsCollaborator(BasePermission):
             request.user.is_authenticated
             and request.user.role == 'collaborator'
         )
+
+def is_company_admin(user):
+    if not user.is_authenticated:
+        return False
+
+    membership = user.memberships.first()
+
+    if membership is None:
+        return False
+
+    return membership.role == User.ROLE_ADMIN
