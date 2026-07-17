@@ -4,74 +4,92 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>👥 Group Management</h2>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🧩 Group Management</h1>
+        <p class="page-subtitle">Manage groups and their members across companies</p>
+    </div>
 
     <a href="{% url 'admin_group_create' %}" class="btn btn-primary">
         + Create Group
     </a>
 </div>
 
-<table class="table">
+<div class="role-toolbar">
+    {% if groups %}
+    <span class="role-count">{{ groups|length }} group{{ groups|length|pluralize }}</span>
+    {% endif %}
+</div>
 
-    <thead>
+<div class="table-card">
 
-        <tr>
-            <th>Group</th>
-            <th>Company</th>
-            <th>Total Members</th>
-            <th>Created</th>
-            <th>Actions</th>
-        </tr>
+    <table class="table">
 
-    </thead>
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Company</th>
+                <th>Total Members</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
 
-    <tbody>
+        <tbody>
 
-    {% for group in groups %}
+        {% for group in groups %}
 
-        <tr>
+            <tr>
 
-            <td>{{ group.name }}</td>
+                <td>
+                    <div class="role-name-cell">
+                        <div class="role-icon">🧩</div>
+                        {{ group.name }}
+                    </div>
+                </td>
 
-            <td>{{ group.company.name }}</td>
+                <td>{{ group.company.name }}</td>
 
-            <td>{{ group.members.count }}</td>
+                <td>
+                    <span class="user-count-badge">👤 {{ group.members.count }}</span>
+                </td>
 
-            <td>{{ group.created_at|date:"d M Y" }}</td>
+                <td>{{ group.created_at|date:"d M Y" }}</td>
 
-            <td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'admin_group_edit' group.id %}" class="btn btn-secondary btn-sm" data-tooltip="Edit group">
+                            ✏️ Edit
+                        </a>
+                        <a href="{% url 'admin_group_delete' group.id %}" class="btn btn-danger btn-sm" data-tooltip="Delete group">
+                            🗑️ Delete
+                        </a>
+                    </div>
+                </td>
 
-                <a href="{% url 'admin_group_edit' group.id %}">
-                    Edit
-                </a>
+            </tr>
 
-                |
+        {% empty %}
 
-                <a href="{% url 'admin_group_delete' group.id %}">
-                    Delete
-                </a>
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <h2>🧩</h2>
+                        <h4>No groups yet</h4>
+                        <p>Create your first group to start organizing members.</p>
+                        <a href="{% url 'admin_group_create' %}" class="btn btn-primary">
+                            + Create Group
+                        </a>
+                    </div>
+                </td>
+            </tr>
 
-            </td>
+        {% endfor %}
 
-        </tr>
+        </tbody>
 
-    {% empty %}
+    </table>
 
-        <tr>
-
-            <td colspan="5">
-
-                No groups found.
-
-            </td>
-
-        </tr>
-
-    {% endfor %}
-
-    </tbody>
-
-</table>
+</div>
 
 {% endblock %}

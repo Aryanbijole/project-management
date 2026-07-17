@@ -4,68 +4,121 @@
 
 {% block content %}
 
-<h1>Admin Reports</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📊 Admin Reports</h1>
+        <p class="page-subtitle">Organization-wide overview</p>
+    </div>
+</div>
 
-<div class="grid-cols-3">
+<div class="stats-grid">
 
-    <div class="glass-card">
-        <h3>Total Users</h3>
-        <h2>{{ total_users }}</h2>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Users</span>
+            <div class="stat-icon icon-blue">👤</div>
+        </div>
+        <div class="stat-value">{{ total_users }}</div>
     </div>
 
-    <div class="glass-card">
-        <h3>Total Projects</h3>
-        <h2>{{ total_projects }}</h2>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Projects</span>
+            <div class="stat-icon icon-purple">📁</div>
+        </div>
+        <div class="stat-value">{{ total_projects }}</div>
     </div>
 
-    <div class="glass-card">
-        <h3>Total Tasks</h3>
-        <h2>{{ total_tasks }}</h2>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Tasks</span>
+            <div class="stat-icon icon-blue">📋</div>
+        </div>
+        <div class="stat-value">{{ total_tasks }}</div>
     </div>
 
-    <div class="glass-card">
-        <h3>Completed Tasks</h3>
-        <h2>{{ completed_tasks }}</h2>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Completed Tasks</span>
+            <div class="stat-icon icon-green">✅</div>
+        </div>
+        <div class="stat-value">{{ completed_tasks }}</div>
     </div>
 
-    <div class="glass-card">
-        <h3>Active Tasks</h3>
-        <h2>{{ active_tasks }}</h2>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Active Tasks</span>
+            <div class="stat-icon icon-amber">⏳</div>
+        </div>
+        <div class="stat-value">{{ active_tasks }}</div>
     </div>
 
-    <div class="glass-card">
-        <h3>Total Milestones</h3>
-        <h2>{{ milestones }}</h2>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Milestones</span>
+            <div class="stat-icon icon-pink">🎯</div>
+        </div>
+        <div class="stat-value">{{ milestones }}</div>
     </div>
 
 </div>
 
-<h2 style="margin-top:40px;">Recent Projects</h2>
+<div class="grid-cols-2 reports-tables-grid">
 
-<table class="table">
-    <tr>
-        <th>Name</th>
-    </tr>
+    <div>
+        <div class="section-card-title">📁 Recent Projects</div>
 
-    {% for project in recent_projects %}
-    <tr>
-        <td>{{ project.name }}</td>
-    </tr>
-    {% endfor %}
-</table>
+        <div class="table-card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in recent_projects %}
+                    <tr>
+                        <td><strong>{{ project.name }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td>
+                            <div class="empty-state"><p>No recent projects.</p></div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-<h2 style="margin-top:40px;">Recent Tasks</h2>
+    <div>
+        <div class="section-card-title">📋 Recent Tasks</div>
 
-<table class="table">
-    <tr>
-        <th>Task</th>
-    </tr>
+        <div class="table-card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in recent_tasks %}
+                    <tr>
+                        <td><strong>{{ task.title }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td>
+                            <div class="empty-state"><p>No recent tasks.</p></div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    {% for task in recent_tasks %}
-    <tr>
-        <td>{{ task.title }}</td>
-    </tr>
-    {% endfor %}
-</table>
+</div>
 
 {% endblock %}

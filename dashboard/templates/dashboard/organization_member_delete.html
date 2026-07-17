@@ -4,29 +4,47 @@
 
 {% block content %}
 
-<div class="container">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🗑️ Remove Organization Member</h1>
+        <p class="page-subtitle">This action can't be undone</p>
+    </div>
+</div>
 
-    <h2>Remove Organization Member</h2>
+<div class="glass-card confirm-card">
 
-    <p>
-        Are you sure you want to remove
-        <strong>{{ membership.user.first_name }} {{ membership.user.last_name }}</strong>
-        from
-        <strong>{{ membership.company.name }}</strong>?
-    </p>
+    <div class="member-profile-preview">
+        <div class="user-avatar">
+            {{ membership.user.first_name|slice:":1"|upper|default:membership.user.email|slice:":1"|upper }}
+        </div>
+        <div>
+            <div class="member-profile-name">
+                {{ membership.user.first_name }} {{ membership.user.last_name }}
+            </div>
+            <div class="member-profile-email">{{ membership.user.email }}</div>
+        </div>
+    </div>
+
+    <div class="alert alert-warning confirm-warning">
+        <span class="confirm-warning-icon">⚠️</span>
+        <span>
+            Are you sure you want to remove this member from <strong>{{ membership.company.name }}</strong>? They will lose access to all projects and resources under this company.
+        </span>
+    </div>
 
     <form method="post">
 
         {% csrf_token %}
 
-        <button class="btn btn-danger">
-            Remove Member
-        </button>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">
+                Remove Member
+            </button>
 
-        <a href="{% url 'organization_members' %}"
-           class="btn btn-secondary">
-            Cancel
-        </a>
+            <a href="{% url 'organization_members' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
     </form>
 

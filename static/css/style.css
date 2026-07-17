@@ -1028,6 +1028,7 @@ input:focus-visible,
 /* Completion progress bar, used on the analytics dashboard */
 .progress-card {
     grid-column: 1 / -1;
+    margin-bottom: 20px;
 }
 
 .progress-bar-track {
@@ -1416,4 +1417,743 @@ input:focus-visible,
         flex-direction: column;
         align-items: stretch;
     }
+}
+
+
+
+/* ============ Create Role Page ============ */
+.permissions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 16px 0 28px;
+}
+
+@media (max-width: 720px) {
+    .permissions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.permission-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.92rem;
+    transition: var(--transition);
+}
+
+.permission-check:hover {
+    background-color: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.permission-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.permission-check span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+
+
+/* ============ Create Group Page ============ */
+.member-select-list {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0 28px;
+    padding-right: 4px;
+}
+
+.member-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.member-check:hover {
+    background-color: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.member-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.member-check-info {
+    min-width: 0;
+}
+
+.member-check-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.member-check-email {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+
+
+/* Group name link - looks like plain text, clickable on hover */
+.group-name-link {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.group-name-link:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+/* ============ Edit Group Page ============ */
+.current-members-card {
+    margin: 16px 0 28px;
+}
+
+/* Generic name+avatar row, usable in any table */
+.member-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+}
+
+
+
+/* ============ Task List Page ============ */
+.task-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.task-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.task-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.task-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.task-card-desc {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.priority-badge {
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.priority-high {
+    color: var(--danger);
+    background-color: rgba(239, 68, 68, 0.12);
+}
+
+.priority-medium {
+    color: var(--warning);
+    background-color: rgba(245, 158, 11, 0.12);
+}
+
+.priority-low {
+    color: var(--success);
+    background-color: rgba(16, 185, 129, 0.12);
+}
+
+.task-meta-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding: 14px 0;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.task-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.task-meta-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.task-meta-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.task-assignee {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-unassigned {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-style: italic;
+}
+
+
+
+/* Fix: align meta columns to top consistently */
+.task-meta-row {
+    align-items: flex-start;
+}
+
+.task-meta-item {
+    justify-content: flex-start;
+}
+
+.task-assignee {
+    line-height: 1.4;
+}
+
+/* Give status-badge actual styling (was previously undefined) */
+.status-badge {
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-todo {
+    color: var(--text-muted);
+    background-color: rgba(156, 163, 175, 0.15);
+}
+
+.status-in_progress {
+    color: var(--accent);
+    background-color: var(--accent-light);
+}
+
+.status-done {
+    color: var(--success);
+    background-color: rgba(16, 185, 129, 0.12);
+}
+
+.status-blocked {
+    color: var(--danger);
+    background-color: rgba(239, 68, 68, 0.12);
+}
+
+/* Align project name and assignee row precisely on the same baseline */
+.task-meta-item {
+    gap: 6px;
+}
+
+.task-meta-value {
+    line-height: 24px;
+}
+
+.task-assignee {
+    line-height: normal;
+}
+
+.task-assignee .user-avatar {
+    margin-top: -1px;
+}
+
+
+/* ============ Task Detail Page ============ */
+.inline-add-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.inline-add-form input {
+    flex-grow: 1;
+}
+
+.checklist-list, .attachment-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.92rem;
+}
+
+.checklist-item-done {
+    color: var(--text-muted);
+    text-decoration: line-through;
+}
+
+.attachment-item a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.92rem;
+}
+
+.attachment-item a:hover {
+    text-decoration: underline;
+}
+
+.comment-item, .activity-item, .time-entry-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.comment-item:last-child, .activity-item:last-child, .time-entry-item:last-child {
+    border-bottom: none;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.comment-meta small, .activity-item strong {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.timer-card {
+    text-align: center;
+}
+
+.live-timer {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 12px 0 20px;
+}
+
+.timer-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.time-sessions-card {
+    margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+    .timer-actions {
+        flex-direction: column;
+    }
+}
+
+
+/* ============ Kanban Board Page ============ */
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    overflow-x: auto;
+    padding-bottom: 12px;
+}
+
+.kanban-column {
+    background-color: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+    flex: 1 1 0;
+    min-width: 260px;
+}
+
+.kanban-column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 16px;
+}
+
+.kanban-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    transition: var(--transition);
+}
+
+.kanban-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.kanban-card-title {
+    display: block;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.kanban-card-title:hover {
+    text-decoration: underline;
+}
+
+.kanban-card-meta {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+}
+
+.kanban-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.kanban-card-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 1024px) {
+    .kanban-board {
+        flex-direction: column;
+    }
+    .kanban-column {
+        width: 100%;
+    }
+}
+
+
+/* ============ Auto-rendered Django forms (form.as_p) ============ */
+.django-form p {
+    margin-bottom: 20px;
+}
+
+.django-form label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.django-form input[type="text"],
+.django-form input[type="email"],
+.django-form input[type="number"],
+.django-form input[type="date"],
+.django-form input[type="url"],
+.django-form select,
+.django-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    outline: none;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.django-form input:focus,
+.django-form select:focus,
+.django-form textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-light);
+}
+
+.django-form input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.django-form .helptext {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.django-form ul.errorlist {
+    list-style: none;
+    color: var(--danger);
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+    padding: 0;
+}
+
+
+/* Spacing fixes: Project Management page */
+.page-header {
+    margin-bottom: 28px;
+}
+
+.stats-grid {
+    margin-bottom: 28px;
+}
+
+.search-filter-form {
+    margin-top: 4px;
+    margin-bottom: 28px;
+    padding: 24px 28px;
+    gap: 20px;
+}
+/* Fix: vertical spacing between stacked search filter controls */
+.search-filter-form {
+    row-gap: 18px;
+    column-gap: 20px;
+}
+
+.search-box-lg,
+.status-filter-select,
+.search-filter-form button[type="submit"] {
+    margin-bottom: 12px;
+}
+
+
+
+/* Fix: search icon overlapping typed text */
+.search-box.search-box-lg input.form-control {
+    padding-left: 42px !important;
+}
+
+
+/* ============ Edit Organization Member Page ============ */
+.member-profile-preview {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background-color: var(--accent-light);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.member-profile-name {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.member-profile-email {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.form-control[readonly] {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+/* ============ Confirmation Pages ============ */
+.confirm-card {
+    max-width: 560px;
+}
+.confirm-warning {
+    align-items: flex-start;
+}
+
+.confirm-warning-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.confirm-warning span:last-child {
+    line-height: 1.5;
+}
+
+/* ============ Project Dashboard Page ============ */
+.project-tools-card {
+    grid-column: span 2;
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.tool-tile {
+    padding: 20px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 160px;
+    background-color: rgba(255, 255, 255, 0.02);
+    transition: var(--transition);
+}
+
+.tool-tile:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.tool-tile-title {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+}
+
+.tool-tile-desc {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.project-member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.integration-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.integration-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border: 1px dashed var(--card-border);
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.integration-link:hover {
+    background-color: var(--accent-light);
+}
+
+.milestones-heading {
+    margin: 32px 0 16px;
+}
+
+.milestone-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.milestone-form .form-group {
+    flex: 1 1 200px;
+    margin-bottom: 0;
+}
+
+.milestone-grid {
+    margin-top: 20px;
+}
+
+.milestone-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.milestone-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.milestone-desc {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.milestone-due {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.utility-panel-grid {
+    margin-top: 28px;
+}
+
+.utility-panel {
+    padding: 20px;
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    background-color: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 160px;
+}
+
+/* ============ Admin Reports Page ============ */
+.reports-tables-grid {
+    margin-top: 32px;
 }

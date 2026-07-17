@@ -4,60 +4,103 @@
 
 {% block content %}
 
-<div class="container">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🛡️ Create Role</h1>
+        <p class="page-subtitle">Define a role and choose what it's allowed to do</p>
+    </div>
+</div>
 
-<h2>Create Role</h2>
+<div class="glass-card">
+    <form method="post">
+        {% csrf_token %}
 
-<form method="post">
+        <div class="form-group">
+            <label>Role Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Project Manager" required>
+        </div>
 
-{% csrf_token %}
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" class="form-control" rows="3" placeholder="What is this role for?"></textarea>
+        </div>
 
-<label>Role Name</label>
-<input type="text" name="name" class="form-control" required>
+        <div class="form-divider-heading">Permissions</div>
 
-<br>
+        <div class="permissions-grid">
 
-<label>Description</label>
-<textarea name="description" class="form-control"></textarea>
+            <label class="permission-check">
+                <input type="checkbox" name="can_manage_users">
+                <span>👥 Manage Users</span>
+            </label>
 
-<hr>
+            <label class="permission-check">
+                <input type="checkbox" name="can_manage_projects">
+                <span>📁 Manage Projects</span>
+            </label>
 
-<h4>Permissions</h4>
+            <label class="permission-check">
+                <input type="checkbox" name="can_manage_companies">
+                <span>🏢 Manage Companies</span>
+            </label>
 
-<label><input type="checkbox" name="can_manage_users"> Manage Users</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_manage_groups">
+                <span>🧩 Manage Groups</span>
+            </label>
 
-<label><input type="checkbox" name="can_manage_projects"> Manage Projects</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_create_projects">
+                <span>➕ Create Projects</span>
+            </label>
 
-<label><input type="checkbox" name="can_manage_companies"> Manage Companies</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_edit_projects">
+                <span>✏️ Edit Projects</span>
+            </label>
 
-<label><input type="checkbox" name="can_manage_groups"> Manage Groups</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_delete_projects">
+                <span>🗑️ Delete Projects</span>
+            </label>
 
-<label><input type="checkbox" name="can_create_projects"> Create Projects</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_create_tasks">
+                <span>➕ Create Tasks</span>
+            </label>
 
-<label><input type="checkbox" name="can_edit_projects"> Edit Projects</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_edit_tasks">
+                <span>✏️ Edit Tasks</span>
+            </label>
 
-<label><input type="checkbox" name="can_delete_projects"> Delete Projects</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_delete_tasks">
+                <span>🗑️ Delete Tasks</span>
+            </label>
 
-<label><input type="checkbox" name="can_create_tasks"> Create Tasks</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_upload_files">
+                <span>📎 Upload Files</span>
+            </label>
 
-<label><input type="checkbox" name="can_edit_tasks"> Edit Tasks</label><br>
+            <label class="permission-check">
+                <input type="checkbox" name="can_view_reports">
+                <span>📊 View Reports</span>
+            </label>
 
-<label><input type="checkbox" name="can_delete_tasks"> Delete Tasks</label><br>
+        </div>
 
-<label><input type="checkbox" name="can_upload_files"> Upload Files</label><br>
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">
+                Create Role
+            </button>
+            <a href="{% url 'admin_role_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
-<label><input type="checkbox" name="can_view_reports"> View Reports</label><br><br>
-
-<button class="btn btn-primary">
-Create Role
-</button>
-
-<a href="{% url 'admin_role_list' %}" class="btn btn-secondary">
-Cancel
-</a>
-
-</form>
-
+    </form>
 </div>
 
 {% endblock %}

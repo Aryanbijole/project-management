@@ -4,80 +4,79 @@
 
 {% block content %}
 
-<h2>Create Group</h2>
-
-<form method="post">
-
-    {% csrf_token %}
-
-    <div class="mb-3">
-        <label>Group Name</label>
-        <input
-            type="text"
-            name="name"
-            class="form-control"
-            required>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🧩 Create Group</h1>
+        <p class="page-subtitle">Organize users into a group under a company</p>
     </div>
+</div>
 
-    <div class="mb-3">
-        <label>Company</label>
+<div class="glass-card">
+    <form method="post">
 
-        <select
-            name="company"
-            class="form-control"
-            required>
+        {% csrf_token %}
 
-            {% for company in companies %}
-                <option value="{{ company.id }}">
-                    {{ company.name }}
-                </option>
-            {% endfor %}
+        <div class="form-group">
+            <label>Group Name</label>
+            <input
+                type="text"
+                name="name"
+                class="form-control"
+                placeholder="e.g. Engineering Team"
+                required>
+        </div>
 
-        </select>
-    </div>
+        <div class="form-group">
+            <label>Company</label>
 
-    <div class="mb-3">
+            <select
+                name="company"
+                class="form-control"
+                required>
 
-        <label>Members</label>
+                {% for company in companies %}
+                    <option value="{{ company.id }}">
+                        {{ company.name }}
+                    </option>
+                {% endfor %}
 
-        <select
-            name="members"
-            class="form-control"
-            multiple
-            size="8">
+            </select>
+        </div>
+
+        <div class="form-divider-heading">Members</div>
+
+        <div class="member-select-list">
 
             {% for user in users %}
-
-                <option value="{{ user.id }}">
-                    {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
-                </option>
-
+            <label class="member-check">
+                <input type="checkbox" name="members" value="{{ user.id }}">
+                <div class="user-avatar user-avatar-sm">
+                    {{ user.first_name|slice:":1"|upper|default:user.email|slice:":1"|upper }}
+                </div>
+                <div class="member-check-info">
+                    <div class="member-check-name">
+                        {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.email }}{% endif %}
+                    </div>
+                    <div class="member-check-email">{{ user.email }}</div>
+                </div>
+            </label>
+            {% empty %}
+            <p class="form-hint">No users available.</p>
             {% endfor %}
 
-        </select>
+        </div>
 
-        <small>
-            Hold Ctrl (Windows) or Cmd (Mac) to select multiple members.
-        </small>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Create Group
+            </button>
 
-    </div>
+            <a href="{% url 'admin_group_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
-    <button
-        type="submit"
-        class="btn btn-primary">
-
-        Create Group
-
-    </button>
-
-    <a
-        href="{% url 'admin_group_list' %}"
-        class="btn btn-secondary">
-
-        Cancel
-
-    </a>
-
-</form>
+    </form>
+</div>
 
 {% endblock %}

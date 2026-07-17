@@ -4,15 +4,24 @@
 
 {% block content %}
 
-<div class="container">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <h2>👥 Group Management</h2>
-
-        <a href="{% url 'admin_group_create' %}" class="btn btn-primary">
-            + Create Group
-        </a>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">👥 Group Management</h1>
+        <p class="page-subtitle">Manage groups and their members across companies</p>
     </div>
+
+    <a href="{% url 'admin_group_create' %}" class="btn btn-primary">
+        + Create Group
+    </a>
+</div>
+
+<div class="role-toolbar">
+    {% if groups %}
+    <span class="role-count">{{ groups|length }} group{{ groups|length|pluralize }}</span>
+    {% endif %}
+</div>
+
+<div class="table-card">
 
     <table class="table">
 
@@ -31,23 +40,46 @@
         {% for group in groups %}
 
         <tr>
-            <a href="{% url 'admin_group_detail' group.id %}">
-            {{ group.name }}
-            </a>
+            <td>
+                <a href="{% url 'admin_group_detail' group.id %}" class="role-name-cell group-name-link">
+                
+                    {{ group.name }}
+                </a>
+            </td>
+
             <td>{{ group.company.name }}</td>
-            <td>{{ group.members.count }}</td>
+
+            <td>
+                <span class="user-count-badge">👤 {{ group.members.count }}</span>
+            </td>
+
             <td>{{ group.created_at|date:"d M Y" }}</td>
 
             <td>
-                <a href="{% url 'admin_group_edit' group.id %}">Edit</a> |
-                <a href="{% url 'admin_group_delete' group.id %}" style="color:red;">Delete</a>
+                <div class="row-actions">
+                    <a href="{% url 'admin_group_edit' group.id %}" class="btn btn-secondary btn-sm" data-tooltip="Edit group">
+                        ✏️ Edit
+                    </a>
+                    <a href="{% url 'admin_group_delete' group.id %}" class="btn btn-danger btn-sm" data-tooltip="Delete group">
+                        🗑️ Delete
+                    </a>
+                </div>
             </td>
         </tr>
 
         {% empty %}
 
         <tr>
-            <td colspan="5">No Groups Found.</td>
+            <td colspan="5">
+                <div class="empty-state">
+                    <h2>🧩</h2>
+                    <h4>No groups yet</h4>
+                    <p>Create your first group to start organizing members.</p>
+                    <a href="{% url 'admin_group_create' %}" class="btn btn-primary">
+                        + Create Group
+                    </a>
+                </div>
+            </td>
         </tr>
 
         {% endfor %}

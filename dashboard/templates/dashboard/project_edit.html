@@ -4,26 +4,31 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">✏️ Edit Project</h1>
+        <p class="page-subtitle">Update project details</p>
+    </div>
+</div>
 
-    <h2>Edit Project</h2>
-
-    <form method="post">
+<div class="glass-card">
+    <form method="post" class="django-form">
 
         {% csrf_token %}
 
         {{ form.as_p }}
 
-        <button class="btn btn-success">
-            Update Project
-        </button>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Update Project
+            </button>
 
-        <a href="{% url 'admin_project_list' %}" class="btn btn-secondary">
-            Cancel
-        </a>
+            <a href="{% url 'admin_project_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
     </form>
-
 </div>
 
 {% endblock %}

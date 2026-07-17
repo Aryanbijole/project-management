@@ -4,33 +4,31 @@
 
 {% block content %}
 
-<div class="container">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">👤 Edit Organization Member</h1>
+        <p class="page-subtitle">Update this member's role within the organization</p>
+    </div>
+</div>
 
-    <h2>Edit Organization Member</h2>
-
+<div class="glass-card">
     <form method="post">
 
         {% csrf_token %}
 
-        <div class="mb-3">
-            <label>Name</label>
-            <input
-                type="text"
-                class="form-control"
-                value="{{ membership.user.first_name }} {{ membership.user.last_name }}"
-                readonly>
+        <div class="member-profile-preview">
+            <div class="user-avatar">
+                {{ membership.user.first_name|slice:":1"|upper|default:membership.user.email|slice:":1"|upper }}
+            </div>
+            <div>
+                <div class="member-profile-name">
+                    {{ membership.user.first_name }} {{ membership.user.last_name }}
+                </div>
+                <div class="member-profile-email">{{ membership.user.email }}</div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input
-                type="email"
-                class="form-control"
-                value="{{ membership.user.email }}"
-                readonly>
-        </div>
-
-        <div class="mb-3">
+        <div class="form-group">
             <label>Company</label>
             <input
                 type="text"
@@ -39,38 +37,29 @@
                 readonly>
         </div>
 
-        <div class="mb-3">
+        <div class="form-group">
             <label>Role</label>
 
-            <select
-                name="role"
-                class="form-control">
-
-                {% for value,label in roles %}
-
-                    <option
-                        value="{{ value }}"
-                        {% if membership.role == value %}selected{% endif %}>
+            <select name="role" class="form-control">
+                {% for value, label in roles %}
+                    <option value="{{ value }}" {% if membership.role == value %}selected{% endif %}>
                         {{ label }}
                     </option>
-
                 {% endfor %}
-
             </select>
-
         </div>
 
-        <button class="btn btn-primary">
-            Save Changes
-        </button>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Save Changes
+            </button>
 
-        <a href="{% url 'organization_members' %}"
-           class="btn btn-secondary">
-            Cancel
-        </a>
+            <a href="{% url 'organization_members' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
     </form>
-
 </div>
 
 {% endblock %}
