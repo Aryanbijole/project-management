@@ -6,10 +6,18 @@ from django.db.models import Q
 from projects.models import Project
 from communication.models import MessageBoardPost, Comment, PrivateMessage
 from accounts.models import User
+from accounts.decorators import company_required
 
 @login_required
+@company_required
 def message_board_view(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     posts = MessageBoardPost.objects.filter(project=project).order_by('-created_at')
 
     return render(request, 'communication/message_board.html', {
@@ -19,8 +27,15 @@ def message_board_view(request, project_id):
 
 
 @login_required
+@company_required
 def create_post_view(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
 
     if request.method == 'POST':
         title = request.POST.get('title')
@@ -44,8 +59,15 @@ def create_post_view(request, project_id):
 
 
 @login_required
+@company_required
 def post_detail_view(request, project_id, post_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     post = get_object_or_404(MessageBoardPost, id=post_id, project=project)
     comments = post.comments.all().order_by('created_at')
 
@@ -57,8 +79,15 @@ def post_detail_view(request, project_id, post_id):
 
 
 @login_required
+@company_required
 def add_comment_view(request, project_id, post_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     post = get_object_or_404(MessageBoardPost, id=post_id, project=project)
 
     if request.method == 'POST':
@@ -77,6 +106,7 @@ def add_comment_view(request, project_id, post_id):
 
 
 @login_required
+@company_required
 def chat_hub_view(request, user_id=None):
     # Get active users that the current user can chat with
     # (users in the same companies/organizations)
@@ -90,7 +120,13 @@ def chat_hub_view(request, user_id=None):
     chat_messages = []
 
     if user_id:
-        active_chat_user = get_object_or_404(User, id=user_id, is_active=True)
+
+        active_chat_user = get_object_or_404(
+            User,
+            id=user_id,
+            memberships__company__in=request.user.memberships.values("company"),
+            is_active=True
+        )
         # Fetch conversation
         chat_messages = PrivateMessage.objects.filter(
             Q(sender=request.user, receiver=active_chat_user) |
@@ -105,8 +141,14 @@ def chat_hub_view(request, user_id=None):
 
 
 @login_required
+@company_required
 def send_chat_message(request, user_id):
-    receiver = get_object_or_404(User, id=user_id, is_active=True)
+    receiver = get_object_or_404(
+        User,
+        id=user_id,
+        memberships__company__in=request.user.memberships.values("company"),
+        is_active=True
+    )
     if request.method == 'POST':
         content = request.POST.get('content')
         if content:
@@ -130,8 +172,14 @@ def send_chat_message(request, user_id):
 
 
 @login_required
+@company_required
 def get_chat_messages(request, user_id):
-    receiver = get_object_or_404(User, id=user_id, is_active=True)
+    receiver = get_object_or_404(
+        User,
+        id=user_id,
+        memberships__company__in=request.user.memberships.values("company"),
+        is_active=True
+    )
     messages_query = PrivateMessage.objects.filter(
         Q(sender=request.user, receiver=receiver) |
         Q(sender=receiver, receiver=request.user)

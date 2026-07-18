@@ -28,14 +28,7 @@
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="role">Default Role</label>
-                <select id="role" name="role" class="form-control">
-                    {% for key, val in roles %}
-                    <option value="{{ key }}" {% if key == 'member' %}selected{% endif %}>{{ val }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+            
             
             <div class="form-group">
                 <label for="password">Password</label>

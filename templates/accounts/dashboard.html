@@ -89,8 +89,8 @@ margin-bottom:35px;
                 <p class="empty-hint">You do not belong to any organizations yet.</p>
             {% endif %}
 
-            {% if user.role == 'admin' %}
-            <h4 class="form-divider-heading">Create New Organization</h4>
+            {% if request.user.is_superuser %}
+            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Create New Organization</h4>
             <form action="{% url 'create_company' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -119,8 +119,8 @@ margin-bottom:35px;
                 <p class="empty-hint">No custom groups formed yet.</p>
             {% endif %}
 
-            {% if user.role == 'admin' and companies %}
-            <h4 class="form-divider-heading">Create Group</h4>
+            {% if request.user.is_superuser or is_company_admin %}
+            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Create Group</h4>
             <form action="{% url 'create_group' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -172,8 +172,8 @@ margin-bottom:35px;
                 <p class="empty-hint">You are not associated with any projects yet.</p>
             {% endif %}
 
-            {% if companies %}
-            <h4 class="form-divider-heading">Start New Project</h4>
+            {% if request.user.is_superuser or is_company_admin %}
+            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Start New Project</h4>
             <form action="{% url 'create_project' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -207,7 +207,7 @@ margin-bottom:35px;
 
     <!-- Onboarding, Directory and Invites Column -->
     <div>
-        {% if user.role == 'admin' and companies %}
+        {% if request.user.is_superuser or is_company_admin %}
         <div class="glass-card">
             <h3 class="section-card-title"><span>📩 Invite New Users</span></h3>
             <form action="{% url 'send_invite' %}" method="POST">
@@ -218,18 +218,49 @@ margin-bottom:35px;
                 </div>
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label>Organization</label>
-                    <select name="company_id" class="form-control" required>
-                        {% for comp in companies %}
-                        <option value="{{ comp.id }}">{{ comp.name }}</option>
+                    {% if request.user.is_superuser %}
+
+                    <select name="company_id" class="form-control">
+
+                        {% for company in companies %}
+                            <option value="{{ company.id }}">
+                                {{ company.name }}
+                            </option>
                         {% endfor %}
+
                     </select>
+
+                    {% else %}
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        value="{{ companies.first.name }}"
+                        readonly
+                    >
+
+                    <input
+                        type="hidden"
+                        name="company_id"
+                        value="{{ companies.first.id }}"
+                    >
+
+                    {% endif %}
                 </div>
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label>Role</label>
                     <select name="role" class="form-control">
-                        {% for key, val in roles %}
-                        <option value="{{ key }}" {% if key == 'member' %}selected{% endif %}>{{ val }}</option>
-                        {% endfor %}
+
+                    {% if request.user.is_superuser %}
+                        <option value="admin">
+                            Organization Administrator
+                        </option>
+                    {% endif %}
+
+                        <option value="member" selected>
+                            Organization Member
+                        </option>
+
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">
@@ -318,7 +349,7 @@ margin-bottom:35px;
 
                     <strong>
 
-                        {{ activity.project.name }}
+                        {{ activity.todo_item.todo_list.project.name}}
 
                     </strong>
 
@@ -332,7 +363,7 @@ margin-bottom:35px;
 
                 <div style="font-size:.9rem;">
 
-                    {{ activity.action }}
+                    {{ activity.activity_type  }}
 
                 </div>
 

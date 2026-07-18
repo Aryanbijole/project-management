@@ -4,10 +4,18 @@ from django.contrib import messages
 from projects.models import Project
 from exports.models import DataExport
 from exports.services import run_project_export_async
+from accounts.decorators import company_required
 
 @login_required
+@company_required
 def export_list_view(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
     exports = DataExport.objects.filter(project=project).order_by('-created_at')
 
     return render(request, 'exports/export_list.html', {
@@ -17,8 +25,15 @@ def export_list_view(request, project_id):
 
 
 @login_required
+@company_required
 def request_export_view(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
 
     if request.method == 'POST':
         # Create DataExport request

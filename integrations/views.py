@@ -3,10 +3,18 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from projects.models import Project
 from integrations.models import ExternalTool
+from accounts.decorators import company_required
 
 @login_required
+@company_required
 def create_external_tool(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    company = request.user.memberships.first().company
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company
+    )
 
     if request.method == 'POST':
         name = request.POST.get('name')

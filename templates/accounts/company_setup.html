@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-8">
+
+            <div class="card shadow p-5">
+
+                <h2 class="mb-4 text-center">
+                    Welcome to ProjectFlow
+                </h2>
+
+                <p class="text-center mb-5">
+                    Choose how you'd like to continue.
+                </p>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <div class="card p-4 h-100">
+
+                            <h4>🏢 Create New Company</h4>
+
+                            <p>
+                                Start a new organization and become its Owner.
+                            </p>
+
+                            <a href="{% url 'create_company' %}"
+                               class="btn btn-primary mt-auto">
+
+                                Create Company
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="card p-4 h-100">
+
+                            <h4>🤝 Join Existing Company</h4>
+
+                            <p>
+                                Already invited by an organization?
+                            </p>
+
+                            <a href="{% url 'join_company' %}"
+                               class="btn btn-success mt-auto">
+
+                                Join Company
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

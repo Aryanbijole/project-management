@@ -16,54 +16,134 @@ from projects.forms import ProjectForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from accounts.utils import create_notification
-
 from audit.models import AuditLog
-from django.core.paginator import Paginator
+from accounts.decorators import company_required
+def current_company(request):
+    membership = request.user.memberships.select_related("company").first()
+    return membership.company if membership else None
+
+from accounts.permissions import is_company_admin
 
 
 
 @login_required
+@company_required
 def admin_reports(request):
 
-    if not (
-    request.user.is_superuser or
-    request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+
+        company = None
+
+        projects = Project.objects.all()
+
+        tasks = TodoItem.objects.all()
+
+        total_users = User.objects.count()
+
+    else:
+
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+
+        company = membership.company
+
+        projects = Project.objects.filter(company=company)
+
+        tasks = TodoItem.objects.filter(
+            todo_list__project__company=company
+        )
+
+        total_users = User.objects.filter(
+            memberships__company=company
+        ).distinct().count()
+
+    projects = Project.objects.filter(company=company)
+
+    tasks = TodoItem.objects.filter(
+         todo_list__project__company=company
+    )
+
     context = {
-        "total_users": User.objects.count(),
-        "total_projects": Project.objects.count(),
-        "total_tasks": TodoItem.objects.count(),
-        "completed_tasks": TodoItem.objects.filter(status="done").count(),
-        "active_tasks": TodoItem.objects.exclude(status="done").count(),
-        "milestones": Milestone.objects.count(),
-        "recent_projects": Project.objects.order_by("-created_at")[:5],
-        "recent_tasks": TodoItem.objects.order_by("-created_at")[:10],
+        "total_users": User.objects.filter(
+        memberships__company=company
+    ).distinct().count(),
+
+        "total_projects": projects.count(),
+
+        "total_tasks": tasks.count(),
+
+        "completed_tasks": tasks.filter(
+            status="done"
+        ).count(),
+
+        "active_tasks": tasks.exclude(
+            status="done"
+        ).count(),
+
+        "milestones": Milestone.objects.filter(
+            project__company=company
+        ).count(),
+
+        "recent_projects": projects.order_by("-created_at")[:5],
+
+        "recent_tasks": tasks.order_by("-created_at")[:10],
     }
 
     return render(request, "dashboard/admin_reports.html", context)
 
 @login_required
+@company_required
 def user_list(request):
 
-    if request.user.role != User.ROLE_ADMIN:
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    users = User.objects.all().order_by("first_name")
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+
+    if request.user.is_superuser:
+
+        users = User.objects.all().order_by("first_name")
+
+    else:
+
+        company = membership.company
+
+        users = User.objects.filter(
+            memberships__company=company
+        ).distinct().order_by("first_name") 
+
 
     return render(
         request,
         "dashboard/users.html",
         {
-            "users": users
+            "users": users,
+            "company": None if request.user.is_superuser else company,
+            "is_superuser_panel": request.user.is_superuser,
         }
     )
 
 @login_required
+@company_required
 def user_create(request):
 
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+
+        messages.info(
+            request,
+            "Create users by inviting them to a company."
+        )
+
+        return redirect("admin_users")
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
 
     if request.method == "POST":
 
@@ -76,6 +156,12 @@ def user_create(request):
             last_name=request.POST["last_name"],
             password=request.POST["password"],
             role=request.POST["role"],
+        )
+
+        CompanyMembership.objects.create(
+            company=membership.company,
+            user=user,
+            role=user.role,
         )
 
         create_audit_log(
@@ -91,14 +177,17 @@ def user_create(request):
     return render(request, "dashboard/user_create.html")
 
 
+@login_required
+@company_required
 def user_edit(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
 
-    if not (
-    request.user.is_superuser or
-    request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
 
     if request.method == "POST":
         user_obj.first_name = request.POST.get("first_name")
@@ -139,14 +228,16 @@ def user_edit(request, user_id):
 
 
 @login_required
+@company_required
 def user_delete(request, user_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    
 
+    membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
     user = get_object_or_404(User, id=user_id)
 
     # Prevent admin from deleting themselves
@@ -174,24 +265,34 @@ def user_delete(request, user_id):
 
 
 @login_required
+@company_required
 def project_list(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
 
     search = request.GET.get("search", "")
     status = request.GET.get("status", "")
 
-    projects = Project.objects.filter(
-    is_archived=False
-    ).select_related(
-       "company",
-       "owner",
-       "created_by",
-    )  
+    if request.user.is_superuser:
+
+        company = None
+
+        projects = Project.objects.filter(
+            is_archived=False
+        )
+
+    else:
+
+        company = membership.company
+
+        projects = Project.objects.filter(
+            company=company,
+            is_archived=False
+        )
 
     if search:
         projects = projects.filter(
@@ -213,10 +314,25 @@ def project_list(request):
         "projects": projects,
         "search": search,
         "status": status,
-        "total_projects": Project.objects.count(),
-        "active_projects": Project.objects.filter(status=Project.STATUS_ACTIVE).count(),
-        "completed_projects": Project.objects.filter(status=Project.STATUS_COMPLETED).count(),
-        "archived_projects": Project.objects.filter(is_archived=True).count(),
+
+        "total_projects": Project.objects.filter(
+            company=company
+        ).count(),
+
+        "active_projects": Project.objects.filter(
+            company=company,
+            status=Project.STATUS_ACTIVE
+        ).count(),
+
+        "completed_projects": Project.objects.filter(
+            company=company,
+            status=Project.STATUS_COMPLETED
+        ).count(),
+
+        "archived_projects": Project.objects.filter(
+            company=company,
+            is_archived=True
+        ).count(),
     }
 
     return render(
@@ -227,23 +343,39 @@ def project_list(request):
 
 
 @login_required
+@company_required
 def project_create(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+
+        messages.info(
+            request,
+            "Please create the project from a company administration panel."
+        )
+
+        return redirect("admin_project_list")
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
 
     if request.method == "POST":
 
-        form = ProjectForm(request.POST)
+        form = ProjectForm(
+            request.POST,
+            company=membership.company,
+        )
 
         if form.is_valid():
 
             project = form.save(commit=False)
 
             project.created_by = request.user
+
+            project.company = membership.company
 
             project.save()
 
@@ -274,7 +406,9 @@ def project_create(request):
 
     else:
 
-        form = ProjectForm()
+        form = ProjectForm(
+            company=membership.company,
+        )
 
     return render(
         request,
@@ -285,19 +419,42 @@ def project_create(request):
     )
 
 @login_required
+@company_required
 def project_edit(request, project_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    project = get_object_or_404(Project, id=project_id)
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+
+    if request.user.is_superuser:
+
+        project = get_object_or_404(
+            Project,
+            id=project_id
+        )
+
+        company = project.company
+
+    else:
+
+        company = membership.company
+ 
+        project = get_object_or_404(
+            Project,
+            id=project_id,
+            company=company
+        )
+
 
     if request.method == "POST":
 
-        form = ProjectForm(request.POST, instance=project)
+        form = ProjectForm(
+            request.POST,
+            instance=project,
+            company=company,
+        )
 
         if form.is_valid():
 
@@ -316,7 +473,10 @@ def project_edit(request, project_id):
 
     else:
 
-        form = ProjectForm(instance=project)
+        form = ProjectForm(
+            instance=project,
+            company=company,
+        )
 
     return render(
         request,
@@ -328,15 +488,32 @@ def project_edit(request, project_id):
     )
 
 @login_required
+@company_required
 def project_delete(request, project_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    project = get_object_or_404(Project, id=project_id)
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+
+    if request.user.is_superuser:
+
+        project = get_object_or_404(
+            Project,
+            id=project_id
+        )
+
+    else:
+
+        company = membership.company
+
+        project = get_object_or_404(
+            Project,
+            id=project_id,
+            company=membership.company
+        )
+
 
     project_name = project.name
 
@@ -354,22 +531,35 @@ def project_delete(request, project_id):
     return redirect("admin_project_list")
 
 @login_required
+@company_required
 def project_detail(request, project_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    project = get_object_or_404(
-        Project.objects.select_related(
-            "company",
-            "owner",
-            "created_by",
-        ).prefetch_related("members"),
-        id=project_id,
-    )
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+
+    project_queryset = Project.objects.select_related(
+        "company",
+        "owner",
+        "created_by",
+    ).prefetch_related("members")
+
+    if request.user.is_superuser:
+
+        project = get_object_or_404(
+            project_queryset,
+            id=project_id
+        )
+
+    else:
+
+        project = get_object_or_404(
+            project_queryset,
+            id=project_id,
+            company=membership.company
+        )
 
     tasks = TodoItem.objects.filter(
         todo_list__project=project
@@ -406,17 +596,23 @@ def project_detail(request, project_id):
     )
 
 @login_required
+@company_required
 def company_list(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden(
-            "Only administrators can access this page."
-        )
+    
 
-    companies = Company.objects.all().order_by("name")
+    membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+
+    if request.user.is_superuser:
+        companies = Company.objects.all().order_by("name")
+    else:
+        companies = Company.objects.filter(
+            id=membership.company.id
+        )
 
     return render(
         request,
@@ -427,16 +623,15 @@ def company_list(request):
     )
 
 @login_required
+@company_required
 def company_create(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden(
-            "Only administrators can access this page."
-        )
+    membership = request.user.memberships.first()
 
+    if not request.user.is_superuser:
+        return HttpResponseForbidden(
+            "Only Platform Admin can create companies."
+        )
     if request.method == "POST":
 
         Company.objects.create(
@@ -456,20 +651,26 @@ def company_create(request):
     )
 
 @login_required
+@company_required
 def company_edit(request, company_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden(
-            "Only administrators can access this page."
-        )
+    
 
-    company = get_object_or_404(
-        Company,
-        id=company_id
-    )
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+        company = get_object_or_404(
+            Company,
+            id=company_id
+        )
+    else:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+
+        company = membership.company
+
+        if company.id != company_id:
+            return HttpResponseForbidden()
 
     if request.method == "POST":
 
@@ -492,14 +693,14 @@ def company_edit(request, company_id):
     )
 
 @login_required
+@company_required
 def company_delete(request, company_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
+    membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
         return HttpResponseForbidden(
-            "Only administrators can access this page."
+            "Only Platform Admin can delete companies."
         )
 
     company = get_object_or_404(
@@ -518,39 +719,68 @@ def company_delete(request, company_id):
 
 
 @login_required
+@company_required
 def group_list(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+   
+    membership = request.user.memberships.first()
 
-    groups = Group.objects.select_related("company").prefetch_related("members")
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden("Access denied.")
+
+    if request.user.is_superuser:
+        groups = Group.objects.select_related(
+            "company"
+        ).prefetch_related("members")
+    else:
+        groups = Group.objects.filter(
+            company=membership.company
+        ).select_related(
+            "company"
+        ).prefetch_related("members")
 
     return render(
     request,
     "dashboard/group_list.html",
-    {"groups": Group.objects.all()}
+    {
+        "groups": groups
+    }
     )
 
 @login_required
+@company_required
 def group_create(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    membership = request.user.memberships.first()
 
-    companies = Company.objects.all()
-    users = User.objects.all()
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+
+        messages.info(
+            request,
+            "Groups are created inside a company."
+        )
+
+        return redirect("admin_group_list")
+
+    company = membership.company
+
+
+    users = User.objects.filter(
+        memberships__company=company
+    ).distinct()
 
     if request.method == "POST":
 
         group = Group.objects.create(
             name=request.POST["name"],
-            company_id=request.POST["company"],
+            company=company,
         )
 
         member_ids = request.POST.getlist("members")
@@ -568,24 +798,45 @@ def group_create(request):
         request,
         "dashboard/group_create.html",
         {
-            "companies": companies,
+            "company": company,
             "users": users,
         },
     )
 
 @login_required
+@company_required
 def group_edit(request, group_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    
 
-    group = get_object_or_404(Group, id=group_id)
+    membership = request.user.memberships.first()
 
-    companies = Company.objects.all()
-    users = User.objects.all()
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden("Access denied.")
+
+    if request.user.is_superuser:
+        group = get_object_or_404(
+            Group,
+            id=group_id
+        )
+    else:
+        group = get_object_or_404(
+            Group,
+            id=group_id,
+            company=membership.company
+        )
+
+    if request.user.is_superuser:
+        companies = Company.objects.all()
+    else:
+        companies = Company.objects.filter(
+            id=membership.company.id
+        )
+    
+    users = User.objects.filter(
+        memberships__company=group.company
+    ).distinct()
 
     if request.method == "POST":
 
@@ -600,9 +851,11 @@ def group_edit(request, group_id):
 
         return redirect("admin_group_list")
 
-    available_users = User.objects.exclude(
-    id__in=group.members.values_list("id", flat=True)
-     )
+    available_users = User.objects.filter(
+        memberships__company=group.company
+    ).exclude(
+        id__in=group.members.values_list("id", flat=True)
+    ).distinct()
     return render(
     request,
     "dashboard/group_edit.html",
@@ -614,15 +867,29 @@ def group_edit(request, group_id):
     },
     )
 @login_required
+@company_required
 def group_delete(request, group_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    membership = request.user.memberships.first()
 
-    group = get_object_or_404(Group, id=group_id)
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
+
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+        group = get_object_or_404(
+            Group,
+            id=group_id
+        )
+    else:
+        group = get_object_or_404(
+            Group,
+            id=group_id,
+            company=membership.company
+        )
 
     group.delete()
 
@@ -634,14 +901,34 @@ def group_delete(request, group_id):
     return redirect("admin_group_list")
 
 @login_required
+@company_required
 def group_detail(request, group_id):
 
-    if not (request.user.is_superuser or request.user.role == User.ROLE_ADMIN):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    group = get_object_or_404(Group, id=group_id)
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
 
-    users = User.objects.exclude(id__in=group.members.values_list("id", flat=True))
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+        group = get_object_or_404(
+            Group,
+            id=group_id
+        )
+    else:
+        group = get_object_or_404(
+            Group,
+            id=group_id,
+            company=membership.company
+        )
+
+    users = User.objects.filter(
+        memberships__company=group.company
+    ).exclude(
+        id__in=group.members.values_list("id", flat=True)
+    ).distinct()
 
     if request.method == "POST":
         user = get_object_or_404(User, id=request.POST["user"])
@@ -659,15 +946,29 @@ def group_detail(request, group_id):
     )
 
 @login_required
+@company_required
 def remove_group_member(request, group_id, user_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    group = get_object_or_404(Group, id=group_id)
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
+
+    membership = request.user.memberships.first()
+
+    if request.user.is_superuser:
+        group = get_object_or_404(
+            Group,
+            id=group_id
+        )
+    else:
+        group = get_object_or_404(
+            Group,
+            id=group_id,
+            company=membership.company
+        )
     user = get_object_or_404(User, id=user_id)
 
     group.members.remove(user)
@@ -677,18 +978,29 @@ def remove_group_member(request, group_id, user_id):
     return redirect("admin_group_detail", group_id=group.id)
 
 @login_required
+@company_required
 def organization_members(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    
 
-    memberships = CompanyMembership.objects.select_related(
-        "user",
-        "company"
-    )
+    membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden("Access denied.")
+    
+    if request.user.is_superuser:
+        memberships = CompanyMembership.objects.select_related(
+            "user",
+            "company"
+        )
+    else:
+        memberships = CompanyMembership.objects.filter(
+            company=membership.company
+        ).select_related(
+            "user",
+            "company"
+        )
 
     return render(
         request,
@@ -699,18 +1011,28 @@ def organization_members(request):
     )
 
 @login_required
+@company_required
 def organization_member_edit(request, membership_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    membership = request.user.memberships.first()
 
-    membership = get_object_or_404(
-        CompanyMembership,
-        id=membership_id
-    )
+    admin_membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not admin_membership or admin_membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden("Access denied.")
+
+    if request.user.is_superuser:
+        membership = get_object_or_404(
+            CompanyMembership,
+            id=membership_id
+        )
+    else:
+        membership = get_object_or_404(
+            CompanyMembership,
+            id=membership_id,
+            company=admin_membership.company
+        )
 
     if request.method == "POST":
 
@@ -738,18 +1060,28 @@ def organization_member_edit(request, membership_id):
     )
 
 @login_required
+@company_required
 def organization_member_delete(request, membership_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    membership = request.user.memberships.first()
 
-    membership = get_object_or_404(
-        CompanyMembership,
-        id=membership_id
-    )
+    admin_membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not admin_membership or admin_membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden("Access denied.")
+
+    if request.user.is_superuser:
+        membership = get_object_or_404(
+            CompanyMembership,
+            id=membership_id
+        )
+    else:
+        membership = get_object_or_404(
+            CompanyMembership,
+            id=membership_id,
+            company=admin_membership.company
+        )
 
     if request.method == "POST":
 
@@ -771,14 +1103,15 @@ def organization_member_delete(request, membership_id):
     )
 
 @login_required
+@company_required
 def role_list(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    membership = request.user.memberships.first()
 
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
     roles = Role.objects.all().order_by("name")
 
     return render(
@@ -790,13 +1123,15 @@ def role_list(request):
     )
 
 @login_required
+@company_required
 def role_create(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden("Only admins can access this page.")
+    membership = request.user.memberships.first()
+
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
 
     if request.method == "POST":
 
@@ -839,6 +1174,7 @@ def role_create(request):
     )
 
 @login_required
+@company_required
 def role_edit(request, role_id):
     role = get_object_or_404(Role, id=role_id)
 
@@ -864,6 +1200,7 @@ def role_edit(request, role_id):
     )
 
 @login_required
+@company_required
 def role_delete(request, role_id):
     role = get_object_or_404(Role, id=role_id)
 
@@ -885,15 +1222,26 @@ def role_delete(request, role_id):
 
 
 @login_required
+@company_required
 def audit_logs(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    logs = AuditLog.objects.select_related("user").all()
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
+
+    if request.user.is_superuser:
+        logs = AuditLog.objects.select_related("user").all()
+    else:
+        company_users = User.objects.filter(
+            memberships__company=membership.company
+        )
+
+        logs = AuditLog.objects.filter(
+            user__in=company_users
+        ).select_related("user")
 
     # Search
     q = request.GET.get("q")
@@ -920,16 +1268,26 @@ def audit_logs(request):
     )
 
 @login_required
+@company_required
 def project_archive(request, project_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    project = get_object_or_404(Project, id=project_id)
-
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
+    if request.user.is_superuser:
+        project = get_object_or_404(
+            Project,
+            id=project_id
+        )
+    else:
+        project = get_object_or_404(
+            Project,
+            id=project_id,
+            company=membership.company
+        )
     project.is_archived = not project.is_archived
     project.save()
 
@@ -968,21 +1326,33 @@ def project_archive(request, project_id):
     return redirect("admin_project_list")
 
 @login_required
+@company_required
 def archived_projects(request):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    projects = Project.objects.filter(
-        is_archived=True
-    ).select_related(
-        "company",
-        "owner",
-        "created_by",
-    )
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
+
+    if request.user.is_superuser:
+        projects = Project.objects.filter(
+            is_archived=True
+        ).select_related(
+           "company",
+            "owner",
+            "created_by",
+        )
+    else:
+        projects = Project.objects.filter(
+            company=membership.company,
+            is_archived=True
+        ).select_related(
+            "company",
+            "owner",
+            "created_by",
+        )
 
     context = {
         "projects": projects,
@@ -995,18 +1365,27 @@ def archived_projects(request):
     )
 
 @login_required
+@company_required
 def restore_project(request, project_id):
 
-    if not (
-        request.user.is_superuser or
-        request.user.role == User.ROLE_ADMIN
-    ):
-        return HttpResponseForbidden()
+    membership = request.user.memberships.first()
 
-    project = get_object_or_404(
-        Project,
-        id=project_id
-    )
+    if not request.user.is_superuser:
+        if not membership or membership.role != User.ROLE_ADMIN:
+            return HttpResponseForbidden()
+        
+
+    if request.user.is_superuser:
+        project = get_object_or_404(
+            Project,
+            id=project_id
+        )
+    else:
+        project = get_object_or_404(
+            Project,
+            id=project_id,
+            company=membership.company
+        )
 
     project.is_archived = False
     project.save()
@@ -1022,11 +1401,21 @@ def restore_project(request, project_id):
 
 
 @login_required
+@company_required
 def user_project_list(request):
 
-    projects = Project.objects.filter(
-        members=request.user
-    ).distinct()
+    if request.user.is_superuser:
+
+        projects = Project.objects.all().distinct()
+
+    else:
+
+        membership = request.user.memberships.first()
+
+        projects = Project.objects.filter(
+            company=membership.company,
+            members=request.user
+        ).distinct()
 
     return render(
 

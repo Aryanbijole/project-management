@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Administration{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <h2 class="mb-4">
+        Administration Dashboard
+    </h2>
+
+    {% if is_superuser_panel %}
+        <p class="text-muted">
+            Global Administration
+        </p>
+    {% else %}
+        <p class="text-muted">
+            {{ company.name }}
+        </p>
+    {% endif %}
+
+    <div class="row">
+
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Members</h6>
+                    <h2>{{ total_members }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Projects</h6>
+                    <h2>{{ total_projects }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Active Projects</h6>
+                    <h2>{{ active_projects }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Archived Projects</h6>
+                    <h2>{{ archived_projects }}</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Groups</h6>
+                    <h2>{{ total_groups }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Pending Invitations</h6>
+                    <h2>{{ pending_invites }}</h2>
+                </div>
+            </div>
+        </div>
+
+        {% if is_superuser_panel %}
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Companies</h6>
+                    <h2>{{ total_companies }}</h2>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

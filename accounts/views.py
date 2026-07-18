@@ -8,9 +8,10 @@ from accounts.models import User, Company, Group, CompanyMembership, Invitation
 from accounts.services import merge_users
 from projects.models import Project
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from accounts.models import Notification
 from projects.models import ProjectActivity
+from tasks.models import TodoActivity
+from accounts.decorators import company_required
 
 
 def register_view(request):
@@ -23,8 +24,7 @@ def register_view(request):
         confirm_password = request.POST.get('confirm_password')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        role = request.POST.get('role', User.ROLE_MEMBER)
-
+        role = User.ROLE_MEMBER
         if not email or not password or not first_name or not last_name:
             messages.error(request, "All fields are required.")
         elif password != confirm_password:
@@ -46,16 +46,24 @@ def register_view(request):
                 password=password,
                 first_name=first_name,
                 last_name=last_name,
-                role=role
+                role=User.ROLE_MEMBER
             )
             # Log the user in
             login(request, user)
-            messages.success(request, "Registration successful!")
-            return redirect('dashboard')
 
-    return render(request, 'accounts/register.html', {
-        'roles': User.ROLE_CHOICES
-    })
+            messages.success(request, "Registration successful!")
+
+            from accounts.models import CompanyMembership
+
+            membership = CompanyMembership.objects.filter(
+                user=user
+            ).exists()
+
+            if membership:
+                return redirect("dashboard")
+
+            return redirect("company_setup")
+    return render(request, 'accounts/register.html')
 
 
 def login_view(request):
@@ -93,69 +101,120 @@ def logout_view(request):
 
 
 @login_required
+@company_required
 def dashboard_view(request):
-    # Get user companies as QuerySet
-    companies = Company.objects.filter(memberships__user=request.user)
+   # Companies available to the logged-in user
+    if request.user.is_superuser:
+        companies = Company.objects.all().order_by("name")
+    else:
+        companies = Company.objects.filter(
+            memberships__user=request.user
+        ).order_by("name")
+
+    company_admin_membership = CompanyMembership.objects.filter(
+        user=request.user,
+        role=User.ROLE_ADMIN
+    ).first()
+
+    is_company_admin = company_admin_membership is not None
 
     # Projects user belongs to
-    projects = Project.objects.filter(Q(members=request.user) | Q(created_by=request.user) | Q(company__in=companies)).distinct()
+    if request.user.is_superuser:
+        projects = Project.objects.all()
+    else:
+        projects = Project.objects.filter(
+            Q(members=request.user) |
+            Q(created_by=request.user) |
+            Q(company__in=companies)
+        ).distinct()
 
     # Groups in user's companies
-    groups = Group.objects.filter(company__in=companies).distinct()
+    if request.user.is_superuser:
+        groups = Group.objects.all()
+    else:
+        groups = Group.objects.filter(
+            company__in=companies
+        ).distinct()
 
     # Users in same companies (for display / chat list / merges)
-    company_users = User.objects.filter(
-        memberships__company__in=companies, 
-        is_active=True
-    ).exclude(id=request.user.id).distinct()
+    if request.user.is_superuser:
+        company_users = User.objects.filter(
+            is_active=True
+        )
+    else:
+        company_users = User.objects.filter(
+            memberships__company__in=companies,
+            is_active=True
+        ).exclude(
+            id=request.user.id
+        ).distinct()
 
     # Pending invites
-    sent_invites = Invitation.objects.filter(invited_by=request.user)
+    if request.user.is_superuser:
+        sent_invites = Invitation.objects.all()
+    else:
+        sent_invites = Invitation.objects.filter(
+            invited_by=request.user
+        )
 
-    # Dashboard statistics
-    total_projects = projects.count()
-    total_companies = companies.count()
-    total_members = company_users.count() + 1  # +1 includes the logged-in user
-    active_projects = projects.filter(status='active').count()
-    completed_projects = projects.filter(status='completed').count()
+    if request.user.is_superuser:
+        recent_project_activities = (
+            ProjectActivity.objects
+            .select_related(
+                "project",
+                "user"
+            )
+            .order_by("-created_at")[:10]
+        )
+    else:
+        recent_project_activities = (
+            ProjectActivity.objects
+            .filter(project__company__in=companies)
+            .select_related(
+                "project",
+                "user"
+            )
+            .order_by("-created_at")[:10]
+        )
+        
 
-    recent_activities = ProjectActivity.objects.select_related(
-    "project",
-    "user"
-    ).order_by("-created_at")[:10]
+    if request.user.is_superuser:
+        recent_task_activities = (
+            TodoActivity.objects
+            .select_related(
+                "todo_item",
+                "actor",
+                "todo_item__todo_list__project"
+            )
+            .order_by("-created_at")[:10]
+        )
+    else:
+        recent_task_activities = (
+            TodoActivity.objects
+            .filter(
+                todo_item__todo_list__project__company__in=companies
+            )
+            .select_related(
+                "todo_item",
+                "actor",
+                "todo_item__todo_list__project"
+            )
+            .order_by("-created_at")[:10]
+        )
 
     return render(request, 'accounts/dashboard.html', {
-    'companies': companies,
-    'projects': projects,
-    'groups': groups,
-    'company_users': company_users,
-    'sent_invites': sent_invites,
-    'roles': User.ROLE_CHOICES,
-
-    'total_projects': total_projects,
-    'total_companies': total_companies,
-    'total_members': total_members,
-    'active_projects': active_projects,
-    'completed_projects': completed_projects,
-})
+        'companies': companies,
+        'projects': projects,
+        'groups': groups,
+        'company_users': company_users,
+        'sent_invites': sent_invites,
+        'roles': User.ROLE_CHOICES,
+        "recent_project_activities": recent_project_activities,
+        "recent_task_activities": recent_task_activities,
+        "is_company_admin": is_company_admin,
+    })
 
 
-@login_required
-def create_company(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        if name:
-            company = Company.objects.create(name=name)
-            # Create membership as ADMIN
-            CompanyMembership.objects.create(
-                company=company,
-                user=request.user,
-                role=User.ROLE_ADMIN
-            )
-            messages.success(request, f"Company '{name}' created successfully!")
-        else:
-            messages.error(request, "Company name cannot be empty.")
-    return redirect('dashboard')
 
 
 @login_required
@@ -194,10 +253,23 @@ def send_invite(request):
         company = get_object_or_404(Company, id=company_id)
         
         # Verify inviter has permissions
-        membership = CompanyMembership.objects.filter(company=company, user=request.user).first()
-        if not membership or membership.role != User.ROLE_ADMIN:
-            messages.error(request, "Only organization administrators can invite users.")
-            return redirect('dashboard')
+        # Platform Superuser can invite to any company
+        if request.user.is_superuser:
+            membership = None
+
+        else:
+            membership = CompanyMembership.objects.filter(
+                company=company,
+                user=request.user
+            ).first()
+
+            if not membership or membership.role != User.ROLE_ADMIN:
+                messages.error(
+                    request,
+                    "Only organization administrators can invite users."
+                )
+                return redirect("dashboard")
+
 
         if email:
             # Check if user already exists and is already member
@@ -242,6 +314,15 @@ def send_invite(request):
 
 
 def accept_invite(request, token):
+
+    if request.user.is_authenticated:
+        messages.warning(
+            request,
+            f"You are currently logged in as {request.user.email}. "
+            "Please log out before accepting this invitation."
+        )
+        
+        return redirect("dashboard")
     invitation = get_object_or_404(Invitation, token=token, is_accepted=False)
     company = invitation.company
 
@@ -298,12 +379,30 @@ def accept_invite(request, token):
     })
 
 
+
 @login_required
 def merge_users_view(request):
     # Only Admins can access user merging
-    if request.user.role != User.ROLE_ADMIN:
-        messages.error(request, "Only system administrators can merge accounts.")
-        return redirect('dashboard')
+    membership = request.user.memberships.first()
+
+    if not membership:
+        messages.error(request, "You don't belong to a company.")
+        return redirect("dashboard")
+
+    company = membership.company
+
+    membership = CompanyMembership.objects.filter(
+        company=company,
+        user=request.user,
+        role=User.ROLE_ADMIN
+    ).first()
+
+    if not membership:
+        messages.error(
+            request,
+            "Only company administrators can merge accounts."
+        )
+        return redirect("dashboard")
 
     if request.method == 'POST':
         source_id = request.POST.get('source_user_id')
@@ -347,4 +446,157 @@ def notifications_view(request):
         }
     )
 
+@login_required
 
+def company_setup(request):
+
+    if CompanyMembership.objects.filter(user=request.user).exists():
+        return redirect("dashboard")
+
+    return render(
+        request,
+        "accounts/company_setup.html"
+    )
+
+
+@login_required
+def join_company(request):
+
+    messages.info(
+        request,
+        "Use the invitation link sent by your administrator."
+    )
+
+    return render(
+        request,
+        "accounts/join_company.html"
+    )
+
+@login_required
+def create_company(request):
+
+    # Prevent users from creating multiple companies
+    if (
+        not request.user.is_superuser
+        and CompanyMembership.objects.filter(
+            user=request.user
+        ).exists()
+    ):
+        messages.info(
+            request,
+            "You already belong to a company."
+        )
+        return redirect("dashboard")
+
+    if request.method == "POST":
+
+        company_name = request.POST.get("name")
+
+        if not company_name:
+
+            messages.error(
+                request,
+                "Company name is required."
+            )
+
+            return redirect("create_company")
+
+        company = Company.objects.create(
+
+            name=company_name
+
+        )
+
+        # Create membership
+
+        CompanyMembership.objects.create(
+
+            company=company,
+
+            user=request.user,
+
+            role=User.ROLE_ADMIN
+
+        )
+
+        # Make user admin
+
+        membership = CompanyMembership.objects.get(
+            company=company,
+            user=request.user
+        )
+
+        membership.role = User.ROLE_ADMIN
+        membership.save()
+        messages.success(
+
+            request,
+
+            "Company created successfully."
+
+        )
+
+        return redirect("dashboard")
+
+    return render(
+
+        request,
+
+        "accounts/create_company.html"
+
+    )
+
+@login_required
+def admin_users(request):
+
+    # -------------------------------
+    # Global Superuser
+    # -------------------------------
+
+    if request.user.is_superuser:
+
+        users = User.objects.all().prefetch_related(
+            "memberships__company"
+        )
+
+        return render(
+            request,
+            "accounts/admin/users.html",
+            {
+                "users": users,
+                "is_superuser_panel": True,
+            }
+        )
+
+    # -------------------------------
+    # Company Admin
+    # -------------------------------
+
+    membership = CompanyMembership.objects.filter(
+        user=request.user,
+        role=User.ROLE_ADMIN
+    ).select_related("company").first()
+
+    if not membership:
+
+        messages.error(
+            request,
+            "Access denied."
+        )
+        return redirect("dashboard")
+
+    company = membership.company
+
+    users = User.objects.filter(
+        memberships__company=company
+    ).distinct()
+
+    return render(
+        request,
+        "accounts/admin/users.html",
+        {
+            "users": users,
+            "company": company,
+            "is_superuser_panel": False,
+        }
+    )

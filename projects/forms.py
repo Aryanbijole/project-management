@@ -1,10 +1,26 @@
 from django import forms
 from .models import Project
-from accounts.models import Company, User
+from accounts.models import  User
 from .models import ProjectDocument
 
 
 class ProjectForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        company = kwargs.pop("company", None)
+
+        super().__init__(*args, **kwargs)
+
+    # Company is assigned automatically
+        self.fields.pop("company", None)
+
+        if company:
+            users = User.objects.filter(
+                memberships__company=company
+            ).distinct()
+
+            self.fields["owner"].queryset = users
+            self.fields["members"].queryset = users
 
     members = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
@@ -18,7 +34,6 @@ class ProjectForm(forms.ModelForm):
         fields = [
             "name",
             "description",
-            "company",
             "owner",
             "members",
             "visibility",
@@ -37,9 +52,7 @@ class ProjectForm(forms.ModelForm):
                 "rows": 4
             }),
 
-            "company": forms.Select(attrs={
-                "class": "form-select"
-            }),
+           
 
             "owner": forms.Select(attrs={
                 "class": "form-select"

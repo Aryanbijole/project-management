@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow p-5">
+
+        <h2>Join Existing Company</h2>
+
+        <p>
+
+            Your administrator should send you an invitation link.
+
+        </p>
+
+        <p>
+
+            After clicking the invitation link, your account will
+            automatically join the organization.
+
+        </p>
+
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+
+            Back
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

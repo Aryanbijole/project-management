@@ -9,13 +9,7 @@ class User(AbstractUser):
     ROLE_CLIENT = 'client'
     ROLE_COLLABORATOR = 'collaborator'
 
-    role = models.ForeignKey(
-    "Role",
-    on_delete=models.SET_NULL,
-    null=True,
-    blank=True,
-    related_name="users"
-    )
+   
     ROLE_CHOICES = [
         (ROLE_ADMIN, 'Admin'),
         (ROLE_MEMBER, 'Organization Member'),
@@ -24,13 +18,18 @@ class User(AbstractUser):
     ]
     
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_MEMBER)
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=ROLE_MEMBER,
+    )
+
     custom_role = models.ForeignKey(
-    "Role",
-    on_delete=models.SET_NULL,
-    null=True,
-    blank=True,
-    related_name="users",
+        "Role",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="users",
     )
     is_merged = models.BooleanField(default=False)
     merged_into = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='merged_accounts')
@@ -117,7 +116,11 @@ class Role(models.Model):
 
 class Invitation(models.Model):
     email = models.EmailField()
-    token = models.CharField(max_length=64, unique=True, default=uuid.uuid4)
+    token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False
+    )
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='invitations')
     role = models.CharField(max_length=20, choices=User.ROLE_CHOICES, default=User.ROLE_MEMBER)
     invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
