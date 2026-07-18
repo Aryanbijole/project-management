@@ -6,8 +6,20 @@
 
 <div class="container">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
-        <h2>👥 {{ group.name }}</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2>{{ group.name }}</h2>
+
+            <p class="text-muted">
+
+                Company :
+                {{ group.company.name }}
+
+            </p>
+
+        </div>
+
     </div>
 
     <h4>Current Members</h4>
@@ -15,44 +27,68 @@
     <table class="table">
 
         <thead>
+
             <tr>
+
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
-                <th>Action</th>
+                <th width="120">Action</th>
+
             </tr>
+
         </thead>
 
         <tbody>
 
         {% for member in group.members.all %}
 
-        <tr>
+            <tr>
 
-            <td>{{ member.first_name }} {{ member.last_name }}</td>
+                <td>
 
-            <td>{{ member.email }}</td>
+                    {{ member.first_name }}
+                    {{ member.last_name }}
 
-            <td>{{ member.get_role_display }}</td>
+                </td>
 
-            <td>
-                <a href="{% url 'remove_group_member' group.id member.id %}"
-                   class="btn btn-danger btn-sm">
-                    Remove
-                </a>
-            </td>
+                <td>
 
-        </tr>
+                    {{ member.email }}
+
+                </td>
+
+                <td>
+
+                    {{ member.get_role_display }}
+
+                </td>
+
+                <td>
+
+                    <a
+                        href="{% url 'remove_group_member' group.id member.id %}"
+                        class="btn btn-danger btn-sm">
+
+                        Remove
+
+                    </a>
+
+                </td>
+
+            </tr>
 
         {% empty %}
 
-        <tr>
+            <tr>
 
-            <td colspan="4">
-                No members added yet.
-            </td>
+                <td colspan="4">
 
-        </tr>
+                    No members in this group.
+
+                </td>
+
+            </tr>
 
         {% endfor %}
 
@@ -64,7 +100,9 @@
 
     <h4>Add Member</h4>
 
-    <form method="post">
+    {% if users %}
+
+    <form method="POST">
 
         {% csrf_token %}
 
@@ -75,10 +113,18 @@
                 class="form-control"
                 required>
 
+                <option value="">
+                    Select User
+                </option>
+
                 {% for user in users %}
 
                     <option value="{{ user.id }}">
-                        {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+
+                        {{ user.first_name }}
+                        {{ user.last_name }}
+                        ({{ user.email }})
+
                     </option>
 
                 {% endfor %}
@@ -87,11 +133,25 @@
 
         </div>
 
-        <button class="btn btn-primary">
+        <button
+            type="submit"
+            class="btn btn-primary">
+
             Add Member
+
         </button>
 
     </form>
+
+    {% else %}
+
+    <div class="alert alert-info">
+
+        All users from this company are already members of this group.
+
+    </div>
+
+    {% endif %}
 
 </div>
 

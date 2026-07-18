@@ -6,35 +6,101 @@
 
 <h2>Create Group</h2>
 
-<form method="post">
+{% if is_superuser_panel %}
+
+<form method="GET" class="mb-4">
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Company
+        </label>
+
+        <select
+            name="company"
+            class="form-control"
+            onchange="this.form.submit()">
+
+            <option value="">
+                Select Company
+            </option>
+
+            {% for c in companies %}
+
+                <option
+                    value="{{ c.id }}"
+                    {% if selected_company == c.id|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ c.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+</form>
+
+{% endif %}
+
+
+<form method="POST">
 
     {% csrf_token %}
 
+    {% if is_superuser_panel %}
+
+        <input
+            type="hidden"
+            name="company"
+            value="{{ selected_company }}">
+
+    {% endif %}
+
     <div class="mb-3">
-        <label>Group Name</label>
+
+        <label class="form-label">
+            Group Name
+        </label>
+
         <input
             type="text"
             name="name"
             class="form-control"
             required>
+
     </div>
 
-    <div class="mb-3">
-        <label>Company</label>
 
-        <label>Company</label>
+    {% if not is_superuser_panel %}
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Company
+        </label>
 
         <input
             type="text"
             class="form-control"
             value="{{ company.name }}"
-            readonly
-        >
+            readonly>
+
     </div>
+
+    {% endif %}
+
 
     <div class="mb-3">
 
-        <label>Members</label>
+        <label class="form-label">
+            Members
+        </label>
+
+        {% if users %}
 
         <select
             name="members"
@@ -44,19 +110,40 @@
 
             {% for user in users %}
 
-                <option value="{{ user.id }}">
-                    {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
-                </option>
+            <option value="{{ user.id }}">
+
+                {{ user.first_name }}
+                {{ user.last_name }}
+                ({{ user.email }})
+
+            </option>
 
             {% endfor %}
 
         </select>
 
-        <small>
+        <small class="text-muted">
+
             Hold Ctrl (Windows) or Cmd (Mac) to select multiple members.
+
         </small>
 
+        {% else %}
+
+        <div class="alert alert-warning">
+
+            {% if is_superuser_panel %}
+                Please select a company first.
+            {% else %}
+                No users available in this company.
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
     </div>
+
 
     <button
         type="submit"

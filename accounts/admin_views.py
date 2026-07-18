@@ -9,74 +9,85 @@ from accounts.models import (
     CompanyMembership,
     Group,
     Invitation,
+    Company
 )
 
 from projects.models import Project
+from accounts.decorators import (
+    company_required,
+    company_admin_required,
+    platform_admin_required,
+)
+
 
 @login_required
+@company_required
+@company_admin_required
 def admin_users(request):
 
-    # Superuser
+    # Platform Admin
     if request.user.is_superuser:
 
-        users = User.objects.all().order_by("first_name")
+        companies = Company.objects.all().order_by("name")
+
+        selected_company = request.GET.get("company")
+
+        users = User.objects.none()
+
+        if selected_company:
+
+            users = (
+                User.objects.filter(
+                    memberships__company_id=selected_company
+                )
+                .distinct()
+                .order_by("first_name")
+            )
 
         return render(
             request,
-            "accounts/admin/users.html",
+            "accounts/admin/users_TEST.html",
             {
                 "users": users,
+                "companies": companies,
+                "selected_company": selected_company,
                 "is_superuser_panel": True,
             }
         )
+    
 
     # Company Admin
-    membership = CompanyMembership.objects.filter(
-        user=request.user,
-        role=User.ROLE_ADMIN
-    ).first()
+    company = request.current_company
 
-    if membership:
-
-        company = membership.company
-
-        users = User.objects.filter(
+    users = (
+        User.objects.filter(
             memberships__company=company
-        ).distinct().order_by("first_name")
-
-        return render(
-            request,
-            "accounts/admin/users.html",
-            {
-                "users": users,
-                "company": company,
-                "is_superuser_panel": False,
-            }
         )
-
-    messages.error(
-        request,
-        "You don't have permission to access this page."
+        .distinct()
+        .order_by("first_name")
     )
 
-    return redirect("dashboard")
+    return render(
+        request,
+        "accounts/admin/users_TEST.html",
+        {
+            "users": users,
+            "company": company,
+            "is_superuser_panel": False,
+        }
+    )
 
 @login_required
+@company_required
+@company_admin_required
 def organization_members(request):
 
-    # Superuser
     if request.user.is_superuser:
 
         memberships = (
             CompanyMembership.objects
-            .select_related(
-                "user",
-                "company",
-            )
-            .order_by(
-                "company__name",
-                "user__first_name",
-            )
+            .select_related("user", "company")
+            .order_by("company__name", "user__first_name")
         )
 
         return render(
@@ -88,46 +99,29 @@ def organization_members(request):
             },
         )
 
-    # Company Admin
-    membership = CompanyMembership.objects.filter(
-        user=request.user,
-        role=User.ROLE_ADMIN,
-    ).first()
+    company = request.current_company
 
-    if membership:
-
-        company = membership.company
-
-        memberships = (
-            CompanyMembership.objects
-            .filter(company=company)
-            .select_related(
-                "user",
-                "company",
-            )
-            .order_by(
-                "user__first_name",
-            )
-        )
-
-        return render(
-            request,
-            "accounts/admin/organization_members.html",
-            {
-                "company": company,
-                "memberships": memberships,
-                "is_superuser_panel": False,
-            },
-        )
-
-    messages.error(
-        request,
-        "You don't have permission to access this page.",
+    memberships = (
+        CompanyMembership.objects
+        .filter(company=company)
+        .select_related("user", "company")
+        .order_by("user__first_name")
     )
 
-    return redirect("dashboard")
+    return render(
+        request,
+        "accounts/admin/organization_members.html",
+        {
+            "company": company,
+            "memberships": memberships,
+            "is_superuser_panel": False,
+        },
+    )
+
 
 @login_required
+@company_required
+@company_admin_required
 def administration_dashboard(request):
 
     # Superuser
@@ -174,21 +168,7 @@ def administration_dashboard(request):
             context,
         )
 
-    membership = CompanyMembership.objects.filter(
-        user=request.user,
-        role="admin",
-    ).first()
-
-    if not membership:
-
-        messages.error(
-            request,
-            "Access denied."
-        )
-
-        return redirect("dashboard")
-
-    company = membership.company
+    company = request.current_company
 
     context = {
 

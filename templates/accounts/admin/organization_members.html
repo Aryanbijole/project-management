@@ -1,36 +1,48 @@
 {% extends "base.html" %}
 
-{% block title %}
-Organization Members
-{% endblock %}
+{% block title %}Organization Members{% endblock %}
 
 {% block content %}
 
 <div class="container">
 
-    <h2>Organization Members</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    {% if not is_superuser_panel %}
-        <h5>{{ company.name }}</h5>
-    {% endif %}
+        <div>
+            <h2>🏢 Organization Members</h2>
+
+            {% if not is_superuser_panel %}
+                <p class="text-muted mb-0">
+                    {{ company.name }}
+                </p>
+            {% else %}
+                <p class="text-muted mb-0">
+                    All Companies
+                </p>
+            {% endif %}
+        </div>
+
+    </div>
 
     <table class="table">
 
         <thead>
 
-        <tr>
+            <tr>
 
-            <th>Name</th>
+                <th>Name</th>
 
-            <th>Email</th>
+                <th>Email</th>
 
-            <th>Role</th>
+                <th>Role</th>
 
-            {% if is_superuser_panel %}
-            <th>Company</th>
-            {% endif %}
+                {% if is_superuser_panel %}
+                    <th>Company</th>
+                {% endif %}
 
-        </tr>
+                <th width="170">Actions</th>
+
+            </tr>
 
         </thead>
 
@@ -69,15 +81,41 @@ Organization Members
 
             {% endif %}
 
+            <td>
+
+                <a href="{% url 'organization_member_edit' membership.id %}"
+                   class="btn btn-warning btn-sm">
+
+                    Edit
+
+                </a>
+
+                {% if not membership.user.is_superuser %}
+
+                <a href="{% url 'organization_member_delete' membership.id %}"
+                   class="btn btn-danger btn-sm">
+
+                    Remove
+
+                </a>
+
+                {% endif %}
+
+            </td>
+
         </tr>
 
         {% empty %}
 
         <tr>
 
-            <td colspan="4">
+            {% if is_superuser_panel %}
+                <td colspan="5">
+            {% else %}
+                <td colspan="4">
+            {% endif %}
 
-                No members found.
+                No organization members found.
 
             </td>
 

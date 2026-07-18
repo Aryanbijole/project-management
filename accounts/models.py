@@ -81,37 +81,71 @@ class CompanyMembership(models.Model):
 
 class Group(models.Model):
     name = models.CharField(max_length=255)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='groups')
-    members = models.ManyToManyField(User, related_name='custom_groups', blank=True)
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="groups"
+    )
+
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="groups",
+        null=True,
+        blank=True,
+    )
+
+    members = models.ManyToManyField(
+        User,
+        related_name="custom_groups",
+        blank=True,
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.name} ({self.company.name})"
+
     
 class Role(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="roles",
+        
+    )
+
+    name = models.CharField(max_length=100)
 
     description = models.TextField(blank=True)
 
-    can_manage_users = models.BooleanField(default=False)
-    can_manage_projects = models.BooleanField(default=False)
-    can_manage_companies = models.BooleanField(default=False)
-    can_manage_groups = models.BooleanField(default=False)
-
+    
+    
+    
+    
     can_create_projects = models.BooleanField(default=False)
     can_edit_projects = models.BooleanField(default=False)
-    can_delete_projects = models.BooleanField(default=False)
+    
 
     can_create_tasks = models.BooleanField(default=False)
     can_edit_tasks = models.BooleanField(default=False)
-    can_delete_tasks = models.BooleanField(default=False)
+    
 
     can_upload_files = models.BooleanField(default=False)
 
     can_view_reports = models.BooleanField(default=False)
 
+    can_invite_members = models.BooleanField(default=False)
+
+    can_view_audit_logs = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("company", "name")
+
     def __str__(self):
-        return self.name    
+        return f"{self.company.name} - {self.name}"
 
 
 class Invitation(models.Model):
@@ -177,3 +211,4 @@ class Notification(models.Model):
 
     def __str__(self):
         return self.title
+    

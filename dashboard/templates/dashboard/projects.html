@@ -17,9 +17,11 @@
             </small>
         </div>
 
-        <a href="{% url 'admin_project_create' %}" class="btn btn-primary">
-            + Create Project
-        </a>
+        {% if is_company_admin or request.user.is_superuser %}
+            <a href="{% url 'admin_project_create' %}" class="btn btn-primary">
+                + Create Project
+            </a>
+        {% endif %}
 
     </div>
 
@@ -156,7 +158,9 @@
                 <tr {% if project.is_archived %}class="table-secondary"{% endif %}>
 
                     <td>
-                        <strong>{{ project.name }}</strong>
+                        <a href="{% url 'admin_project_detail' project.id %}">
+                            <strong>{{ project.name }}</strong>
+                        </a>
                     </td>
 
                     <td>

@@ -110,10 +110,34 @@ margin-bottom:35px;
             {% if groups %}
                 <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                     {% for group in groups %}
-                    <li style="padding: 12px; border: 1px solid var(--card-border); border-radius: 8px;">
-                        <div style="font-weight: 600;">{{ group.name }}</div>
-                        <div style="color: var(--text-muted); font-size: 0.8rem;">{{ group.company.name }} &bull; {{ group.members.count }} members</div>
-                    </li>
+                    <a href="{% url 'group_workspace' group.id %}"
+                        style="text-decoration:none;color:inherit;display:block;">
+
+                        <li style="
+                            padding:12px;
+                            border:1px solid var(--card-border);
+                            border-radius:8px;
+                            cursor:pointer;
+                            transition:0.2s;
+                        ">
+
+                            <div style="font-weight:600;">
+                                {{ group.name }}
+                            </div>
+
+                            <div style="
+                                color:var(--text-muted);
+                                font-size:0.8rem;
+                       
+                            ">
+                                {{ group.company.name }}
+                                    &bull;
+                                {{ group.members.count }} members
+                            </div>
+
+                        </li>
+
+                    </a>
                     {% endfor %}
                 </ul>
             {% else %}
@@ -128,18 +152,96 @@ margin-bottom:35px;
                     <input type="text" name="name" class="form-control" placeholder="Group Name" required>
                 </div>
                 <div class="form-group" style="margin-bottom: 12px;">
-                    <select name="company_id" class="form-control" required>
-                        {% for comp in companies %}
-                        <option value="{{ comp.id }}">{{ comp.name }}</option>
-                        {% endfor %}
+                    <select
+                        id="group-company"
+                        name="company_id"
+                        class="form-control"
+                        {% if request.user.is_superuser %}
+                            onchange="filterGroupData()"
+                        {% endif %}
+                        required
+                    > 
+
+                    {% if request.user.is_superuser %}
+
+                    <option value="">Select Company</option>
+
+                    {% for comp in companies %}
+                    <option value="{{ comp.id }}">
+                        {{ comp.name }}       
+                    </option>
+                    {% endfor %}
+
+                    {% else %}
+    
+                    {% for comp in companies %}
+                    <option value="{{ comp.id }}" selected>
+                        {{ comp.name }}
+                    </option>
+                    {% endfor %}
+
+                    {% endif %}
+
                     </select>
                 </div>
+
+                <div class="form-group" style="margin-bottom:12px;">
+
+                    <label style="font-size:0.8rem;">
+                        Project
+                    </label>
+
+                    <select
+                        id="group-project"
+                        name="project"
+                        class="form-control"
+                        required
+                    >
+
+                    <option value="">Select Project</option>
+
+                    {% for project in projects %}
+
+                    <option
+                        value="{{ project.id }}"
+                        data-company="{{ project.company.id }}"
+                        {% if request.user.is_superuser %}
+                            style="display:none"
+                        {% endif %}
+                    >
+                       {{ project.name }}
+                    </option>
+
+                    {% endfor %}
+
+                    </select>
+                </div>
+                
+
+                
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label style="font-size: 0.8rem;">Select Group Members</label>
-                    <select name="members" class="form-control" style="height: 100px;" multiple>
+                    <select
+                    id="group-members"
+                    name="members"
+                    class="form-control"
+                    style="height:100px;"
+                    multiple>
+
                         {% for u in company_users %}
-                        <option value="{{ u.id }}">{{ u.first_name }} ({{ u.email }})</option>
+
+                        <option
+                        value="{{ u.id }}"
+                        data-company="{% if u.memberships.first %}{{ u.memberships.first.company.id }}{% endif %}"
+                        {% if request.user.is_superuser %}
+                        style="display:none"
+                        {% endif %}
+                        >
+                        {{ u.first_name }} ({{ u.email }})
+                        </option>
+
                         {% endfor %}
+                        
                     </select>
                     <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">Hold Ctrl / Cmd to select multiple.</small>
                 </div>
@@ -183,10 +285,29 @@ margin-bottom:35px;
                     <textarea name="description" class="form-control" placeholder="Brief Description..." style="height: 60px; resize: none;"></textarea>
                 </div>
                 <div class="form-group" style="margin-bottom: 12px;">
-                    <select name="company_id" class="form-control" required>
+                    <select
+                        name="company_id"
+                        class="form-control"
+                        onchange="window.location='?company='+this.value"
+                        required>
+
+                        <option value="">Select Company</option>
+
                         {% for comp in companies %}
-                        <option value="{{ comp.id }}">{{ comp.name }}</option>
+
+                        <option
+                            value="{{ comp.id }}"
+                            {% if selected_company and selected_company.id == comp.id %}
+                               selected
+                            {% endif %}
+                        >
+
+                            {{ comp.name }}
+
+                        </option>
+
                         {% endfor %}
+
                     </select>
                 </div>
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -389,4 +510,34 @@ margin-bottom:35px;
     {% endif %}
 
 </div>
+
+<script>
+
+function filterGroupData(){
+
+    const company =
+        document.getElementById("group-company").value;
+
+    document.querySelectorAll("#group-project option").forEach(function(opt){
+
+        if(opt.value===""){
+            opt.style.display="";
+            return;
+        }
+
+        opt.style.display =
+            opt.dataset.company===company ? "" : "none";
+
+    });
+
+    document.querySelectorAll("#group-members option").forEach(function(opt){
+
+        opt.style.display =
+            opt.dataset.company===company ? "" : "none";
+
+    });
+
+}
+
+</script>
 {% endblock %}

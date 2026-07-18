@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Remove Member{% endblock %}
+{% block title %}Remove Organization Member{% endblock %}
 
 {% block content %}
 
@@ -8,7 +8,7 @@
 
     <h2>Remove Organization Member</h2>
 
-    <p>
+    <p class="mb-4">
         Are you sure you want to remove
         <strong>{{ membership.user.first_name }} {{ membership.user.last_name }}</strong>
         from
@@ -19,7 +19,7 @@
 
         {% csrf_token %}
 
-        <button class="btn btn-danger">
+        <button type="submit" class="btn btn-danger">
             Remove Member
         </button>
 

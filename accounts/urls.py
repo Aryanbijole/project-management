@@ -7,7 +7,6 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
-    path('company/create/', views.create_company, name='create_company'),
     path('group/create/', views.create_group, name='create_group'),
     path('invite/send/', views.send_invite, name='send_invite'),
     path('invite/accept/<str:token>/', views.accept_invite, name='accept_invite'),
@@ -50,10 +49,18 @@ urlpatterns = [
     ),
 
     path(
-    "administration/users/",
-    views.admin_users,
-    name="admin_users",
+    "company/create/",
+    views.create_company,
+    name="create_company",
     ),
+
+    path(
+    "groups/<int:group_id>/",
+    views.group_workspace,
+    name="group_workspace",
+    ),
+
+    
 
     
 ]

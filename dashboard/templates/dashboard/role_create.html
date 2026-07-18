@@ -6,57 +6,239 @@
 
 <div class="container">
 
-<h2>Create Role</h2>
+    <h2>Create Custom Role</h2>
 
-<form method="post">
+    <form method="post">
 
-{% csrf_token %}
+        {% csrf_token %}
 
-<label>Role Name</label>
-<input type="text" name="name" class="form-control" required>
+        {% if is_superuser_panel %}
 
-<br>
+        <div class="mb-3">
 
-<label>Description</label>
-<textarea name="description" class="form-control"></textarea>
+            <label class="form-label">
+                Company
+            </label>
 
-<hr>
+            <select
+                name="company"
+                class="form-select"
+                required>
 
-<h4>Permissions</h4>
+                <option value="">
+                    Select Company
+                </option>
 
-<label><input type="checkbox" name="can_manage_users"> Manage Users</label><br>
+                {% for company in companies %}
 
-<label><input type="checkbox" name="can_manage_projects"> Manage Projects</label><br>
+                <option value="{{ company.id }}">
+                    {{ company.name }}
+                </option>
 
-<label><input type="checkbox" name="can_manage_companies"> Manage Companies</label><br>
+                {% endfor %}
 
-<label><input type="checkbox" name="can_manage_groups"> Manage Groups</label><br>
+            </select>
 
-<label><input type="checkbox" name="can_create_projects"> Create Projects</label><br>
+        </div>
 
-<label><input type="checkbox" name="can_edit_projects"> Edit Projects</label><br>
+        {% endif %}
 
-<label><input type="checkbox" name="can_delete_projects"> Delete Projects</label><br>
 
-<label><input type="checkbox" name="can_create_tasks"> Create Tasks</label><br>
+        <div class="mb-3">
 
-<label><input type="checkbox" name="can_edit_tasks"> Edit Tasks</label><br>
+            <label class="form-label">
+                Role Name
+            </label>
 
-<label><input type="checkbox" name="can_delete_tasks"> Delete Tasks</label><br>
+            <input
+                type="text"
+                name="name"
+                class="form-control"
+                required>
 
-<label><input type="checkbox" name="can_upload_files"> Upload Files</label><br>
+        </div>
 
-<label><input type="checkbox" name="can_view_reports"> View Reports</label><br><br>
 
-<button class="btn btn-primary">
-Create Role
-</button>
+        <div class="mb-4">
 
-<a href="{% url 'admin_role_list' %}" class="btn btn-secondary">
-Cancel
-</a>
+            <label class="form-label">
+                Description
+            </label>
 
-</form>
+            <textarea
+                name="description"
+                rows="3"
+                class="form-control"></textarea>
+
+        </div>
+
+        <hr>
+
+        <h5>Project Permissions</h5>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="can_create_projects"
+                id="create_projects">
+
+            <label
+                class="form-check-label"
+                for="create_projects">
+
+                Create Projects
+
+            </label>
+
+        </div>
+
+        <hr>
+
+        <h5>Task Permissions</h5>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="can_create_tasks"
+                id="create_tasks">
+
+            <label
+                class="form-check-label"
+                for="create_tasks">
+
+                Create Tasks
+
+            </label>
+
+        </div>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="can_edit_tasks"
+                id="edit_tasks">
+
+            <label
+                class="form-check-label"
+                for="edit_tasks">
+
+                Edit Tasks
+
+            </label>
+
+        </div>
+
+        <hr>
+
+        <h5>Collaboration</h5>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="can_upload_files"
+                id="upload_files">
+
+            <label
+                class="form-check-label"
+                for="upload_files">
+
+                Upload Files
+
+            </label>
+
+        </div>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="can_invite_members"
+                id="invite_members">
+
+            <label
+                class="form-check-label"
+                for="invite_members">
+
+                Invite Members
+
+            </label>
+
+        </div>
+
+        <hr>
+
+        <h5>Reports</h5>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="can_view_reports"
+                id="view_reports">
+
+            <label
+                class="form-check-label"
+                for="view_reports">
+
+                View Reports
+
+            </label>
+
+        </div>
+
+        <div class="form-check mb-4">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="can_view_audit_logs"
+                id="audit_logs">
+
+            <label
+                class="form-check-label"
+                for="audit_logs">
+
+                View Audit Logs
+
+            </label>
+
+        </div>
+
+        <div class="alert alert-warning">
+
+            <strong>Note:</strong>
+
+            Custom roles cannot manage users, companies, groups, edit or delete projects, or perform any platform/company administration. Those permissions are reserved for Company Admins and Platform Superusers.
+
+        </div>
+
+        <button
+            type="submit"
+            class="btn btn-primary">
+
+            Create Role
+
+        </button>
+
+        <a
+            href="{% url 'admin_role_list' %}"
+            class="btn btn-secondary">
+
+            Cancel
+
+        </a>
+
+    </form>
 
 </div>
 

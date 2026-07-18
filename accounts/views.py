@@ -11,8 +11,14 @@ from django.conf import settings
 from accounts.models import Notification
 from projects.models import ProjectActivity
 from tasks.models import TodoActivity
-from accounts.decorators import company_required
-
+from accounts.decorators import (
+    company_required,
+    company_admin_required,
+    platform_admin_required,
+)
+from audit.utils import create_audit_log
+from communication.models import GroupMessage
+from .models import Group
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -93,7 +99,7 @@ def login_view(request):
 
     return render(request, 'accounts/login.html')
 
-
+@login_required
 def logout_view(request):
     logout(request)
     messages.success(request, "Logged out successfully.")
@@ -217,33 +223,154 @@ def dashboard_view(request):
 
 
 
+
 @login_required
+@company_admin_required
 def create_group(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        company_id = request.POST.get('company_id')
-        member_ids = request.POST.getlist('members')
 
-        company = get_object_or_404(Company, id=company_id)
-        
-        # Check permissions: user must be admin in company
-        membership = CompanyMembership.objects.filter(company=company, user=request.user).first()
-        if not membership or membership.role != User.ROLE_ADMIN:
-            messages.error(request, "You are not authorized to create groups for this company.")
-            return redirect('dashboard')
+    if request.method != "POST":
+        return redirect("dashboard")
 
-        if name:
-            group = Group.objects.create(name=name, company=company)
-            if member_ids:
-                users = User.objects.filter(id__in=member_ids)
-                group.members.set(users)
-            messages.success(request, f"Group '{name}' created successfully!")
-        else:
-            messages.error(request, "Group name cannot be empty.")
-    return redirect('dashboard')
+    name = request.POST.get("name", "").strip()
+    company_id = request.POST.get("company_id")
+    project_id = request.POST.get("project")
+    member_ids = request.POST.getlist("members")
+
+    # -----------------------------------------
+    # Determine Company
+    # -----------------------------------------
+    if request.user.is_superuser:
+
+        company = get_object_or_404(
+            Company,
+            id=company_id,
+        )
+
+    else:
+
+        membership = (
+            CompanyMembership.objects
+            .select_related("company")
+            .filter(
+                user=request.user,
+                role=User.ROLE_ADMIN,
+            )
+            .first()
+        )
+
+        if membership is None:
+
+            messages.error(
+                request,
+                "You are not assigned as Company Admin."
+            )
+
+            return redirect("dashboard")
+
+        company = membership.company
+
+        if str(company.id) != str(company_id):
+
+            messages.error(
+                request,
+                "You cannot create groups for another company."
+            )
+
+            return redirect("dashboard")
+
+    # -----------------------------------------
+    # Validation
+    # -----------------------------------------
+
+    if not name:
+
+        messages.error(
+            request,
+            "Group name cannot be empty."
+        )
+
+        return redirect("dashboard")
+
+    if Group.objects.filter(
+        company=company,
+        name=name,
+    ).exists():
+
+        messages.error(
+            request,
+            "A group with this name already exists."
+        )
+
+        return redirect("dashboard")
+
+    # -----------------------------------------
+    # Selected Project
+    # -----------------------------------------
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=company,
+    )
+
+    # -----------------------------------------
+    # Create Group
+    # -----------------------------------------
+
+    group = Group.objects.create(
+
+        name=name,
+
+        company=company,
+
+        project=project,
+
+    )
+
+    # -----------------------------------------
+    # Add Selected Members
+    # -----------------------------------------
+
+    if member_ids:
+
+        users = User.objects.filter(
+            id__in=member_ids,
+            memberships__company=company,
+        ).distinct()
+
+        group.members.set(users)
+
+    # -----------------------------------------
+    # Always add creator
+    # -----------------------------------------
+
+    # Automatically add only Company Admin.
+    # Superuser is NOT added automatically.
+
+    if not request.user.is_superuser:
+        group.members.add(request.user)
+
+    # -----------------------------------------
+    # Audit Log
+    # -----------------------------------------
+
+    create_audit_log(
+        request,
+        module="Group",
+        action="CREATE",
+        description=f"Created group '{group.name}'",
+    )
+
+    messages.success(
+        request,
+        f"Group '{group.name}' created successfully."
+    )
+
+    return redirect("dashboard")
 
 
 @login_required
+@company_admin_required
 def send_invite(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -258,18 +385,15 @@ def send_invite(request):
             membership = None
 
         else:
-            membership = CompanyMembership.objects.filter(
-                company=company,
-                user=request.user
-            ).first()
-
-            if not membership or membership.role != User.ROLE_ADMIN:
+            if (
+                not request.user.is_superuser
+                and company != request.current_company
+            ):
                 messages.error(
                     request,
-                    "Only organization administrators can invite users."
+                    "You can only invite users to your own company."
                 )
                 return redirect("dashboard")
-
 
         if email:
             # Check if user already exists and is already member
@@ -381,28 +505,10 @@ def accept_invite(request, token):
 
 
 @login_required
+@company_admin_required
 def merge_users_view(request):
     # Only Admins can access user merging
-    membership = request.user.memberships.first()
-
-    if not membership:
-        messages.error(request, "You don't belong to a company.")
-        return redirect("dashboard")
-
-    company = membership.company
-
-    membership = CompanyMembership.objects.filter(
-        company=company,
-        user=request.user,
-        role=User.ROLE_ADMIN
-    ).first()
-
-    if not membership:
-        messages.error(
-            request,
-            "Only company administrators can merge accounts."
-        )
-        return redirect("dashboard")
+    company = request.current_company
 
     if request.method == 'POST':
         source_id = request.POST.get('source_user_id')
@@ -427,6 +533,8 @@ def merge_users_view(request):
     return render(request, 'accounts/merge_users.html', {
         'users': users
     })
+
+
 
 
 @login_required
@@ -460,6 +568,7 @@ def company_setup(request):
 
 
 @login_required
+@company_required
 def join_company(request):
 
     messages.info(
@@ -471,6 +580,8 @@ def join_company(request):
         request,
         "accounts/join_company.html"
     )
+
+
 
 @login_required
 def create_company(request):
@@ -546,57 +657,151 @@ def create_company(request):
 
     )
 
-@login_required
-def admin_users(request):
 
-    # -------------------------------
-    # Global Superuser
-    # -------------------------------
+
+@login_required
+def group_workspace(request, group_id):
+
+    group = get_object_or_404(
+        Group.objects.select_related(
+            "company",
+            "project",
+        ),
+        id=group_id,
+    )
+
+    # -----------------------------------------
+    # PLATFORM SUPERUSER
+    # -----------------------------------------
 
     if request.user.is_superuser:
 
-        users = User.objects.all().prefetch_related(
-            "memberships__company"
+        has_access = True
+
+    else:
+
+        membership = (
+            CompanyMembership.objects
+            .select_related("company")
+            .filter(
+                user=request.user,
+                company=group.company,
+            )
+            .first()
         )
 
-        return render(
-            request,
-            "accounts/admin/users.html",
-            {
-                "users": users,
-                "is_superuser_panel": True,
-            }
-        )
+        # -----------------------------------------
+        # User does not belong to this company
+        # -----------------------------------------
 
-    # -------------------------------
-    # Company Admin
-    # -------------------------------
+        if membership is None:
 
-    membership = CompanyMembership.objects.filter(
-        user=request.user,
-        role=User.ROLE_ADMIN
-    ).select_related("company").first()
+            messages.error(
+                request,
+                "You are not a member of this company."
+            )
 
-    if not membership:
+            return redirect("dashboard")
+
+        # -----------------------------------------
+        # Company Admin
+        # -----------------------------------------
+
+        if membership.role == User.ROLE_ADMIN:
+
+            has_access = True
+
+        # -----------------------------------------
+        # Normal User
+        # -----------------------------------------
+
+        else:
+
+            has_access = group.members.filter(
+                id=request.user.id
+            ).exists()
+
+    # -----------------------------------------
+    # Permission Denied
+    # -----------------------------------------
+
+    if not has_access:
 
         messages.error(
             request,
-            "Access denied."
+            "You don't have permission to access this group."
         )
+
         return redirect("dashboard")
 
-    company = membership.company
+    # -----------------------------------------
+    # Send Message
+    # -----------------------------------------
 
-    users = User.objects.filter(
-        memberships__company=company
-    ).distinct()
+    if request.method == "POST":
+
+        text = request.POST.get(
+            "message",
+            ""
+        ).strip()
+
+        if text:
+
+            GroupMessage.objects.create(
+
+                group=group,
+
+                project=group.project,
+
+                sender=request.user,
+
+                message=text,
+
+            )
+
+            create_audit_log(
+
+                request,
+
+                module="Group",
+
+                action="MESSAGE",
+
+                description=(
+                    f"Sent message in group "
+                    f"'{group.name}'"
+                ),
+
+            )
+
+        return redirect(
+            "group_workspace",
+            group.id,
+        )
+
+    # -----------------------------------------
+    # Load Messages
+    # -----------------------------------------
+
+    group_messages = (
+        GroupMessage.objects
+        .filter(group=group)
+        .select_related("sender")
+        .order_by("created_at")
+    )
 
     return render(
+
         request,
-        "accounts/admin/users.html",
+
+        "accounts/group_workspace.html",
+
         {
-            "users": users,
-            "company": company,
-            "is_superuser_panel": False,
-        }
+
+            "group": group,
+
+            "messages": group_messages,
+
+        },
+
     )

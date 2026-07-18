@@ -1,51 +1,75 @@
 {% extends "base.html" %}
 
+{% block title %}
+Create Company
+{% endblock %}
+
 {% block content %}
 
 <div class="container mt-5">
 
-<div class="row justify-content-center">
+    <div class="row justify-content-center">
 
-<div class="col-md-6">
+        <div class="col-md-6">
 
-<div class="card shadow p-4">
+            <div class="card shadow">
 
-<h2>Create Company</h2>
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create Your Company</h3>
+                </div>
 
-<form method="POST">
+                <div class="card-body">
 
-{% csrf_token %}
+                    <p class="text-muted">
+                        Create your first organization. You will automatically become its Company Administrator.
+                    </p>
 
-<div class="mb-3">
+                    <form method="post">
 
-<label class="form-label">
+                        {% csrf_token %}
 
-Company Name
+                        <div class="mb-3">
 
-</label>
+                            <label class="form-label">
+                                Company Name
+                            </label>
 
-<input
-type="text"
-name="name"
-class="form-control"
-required>
+                            <input
+                                type="text"
+                                name="name"
+                                class="form-control"
+                                required>
 
-</div>
+                        </div>
 
-<button
-class="btn btn-primary w-100">
+                        <div class="d-flex justify-content-between">
 
-Create Company
+                            <button
+                                type="submit"
+                                class="btn btn-primary">
 
-</button>
+                                Create Company
 
-</form>
+                            </button>
 
-</div>
+                            <a href="{% url 'dashboard' %}"
+                               class="btn btn-secondary">
 
-</div>
+                                Cancel
 
-</div>
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 

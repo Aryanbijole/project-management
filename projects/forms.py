@@ -7,9 +7,26 @@ from .models import ProjectDocument
 class ProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
+
         company = kwargs.pop("company", None)
 
         super().__init__(*args, **kwargs)
+
+        self.fields.pop("company", None)
+
+        if company:
+
+            users = User.objects.filter(
+                memberships__company=company
+            ).distinct()
+
+        else:
+
+            users = User.objects.none()
+
+        self.fields["owner"].queryset = users
+        self.fields["members"].queryset = users
+
 
     # Company is assigned automatically
         self.fields.pop("company", None)

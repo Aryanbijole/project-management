@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from accounts import admin_views
 
 urlpatterns = [
     path(
@@ -116,7 +117,7 @@ path(
 
 path(
     "organization/members/",
-    views.organization_members,
+    admin_views.organization_members,
     name="organization_members",
 ),
 

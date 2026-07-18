@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="glass-card">
+
+        <h2 style="margin-bottom:10px;">
+            👥 {{ group.name }}
+        </h2>
+
+        <p style="color:var(--text-muted);">
+
+            Company :
+            <strong>{{ group.company.name }}</strong>
+
+        </p>
+
+        <p style="color:var(--text-muted);">
+
+            Project :
+            <strong>{{ group.project.name }}</strong>
+
+        </p>
+
+    </div>
+
+    <br>
+
+    <div class="glass-card">
+
+        <h3>Members</h3>
+
+        <ul>
+
+            {% for member in group.members.all %}
+
+            <li>
+
+                {{ member.get_full_name|default:member.email }}
+
+            </li>
+
+            {% empty %}
+
+            <li>No members.</li>
+
+            {% endfor %}
+
+        </ul>
+
+    </div>
+
+    <br>
+
+    <div class="glass-card">
+
+    <h3 style="margin-bottom:20px;">
+        💬 Group Discussion
+    </h3>
+
+    <div id="chat-box"
+         style="
+            height:420px;
+            overflow-y:auto;
+            border:1px solid var(--card-border);
+            border-radius:10px;
+            padding:15px;
+            background:#fafafa;
+            margin-bottom:20px;
+         ">
+
+        {% for msg in messages %}
+
+        <div style="
+            margin-bottom:18px;
+            padding:12px;
+            border-radius:10px;
+            background:white;
+            border-left:4px solid #5B5FEF;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-bottom:6px;
+            ">
+
+                <strong>
+                    {{ msg.sender.get_full_name|default:msg.sender.email }}
+                </strong>
+
+                <small style="color:gray;">
+                    {{ msg.created_at|date:"d M Y H:i" }}
+                </small>
+
+            </div>
+
+            <div style="white-space:pre-wrap;">
+                {{ msg.message }}
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <p style="color:gray;text-align:center;">
+            No messages yet. Start the discussion.
+        </p>
+
+        {% endfor %}
+
+    </div>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <textarea
+            name="message"
+            class="form-control"
+            rows="3"
+            placeholder="Write something for your team..."
+            required></textarea>
+
+        <br>
+
+        <button
+            type="submit"
+            class="btn btn-primary">
+
+            Send Message
+
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+
+window.onload=function(){
+
+    var chat=document.getElementById("chat-box");
+
+    chat.scrollTop=chat.scrollHeight;
+
+}
+
+</script>
+
+{% endblock %}

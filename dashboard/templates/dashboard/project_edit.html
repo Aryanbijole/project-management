@@ -6,15 +6,82 @@
 
 <div class="container mt-4">
 
-    <h2>Edit Project</h2>
+    <h2 class="mb-4">Edit Project</h2>
 
     <form method="post">
 
         {% csrf_token %}
 
-        {{ form.as_p }}
+        {% if request.user.is_superuser %}
 
-        <button class="btn btn-success">
+        <div class="mb-3">
+            <label class="form-label">Company</label>
+            {{ form.company }}
+        </div>
+
+        {% endif %}
+
+        <div class="mb-3">
+            <label class="form-label">Project Name</label>
+            {{ form.name }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            {{ form.description }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Project Owner</label>
+            {{ form.owner }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Project Members</label>
+
+            <div class="border rounded p-3" style="max-height:250px; overflow-y:auto;">
+                {{ form.members }}
+            </div>
+
+            <small class="text-muted">
+                Select all users who are part of this project.
+            </small>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-6">
+
+                <div class="mb-3">
+                    <label class="form-label">Visibility</label>
+                    {{ form.visibility }}
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    {{ form.status }}
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="form-check mb-4">
+
+            {{ form.is_archived }}
+
+            <label class="form-check-label">
+                Archive this Project
+            </label>
+
+        </div>
+
+        <button type="submit" class="btn btn-success">
             Update Project
         </button>
 

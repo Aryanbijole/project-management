@@ -7,11 +7,49 @@
 <div class="container">
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <h2>User Management</h2>
+
+        <div>
+
+            <h2>User Management</h2>
+
+            {% if request.user.is_superuser %}
+
+            <form method="GET" style="margin-top:10px;">
+
+                <select
+                    name="company"
+                    class="form-control"
+                    onchange="this.form.submit()">
+
+                    <option value="">
+                        Select Company
+                    </option>
+
+                    {% for company in companies %}
+
+                    <option
+                        value="{{ company.id }}"
+                        {% if selected_company == company.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ company.name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </form>
+
+            {% endif %}
+
+        </div>
 
         <a href="{% url 'admin_user_create' %}" class="btn btn-primary">
-            + Add User
+            + Add User      
         </a>
+
     </div>
 
     <table class="table">
