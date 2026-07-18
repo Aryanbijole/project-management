@@ -4,84 +4,84 @@
 
 {% block content %}
 
-<h1>📅 Project Timeline</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📅 Project Timeline</h1>
+        <p class="page-subtitle">{{ project.name }}</p>
+    </div>
+    {% if tasks %}
+    <span class="role-count">{{ tasks|length }} task{{ tasks|length|pluralize }}</span>
+    {% endif %}
+</div>
 
-<p><strong>Project:</strong> {{ project.name }}</p>
+<div class="table-card">
 
-<div class="glass-card">
+    <table class="table">
 
-<table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Assigned</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Priority</th>
+            </tr>
+        </thead>
 
-    <thead>
+        <tbody>
 
-        <tr style="border-bottom:1px solid #444;">
-            <th style="padding:10px;">Task</th>
-            <th>Assigned</th>
-            <th>Status</th>
-            <th>Due Date</th>
-            <th>Priority</th>
-        </tr>
+        {% for task in tasks %}
 
-    </thead>
+            <tr>
 
-    <tbody>
+                <td><strong>{{ task.title }}</strong></td>
 
-    {% for task in tasks %}
+                <td>
+                    {% if task.assigned_to %}
+                    <div class="task-assignee">
+                        <span class="user-avatar user-avatar-sm">
+                            {{ task.assigned_to.first_name|slice:":1"|upper|default:task.assigned_to.email|slice:":1"|upper }}
+                        </span>
+                        {{ task.assigned_to.first_name|default:task.assigned_to.email }}
+                    </div>
+                    {% else %}
+                    <span class="task-unassigned">Unassigned</span>
+                    {% endif %}
+                </td>
 
-        <tr style="border-bottom:1px solid #333;">
+                <td>
+                    <span class="status-badge status-{{ task.status }}">
+                        {{ task.get_status_display }}
+                    </span>
+                </td>
 
-            <td style="padding:12px;">
-                {{ task.title }}
-            </td>
+                <td>{{ task.due_date|default:"—" }}</td>
 
-            <td>
-                {{ task.assigned_to.email|default:"Unassigned" }}
-            </td>
+                <td>
+                    <span class="priority-badge priority-{{ task.priority }}">
+                        {{ task.get_priority_display }}
+                    </span>
+                </td>
 
-            <td>
+            </tr>
 
-                {% if task.status == "todo" %}
-                    🔴 To Do
+        {% empty %}
 
-                {% elif task.status == "in_progress" %}
-                    🟡 In Progress
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <h2>📭</h2>
+                        <h4>No tasks yet</h4>
+                        <p>Tasks for this project will show up here on the timeline.</p>
+                    </div>
+                </td>
+            </tr>
 
-                {% elif task.status == "review" %}
-                    🔵 Review
+        {% endfor %}
 
-                {% else %}
-                    🟢 Done
-                {% endif %}
+        </tbody>
 
-            </td>
-
-            <td>
-                {{ task.due_date }}
-            </td>
-
-            <td>
-                {{ task.get_priority_display }}
-            </td>
-
-        </tr>
-
-    {% empty %}
-
-        <tr>
-
-            <td colspan="5">
-
-                No tasks available.
-
-            </td>
-
-        </tr>
-
-    {% endfor %}
-
-    </tbody>
-
-</table>
+    </table>
 
 </div>
 

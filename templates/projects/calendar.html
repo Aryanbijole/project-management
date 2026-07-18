@@ -4,54 +4,65 @@
 
 {% block content %}
 
-<h1>📅 Calendar</h1>
-
-<h2>Tasks Due</h2>
-
-{% for task in tasks %}
-
-<div class="glass-card">
-
-    <strong>{{ task.title }}</strong>
-
-    <br>
-
-    Due:
-    {{ task.due_date }}
-
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📅 Calendar</h1>
+        <p class="page-subtitle">Stay on top of upcoming tasks and milestones</p>
+    </div>
 </div>
 
-<br>
+<div class="grid-cols-2">
 
-{% empty %}
+    <!-- Tasks Due -->
+    <div class="glass-card calendar-card">
+        <div class="section-card-title">
+            <span>✅ Tasks Due</span>
+            {% if tasks %}<span class="role-count">{{ tasks|length }}</span>{% endif %}
+        </div>
 
-<p>No tasks with due dates.</p>
+        {% for task in tasks %}
+        <div class="calendar-item">
+            <div class="calendar-item-icon icon-blue">📌</div>
+            <div class="calendar-item-body">
+                <div class="calendar-item-title">{{ task.title }}</div>
+                <div class="calendar-item-due">
+                    <span class="due-badge">🗓️ {{ task.due_date }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state calendar-empty">
+            <h4>🎉 Nothing due</h4>
+            <p>You have no tasks with due dates right now.</p>
+        </div>
+        {% endfor %}
+    </div>
 
-{% endfor %}
+    <!-- Milestones -->
+    <div class="glass-card calendar-card">
+        <div class="section-card-title">
+            <span>🚩 Milestones</span>
+            {% if milestones %}<span class="role-count">{{ milestones|length }}</span>{% endif %}
+        </div>
 
-<hr>
-
-<h2>Milestones</h2>
-
-{% for milestone in milestones %}
-
-<div class="glass-card">
-
-    <strong>{{ milestone.title }}</strong>
-
-    <br>
-
-    Due:
-    {{ milestone.due_date }}
+        {% for milestone in milestones %}
+        <div class="calendar-item">
+            <div class="calendar-item-icon icon-purple">🏁</div>
+            <div class="calendar-item-body">
+                <div class="calendar-item-title">{{ milestone.title }}</div>
+                <div class="calendar-item-due">
+                    <span class="due-badge">🗓️ {{ milestone.due_date }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state calendar-empty">
+            <h4>📭 No milestones</h4>
+            <p>Nothing scheduled yet — check back later.</p>
+        </div>
+        {% endfor %}
+    </div>
 
 </div>
-
-<br>
-
-{% empty %}
-
-<p>No milestones.</p>
-
-{% endfor %}
 
 {% endblock %}

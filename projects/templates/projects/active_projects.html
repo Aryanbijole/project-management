@@ -1,92 +1,82 @@
 {% extends "base.html" %}
 
+{% block title %}Active Projects{% endblock %}
+
 {% block content %}
 
-<div class="container">
-
-    <h2>🟢 Active Projects</h2>
-
-    <hr>
-
-    {% if projects %}
-
-        <table class="table table-hover">
-
-            <thead>
-
-                <tr>
-                    <th>Project Name</th>
-                    <th>Description</th>
-                    <th>Company</th>
-                    <th>Members</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-            {% for project in projects %}
-
-                <tr>
-
-                    <td>
-                        <strong>{{ project.name }}</strong>
-                    </td>
-
-                    <td>
-                        {{ project.description|truncatechars:50 }}
-                    </td>
-
-                    <td>
-                        {{ project.company.name }}
-                    </td>
-
-                    <td>
-                        {{ project.members.count }}
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-success">
-
-                            {{ project.get_status_display }}
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        <a
-                            href="{% url 'project_detail' project.id %}"
-                            class="btn btn-primary btn-sm">
-
-                            Open
-
-                        </a>
-
-                    </td>
-
-                </tr>
-
-            {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    {% else %}
-
-        <div class="alert alert-info">
-
-            No active projects found.
-
-        </div>
-
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🟢 Active Projects</h1>
+        <p class="page-subtitle">Projects currently in progress</p>
+    </div>
+    {% if projects %}   
+    <span class="role-count">{{ projects|length }} project{{ projects|length|pluralize }}</span>
     {% endif %}
+</div>
+
+{% if projects %}
+
+<div class="table-card">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Description</th>
+                <th>Company</th>
+                <th>Members</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for project in projects %}
+
+            <tr>
+
+                <td><strong>{{ project.name }}</strong></td>
+
+                <td class="role-desc">{{ project.description|truncatechars:50 }}</td>
+
+                <td>{{ project.company.name }}</td>
+
+                <td>
+                    <span class="user-count-badge">👤 {{ project.members.count }}</span>
+                </td>
+
+                <td>
+                    <span class="status-badge status-{{ project.status }}">
+                        {{ project.get_status_display }}
+                    </span>
+                </td>
+
+                <td>
+                    <a href="{% url 'project_detail' project.id %}" class="btn btn-primary btn-sm">
+                        Open
+                    </a>
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
 
 </div>
+
+{% else %}
+
+    <div class="empty-state">
+        <h2>📭</h2>
+        <h4>No active projects</h4>
+        <p>Projects currently in progress will show up here.</p>
+    </div>
+
+{% endif %}
 
 {% endblock %}

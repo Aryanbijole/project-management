@@ -1,70 +1,77 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ title }}{% endblock %}
+
 {% block content %}
 
-<h2>{{ title }}</h2>
-
-<hr>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">✅ {{ title }}</h1>
+        <p class="page-subtitle">{% if tasks %}{{ tasks|length }} task{{ tasks|length|pluralize }}{% else %}No tasks to show{% endif %}</p>
+    </div>
+</div>
 
 {% if tasks %}
 
-{% for task in tasks %}
+    {% for task in tasks %}
 
-<div class="glass-card">
+    <div class="glass-card task-card">
 
-    <h3>{{ task.title }}</h3>
+        <div class="task-card-header">
+            <h3 class="task-card-title">{{ task.title }}</h3>
 
-    <p>{{ task.description }}</p>
+            <div class="task-badges">
+                <span class="priority-badge priority-{{ task.priority }}">
+                    {% if task.priority == 'high' %}🔴{% elif task.priority == 'medium' %}🟠{% else %}🟢{% endif %}
+                    {{ task.get_priority_display }}
+                </span>
 
-    <p>
+                <span class="status-badge status-{{ task.status }}">
+                    {{ task.get_status_display }}
+                </span>
+            </div>
+        </div>
 
-        <strong>Project:</strong>
+        {% if task.description %}
+        <p class="task-card-desc">{{ task.description }}</p>
+        {% endif %}
 
-        {{ task.todo_list.project.name }}
+        <div class="task-meta-row">
 
-    </p>
+            <div class="task-meta-item">
+                <span class="task-meta-label">📁 Project</span>
+                <span class="task-meta-value">{{ task.todo_list.project.name }}</span>
+            </div>
 
-    <p>
+            <div class="task-meta-item">
+                <span class="task-meta-label">👤 Assigned To</span>
+                {% if task.assigned_to %}
+                <span class="task-meta-value task-assignee">
+                    <span class="user-avatar user-avatar-sm">{{ task.assigned_to.first_name|slice:":1"|upper|default:task.assigned_to.email|slice:":1"|upper }}</span>
+                    {{ task.assigned_to.first_name|default:task.assigned_to.email }}
+                </span>
+                {% else %}
+                <span class="task-meta-value task-unassigned">Unassigned</span>
+                {% endif %}
+            </div>
 
-        <strong>Status:</strong>
+        </div>
 
-        {{ task.get_status_display }}
+        <a href="{% url 'task_detail' task.todo_list.project.id task.id %}" class="btn btn-primary btn-sm">
+            Open Task →
+        </a>
 
-    </p>
+    </div>
 
-    <p>
-
-        <strong>Priority:</strong>
-
-        {{ task.get_priority_display }}
-
-    </p>
-
-    <p>
-
-        <strong>Assigned To:</strong>
-
-        {{ task.assigned_to|default:"Unassigned" }}
-
-    </p>
-
-    <a
-    href="{% url 'task_detail' task.todo_list.project.id task.id %}"
-    class="btn btn-primary">
-
-        Open Task
-
-    </a>
-
-</div>
-
-<br>
-
-{% endfor %}
+    {% endfor %}
 
 {% else %}
 
-<p>No tasks found.</p>
+    <div class="empty-state">
+        <h2>📭</h2>
+        <h4>No tasks found</h4>
+        <p>There's nothing here right now.</p>
+    </div>
 
 {% endif %}
 

@@ -635,121 +635,1525 @@ body {
     border-radius: 0;
 }
 
-.progress-container{
-    width:100%;
-    height:24px;
-    background:#e5e7eb;
-    border-radius:12px;
-    overflow:hidden;
-    margin:15px 0;
+/* ============ Role Management page ============ */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
 }
 
-.progress-fill{
-    height:100%;
-    background:#4f46e5;
-    color:white;
-    text-align:center;
-    line-height:24px;
-    font-weight:600;
-    transition:width .3s ease;
+.page-header .page-title,
+.page-header .page-subtitle {
+    margin-bottom: 0;
 }
 
-.nav-group{
-    margin-bottom:10px;
+.role-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 14px 0 10px;
+    flex-wrap: wrap;
 }
 
-.nav-submenu{
-    margin-left:35px;
-    display:flex;
-    flex-direction:column;
+.search-box {
+    position: relative;
 }
 
-.nav-subitem{
-    color:#d1d5db;
-    text-decoration:none;
-    padding:8px 0;
-    font-size:14px;
+.search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    opacity: 0.6;
+    pointer-events: none;
 }
 
-.nav-subitem:hover{
-    color:white;
+.search-box input {
+    width: 260px;
+    padding: 10px 14px 10px 38px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    transition: var(--transition);
 }
 
-.nav-submenu{
-    display:flex;
-    flex-direction:column;
-    margin-left:25px;
-    margin-top:8px;
-    margin-bottom:12px;
-    gap:6px;
+.search-box input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-light);
 }
 
-.nav-subitem{
-    display:block !important;
-    width:100%;
-    padding:8px 15px;
-    color:#cfd8ff !important;
-    text-decoration:none !important;
-    border-radius:8px;
-    font-size:14px;
-    transition:0.25s;
+.role-count {
+    padding: 6px 14px;
+    border-radius: 999px;
+    background-color: var(--accent-light);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.8rem;
+    white-space: nowrap;
 }
 
-.nav-subitem:hover{
-    background:#4f46e5;
-    color:white !important;
+/* Table card wrapper */
+.table-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    overflow: hidden;
 }
 
-.notification-wrapper{
-    position:relative;
-    display:inline-block;
+.table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.notification-btn{
-    background:none;
-    border:none;
-    cursor:pointer;
-    font-size:24px;
-    position:relative;
+.table thead th {
+    text-align: left;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--card-border);
+    background-color: rgba(99, 102, 241, 0.04);
 }
 
-.notification-badge{
-    position:absolute;
-    top:-6px;
-    right:-8px;
-    background:red;
-    color:white;
-    border-radius:50%;
-    padding:2px 6px;
-    font-size:11px;
-    font-weight:bold;
+.table tbody tr {
+    border-bottom: 1px solid var(--card-border);
+    transition: var(--transition);
 }
 
-.notification-menu{
-    display:none;
-    position:absolute;
-    right:0;
-    top:40px;
-    width:340px;
-    background:white;
-    border-radius:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,.2);
-    z-index:9999;
-    overflow:hidden;
+.table tbody tr:last-child {
+    border-bottom: none;
 }
 
-.notification-item{
-    padding:12px;
-    border-bottom:1px solid #eee;
+.table tbody tr:hover {
+    background-color: var(--accent-light);
 }
 
-.dropdown-header{
-    padding:15px;
-    font-weight:bold;
-    background:#f8f9fa;
+.table tbody td {
+    padding: 16px 24px;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    vertical-align: middle;
 }
 
-.dropdown-footer{
-    text-align:center;
-    padding:12px;
+.role-table .role-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+}
+
+.role-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+}
+
+.role-desc {
+    color: var(--text-secondary);
+    max-width: 360px;
+}
+
+.user-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.row-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-sm {
+    padding: 7px 14px;
+    font-size: 0.82rem;
+    border-radius: 8px;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 64px 24px;
+}
+
+.empty-state h2 {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.empty-state h4 {
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    max-width: 380px;
+    margin: 0 auto 24px;
+}
+
+.role-table-row-hidden {
+    display: none !important;
+}
+
+@media (max-width: 720px) {
+    .search-box input { width: 100%; }
+    .role-desc { max-width: 160px; }
+}
+
+/* ============ Global polish ============ */
+
+/* Custom scrollbar to match theme */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: rgba(99, 102, 241, 0.35);
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(99, 102, 241, 0.6);
+}
+
+/* Accessible focus states (keyboard nav) instead of default browser outline */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Gentle fade/slide-in when a page loads */
+.content-body {
+    animation: contentFadeIn 0.35s ease both;
+}
+
+@keyframes contentFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Disabled / loading button state, reused across all forms */
+.btn:disabled,
+.btn.is-loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn.is-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn.is-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: #fff;
+    animation: btnSpin 0.6s linear infinite;
+}
+
+@keyframes btnSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Sortable table header affordance (used by role-table and future tables) */
+.table thead th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.table thead th.sortable:hover {
+    color: var(--accent);
+}
+
+.table thead th.sortable .sort-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    opacity: 0.4;
+    font-size: 0.7rem;
+}
+
+.table thead th.sortable.sorted .sort-arrow {
+    opacity: 1;
+    color: var(--accent);
+}
+
+/* Skeleton loading placeholder, handy for async-loaded tables/cards */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--accent-light);
+    border-radius: 8px;
+    color: transparent !important;
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    animation: skeletonShimmer 1.4s infinite;
+}
+
+@keyframes skeletonShimmer {
+    100% { transform: translateX(100%); }
+}
+
+/* Tooltip helper, e.g. title="" replacement for row action buttons */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--text-primary);
+    color: var(--bg-color);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 200;
+    pointer-events: none;
+}
+
+/* ============ Analytics Dashboard ============ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.stat-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    padding: 22px 24px;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+}
+
+.stat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    background: var(--accent-light);
+}
+
+.stat-icon.icon-blue   { background: rgba(59, 130, 246, 0.12); }
+.stat-icon.icon-green  { background: rgba(16, 185, 129, 0.12); }
+.stat-icon.icon-amber  { background: rgba(245, 158, 11, 0.12); }
+.stat-icon.icon-purple { background: rgba(139, 92, 246, 0.12); }
+.stat-icon.icon-pink   { background: rgba(236, 72, 153, 0.12); }
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+.stat-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Completion progress bar, used on the analytics dashboard */
+.progress-card {
+    grid-column: 1 / -1;
+    margin-bottom: 20px;
+}
+
+.progress-bar-track {
+    width: 100%;
+    height: 14px;
+    border-radius: 999px;
+    background-color: var(--accent-light);
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent) 0%, #a78bfa 100%);
+    transition: width 0.6s ease;
+}
+
+.progress-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* ============ Home Dashboard ============ */
+.grid-cols-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 1200px) {
+    .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+    .grid-cols-4 { grid-template-columns: 1fr; }
+}
+
+.section-card-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.empty-hint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.form-divider-heading {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--card-border);
+    color: var(--text-secondary);
+}
+
+.form-hint {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    display: block;
+    margin-top: 4px;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+}
+
+/* Stacked list items (orgs, groups, invites, users) */
+.stacked-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.org-item {
+    padding: 12px 14px;
+    background-color: var(--accent-light);
+    color: var(--accent);
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.group-item {
+    padding: 12px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+}
+
+.group-item-name {
+    font-weight: 600;
+}
+
+.group-item-meta {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+/* Project cards inside dashboard */
+.project-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.project-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    padding: 16px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.02);
+    transition: var(--transition);
+}
+
+.project-card-link:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.project-card-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+
+.project-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.project-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Invite list */
+.invite-list-wrap {
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.invite-item {
+    font-size: 0.82rem;
+    padding: 10px 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.invite-item-email {
+    font-weight: 700;
+}
+
+.invite-item-meta {
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.status-badge {
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.status-accepted {
+    color: var(--success);
+    background-color: rgba(16, 185, 129, 0.1);
+}
+
+.status-pending {
+    color: var(--warning);
+    background-color: rgba(245, 158, 11, 0.12);
+}
+
+/* Active users list */
+.user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.user-row:last-child {
+    border-bottom: none;
+}
+
+.user-row-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar-sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+}
+
+.user-row-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-row-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.btn-ping {
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+}
+
+
+
+
+/* ============ Calendar Page ============ */
+.calendar-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--card-border);
+    transition: var(--transition);
+}
+
+.calendar-item:last-child {
+    border-bottom: none;
+}
+
+.calendar-item:hover {
+    background-color: var(--accent-light);
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.calendar-item-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+}
+
+.calendar-item-body {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.calendar-item-title {
+    font-weight: 700;
+    font-size: 0.98rem;
+    margin-bottom: 4px;
+}
+
+.calendar-item-due {
+    display: flex;
+    align-items: center;
+}
+
+.due-badge {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background-color: rgba(99, 102, 241, 0.08);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.calendar-empty {
+    padding: 32px 12px;
+}
+
+.calendar-empty h4 {
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+}
+
+
+
+
+
+/* ============ Global Search Page ============ */
+.search-form-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.search-box-lg {
+    flex-grow: 1;
+    min-width: 240px;
+}
+
+.search-box-lg input {
+    width: 100%;
+    padding: 12px 16px;
+}
+
+.search-results-grid {
+    margin-top: 4px;
+}
+
+.search-result-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--card-border);
+    transition: var(--transition);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: var(--accent-light);
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.search-result-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+}
+
+.search-empty {
+    padding: 24px 12px;
+}
+
+.search-empty p {
+    margin: 0;
+}
+
+@media (max-width: 1024px) {
+    .search-form-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+
+
+/* ============ Create Role Page ============ */
+.permissions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 16px 0 28px;
+}
+
+@media (max-width: 720px) {
+    .permissions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.permission-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.92rem;
+    transition: var(--transition);
+}
+
+.permission-check:hover {
+    background-color: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.permission-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.permission-check span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+
+
+/* ============ Create Group Page ============ */
+.member-select-list {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0 28px;
+    padding-right: 4px;
+}
+
+.member-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.member-check:hover {
+    background-color: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.member-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.member-check-info {
+    min-width: 0;
+}
+
+.member-check-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.member-check-email {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+
+
+/* Group name link - looks like plain text, clickable on hover */
+.group-name-link {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.group-name-link:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+/* ============ Edit Group Page ============ */
+.current-members-card {
+    margin: 16px 0 28px;
+}
+
+/* Generic name+avatar row, usable in any table */
+.member-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+}
+
+
+
+/* ============ Task List Page ============ */
+.task-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.task-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.task-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.task-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.task-card-desc {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.priority-badge {
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.priority-high {
+    color: var(--danger);
+    background-color: rgba(239, 68, 68, 0.12);
+}
+
+.priority-medium {
+    color: var(--warning);
+    background-color: rgba(245, 158, 11, 0.12);
+}
+
+.priority-low {
+    color: var(--success);
+    background-color: rgba(16, 185, 129, 0.12);
+}
+
+.task-meta-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding: 14px 0;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.task-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.task-meta-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.task-meta-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.task-assignee {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-unassigned {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-style: italic;
+}
+
+
+
+/* Fix: align meta columns to top consistently */
+.task-meta-row {
+    align-items: flex-start;
+}
+
+.task-meta-item {
+    justify-content: flex-start;
+}
+
+.task-assignee {
+    line-height: 1.4;
+}
+
+/* Give status-badge actual styling (was previously undefined) */
+.status-badge {
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-todo {
+    color: var(--text-muted);
+    background-color: rgba(156, 163, 175, 0.15);
+}
+
+.status-in_progress {
+    color: var(--accent);
+    background-color: var(--accent-light);
+}
+
+.status-done {
+    color: var(--success);
+    background-color: rgba(16, 185, 129, 0.12);
+}
+
+.status-blocked {
+    color: var(--danger);
+    background-color: rgba(239, 68, 68, 0.12);
+}
+
+/* Align project name and assignee row precisely on the same baseline */
+.task-meta-item {
+    gap: 6px;
+}
+
+.task-meta-value {
+    line-height: 24px;
+}
+
+.task-assignee {
+    line-height: normal;
+}
+
+.task-assignee .user-avatar {
+    margin-top: -1px;
+}
+
+
+/* ============ Task Detail Page ============ */
+.inline-add-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.inline-add-form input {
+    flex-grow: 1;
+}
+
+.checklist-list, .attachment-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.92rem;
+}
+
+.checklist-item-done {
+    color: var(--text-muted);
+    text-decoration: line-through;
+}
+
+.attachment-item a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.92rem;
+}
+
+.attachment-item a:hover {
+    text-decoration: underline;
+}
+
+.comment-item, .activity-item, .time-entry-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.comment-item:last-child, .activity-item:last-child, .time-entry-item:last-child {
+    border-bottom: none;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.comment-meta small, .activity-item strong {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.timer-card {
+    text-align: center;
+}
+
+.live-timer {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 12px 0 20px;
+}
+
+.timer-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.time-sessions-card {
+    margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+    .timer-actions {
+        flex-direction: column;
+    }
+}
+
+
+/* ============ Kanban Board Page ============ */
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    overflow-x: auto;
+    padding-bottom: 12px;
+}
+
+.kanban-column {
+    background-color: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+    flex: 1 1 0;
+    min-width: 260px;
+}
+
+.kanban-column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 16px;
+}
+
+.kanban-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    transition: var(--transition);
+}
+
+.kanban-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.kanban-card-title {
+    display: block;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.kanban-card-title:hover {
+    text-decoration: underline;
+}
+
+.kanban-card-meta {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+}
+
+.kanban-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.kanban-card-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 1024px) {
+    .kanban-board {
+        flex-direction: column;
+    }
+    .kanban-column {
+        width: 100%;
+    }
+}
+
+
+/* ============ Auto-rendered Django forms (form.as_p) ============ */
+.django-form p {
+    margin-bottom: 20px;
+}
+
+.django-form label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.django-form input[type="text"],
+.django-form input[type="email"],
+.django-form input[type="number"],
+.django-form input[type="date"],
+.django-form input[type="url"],
+.django-form select,
+.django-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    outline: none;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.django-form input:focus,
+.django-form select:focus,
+.django-form textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-light);
+}
+
+.django-form input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.django-form .helptext {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.django-form ul.errorlist {
+    list-style: none;
+    color: var(--danger);
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+    padding: 0;
+}
+
+
+/* Spacing fixes: Project Management page */
+.page-header {
+    margin-bottom: 28px;
+}
+
+.stats-grid {
+    margin-bottom: 28px;
+}
+
+.search-filter-form {
+    margin-top: 4px;
+    margin-bottom: 28px;
+    padding: 24px 28px;
+    gap: 20px;
+}
+/* Fix: vertical spacing between stacked search filter controls */
+.search-filter-form {
+    row-gap: 18px;
+    column-gap: 20px;
+}
+
+.search-box-lg,
+.status-filter-select,
+.search-filter-form button[type="submit"] {
+    margin-bottom: 12px;
+}
+
+
+
+/* Fix: search icon overlapping typed text */
+.search-box.search-box-lg input.form-control {
+    padding-left: 42px !important;
+}
+
+
+/* ============ Edit Organization Member Page ============ */
+.member-profile-preview {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background-color: var(--accent-light);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.member-profile-name {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.member-profile-email {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.form-control[readonly] {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+/* ============ Confirmation Pages ============ */
+.confirm-card {
+    max-width: 560px;
+}
+.confirm-warning {
+    align-items: flex-start;
+}
+
+.confirm-warning-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.confirm-warning span:last-child {
+    line-height: 1.5;
+}
+
+/* ============ Project Dashboard Page ============ */
+.project-tools-card {
+    grid-column: span 2;
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.tool-tile {
+    padding: 20px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 160px;
+    background-color: rgba(255, 255, 255, 0.02);
+    transition: var(--transition);
+}
+
+.tool-tile:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.tool-tile-title {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+}
+
+.tool-tile-desc {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.project-member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.integration-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.integration-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border: 1px dashed var(--card-border);
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.integration-link:hover {
+    background-color: var(--accent-light);
+}
+
+.milestones-heading {
+    margin: 32px 0 16px;
+}
+
+.milestone-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.milestone-form .form-group {
+    flex: 1 1 200px;
+    margin-bottom: 0;
+}
+
+.milestone-grid {
+    margin-top: 20px;
+}
+
+.milestone-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.milestone-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.milestone-desc {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.milestone-due {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.utility-panel-grid {
+    margin-top: 28px;
+}
+
+.utility-panel {
+    padding: 20px;
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    background-color: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 160px;
+}
+
+/* ============ Admin Reports Page ============ */
+.reports-tables-grid {
+    margin-top: 32px;
 }

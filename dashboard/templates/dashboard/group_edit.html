@@ -4,103 +4,119 @@
 
 {% block content %}
 
-<h2>Edit Group</h2>
-
-<form method="post">
-    {% csrf_token %}
-
-    <div class="mb-3">
-        <label>Group Name</label>
-        <input
-            type="text"
-            name="name"
-            class="form-control"
-            value="{{ group.name }}"
-            required>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🧩 Edit Group</h1>
+        <p class="page-subtitle">Update group details and manage its members</p>
     </div>
+</div>
 
-    <div class="mb-3">
-        <label>Company</label>
+<div class="glass-card">
+    <form method="post">
+        {% csrf_token %}
 
-        <select name="company" class="form-control">
+        <div class="form-group">
+            <label>Group Name</label>
+            <input
+                type="text"
+                name="name"
+                class="form-control"
+                value="{{ group.name }}"
+                required>
+        </div>
 
-            {% for company in companies %}
+        <div class="form-group">
+            <label>Company</label>
 
-                <option value="{{ company.id }}"
-                    {% if company.id == group.company.id %}selected{% endif %}>
-                    {{ company.name }}
-                </option>
+            <select name="company" class="form-control">
+                {% for company in companies %}
+                    <option value="{{ company.id }}"
+                        {% if company.id == group.company.id %}selected{% endif %}>
+                        {{ company.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
+        <div class="form-divider-heading">Current Members</div>
+
+        <div class="table-card current-members-card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Keep in Group</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for member in group.members.all %}
+                    <tr>
+                        <td>
+                             <div class="member-name-cell">
+                                 <div class="user-avatar user-avatar-sm">
+                                     {{ member.first_name|slice:":1"|upper|default:member.email|slice:":1"|upper }}
+                                </div>
+                                        {{ member.first_name }} {{ member.last_name }}
+                            </div>
+                        </td>
+                        <td>{{ member.email }}</td>
+                        <td>{{ member.get_role_display }}</td>
+                        <td>
+                            <input
+                                type="checkbox"
+                                name="members"
+                                value="{{ member.id }}"
+                                checked>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <p>No members in this group.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-divider-heading">Add Members</div>
+
+        <div class="member-select-list">
+            {% for user in available_users %}
+            <label class="member-check">
+                <input type="checkbox" name="members" value="{{ user.id }}">
+                <div class="user-avatar user-avatar-sm">
+                    {{ user.first_name|slice:":1"|upper|default:user.email|slice:":1"|upper }}
+                </div>
+                <div class="member-check-info">
+                    <div class="member-check-name">
+                        {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.email }}{% endif %}
+                    </div>
+                    <div class="member-check-email">{{ user.email }}</div>
+                </div>
+            </label>
+            {% empty %}
+            <p class="form-hint">No other users available to add.</p>
             {% endfor %}
+        </div>
 
-        </select>
-    </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Update Group
+            </button>
 
-    <div class="mb-3">
+            <a href="{% url 'admin_group_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
-        <h3>Current Members</h3>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Keep in Group</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        {% for member in group.members.all %}
-        <tr>
-            <td>{{ member.first_name }} {{ member.last_name }}</td>
-            <td>{{ member.email }}</td>
-            <td>{{ member.get_role_display }}</td>
-
-            <td>
-                <input
-                    type="checkbox"
-                    name="members"
-                    value="{{ member.id }}"
-                    checked
-                >
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">No members in this group.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<hr>
-
-<h3>Add Members</h3>
-
-<select name="members" multiple size="8">
-    {% for user in available_users %}
-    <option value="{{ user.id }}">
-        {{ user.first_name }} {{ user.last_name }}
-        ({{ user.email }})
-    </option>
-    {% endfor %}
-</select>
-
-<p style="margin-top:10px;">
-Hold <b>Ctrl</b> (Windows) or <b>Cmd</b> (Mac) to select multiple users.
-</p>
-
-    </div>
-
-    <button class="btn btn-primary">
-        Update Group
-    </button>
-
-    <a href="{% url 'admin_group_list' %}" class="btn btn-secondary">
-        Cancel
-    </a>
-
-</form>
+    </form>
+</div>
 
 {% endblock %}

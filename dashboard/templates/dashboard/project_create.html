@@ -6,11 +6,15 @@ Create Project
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📁 Create Project</h1>
+        <p class="page-subtitle">Set up a new project for your organization</p>
+    </div>
+</div>
 
-    <h2>Create Project</h2>
-
-    <form method="post">
+<div class="glass-card">
+    <form method="post" class="django-form">
 
         {% csrf_token %}
 
@@ -93,7 +97,6 @@ Create Project
         {% endif %}
 
     </form>
-
 </div>
 
 {% endblock %}

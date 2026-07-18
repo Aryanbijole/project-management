@@ -4,10 +4,14 @@
 
 {% block content %}
 
-<div class="container">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">👤 Edit Organization Member</h1>
+        <p class="page-subtitle">Update this member's role within the organization</p>
+    </div>
+</div>
 
-    <h2>Edit Organization Member</h2>
-
+<div class="glass-card">
     <form method="post">
 
         {% csrf_token %}
@@ -54,24 +58,20 @@
                         {% if membership.role == value %}selected{% endif %}>
                         {{ label }}
                     </option>
-
                 {% endfor %}
-
             </select>
-
         </div>
 
         <button type="submit" class="btn btn-primary">
             Save Changes
         </button>
 
-        <a href="{% url 'organization_members' %}"
-           class="btn btn-secondary">
-            Cancel
-        </a>
+            <a href="{% url 'organization_members' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
     </form>
-
 </div>
 
 {% endblock %}

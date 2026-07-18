@@ -102,11 +102,7 @@
 
         {% if users %}
 
-        <select
-            name="members"
-            class="form-control"
-            multiple
-            size="8">
+        <div class="member-select-list">
 
             {% for user in users %}
 
@@ -145,22 +141,17 @@
     </div>
 
 
-    <button
-        type="submit"
-        class="btn btn-primary">
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Create Group
+            </button>
 
-        Create Group
+            <a href="{% url 'admin_group_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
-    </button>
-
-    <a
-        href="{% url 'admin_group_list' %}"
-        class="btn btn-secondary">
-
-        Cancel
-
-    </a>
-
-</form>
+    </form>
+</div>
 
 {% endblock %}

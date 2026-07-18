@@ -1639,6 +1639,7 @@ def role_create(request):
             can_edit_tasks="can_edit_tasks" in request.POST,
 
             can_upload_files="can_upload_files" in request.POST,
+            can_upload_files="can_upload_files" in request.POST,
 
             can_view_reports="can_view_reports" in request.POST,
 
@@ -1663,6 +1664,7 @@ def role_create(request):
             "Role created successfully."
         )
 
+        return redirect("admin_role_list")
         return redirect("admin_role_list")
 
     # ----------------------------

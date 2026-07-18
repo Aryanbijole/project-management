@@ -4,18 +4,11 @@
 
 {% block content %}
 
-<div class="container mt-4">
-
-    <!-- Header -->
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <div>
-            <h2 class="mb-0">Project Management</h2>
-            <small class="text-muted">
-                Manage all organization projects
-            </small>
-        </div>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📁 Project Management</h1>
+        <p class="page-subtitle">Manage all organization projects</p>
+    </div>
 
         {% if is_company_admin or request.user.is_superuser %}
             <a href="{% url 'admin_project_create' %}" class="btn btn-primary">
@@ -26,136 +19,91 @@
     </div>
 
 
-    <!-- Statistics -->
+<!-- Statistics -->
+<div class="stats-grid">
 
-    <div class="row mb-4">
-
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h6>Total Projects</h6>
-                    <h3>{{ total_projects }}</h3>
-                </div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Projects</span>
+            <div class="stat-icon icon-blue">📁</div>
         </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm border-success">
-                <div class="card-body text-center">
-                    <h6>Active</h6>
-                    <h3 class="text-success">
-                        {{ active_projects }}
-                    </h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm border-primary">
-                <div class="card-body text-center">
-                    <h6>Completed</h6>
-                    <h3 class="text-primary">
-                        {{ completed_projects }}
-                    </h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm border-secondary">
-                <div class="card-body text-center">
-                    <h6>Archived</h6>
-                    <h3 class="text-secondary">
-                        {{ archived_projects }}
-                    </h3>
-                </div>
-            </div>
-        </div>
-
+        <div class="stat-value">{{ total_projects }}</div>
     </div>
 
-
-    <!-- Search -->
-
-    <form method="get" class="row g-3 mb-4">
-
-        <div class="col-md-6">
-
-            <input
-                type="text"
-                class="form-control"
-                name="search"
-                placeholder="Search project..."
-                value="{{ search }}">
-
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Active</span>
+            <div class="stat-icon icon-green">🟢</div>
         </div>
+        <div class="stat-value">{{ active_projects }}</div>
+    </div>
 
-        <div class="col-md-3">
-
-            <select
-                class="form-select"
-                name="status">
-
-                <option value="">All Status</option>
-
-                <option value="active"
-                    {% if status == "active" %}selected{% endif %}>
-                    Active
-                </option>
-
-                <option value="completed"
-                    {% if status == "completed" %}selected{% endif %}>
-                    Completed
-                </option>
-
-                <option value="on_hold"
-                    {% if status == "on_hold" %}selected{% endif %}>
-                    On Hold
-                </option>
-
-            </select>
-
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Completed</span>
+            <div class="stat-icon icon-purple">✅</div>
         </div>
+        <div class="stat-value">{{ completed_projects }}</div>
+    </div>
 
-        <div class="col-md-3">
-
-            <button class="btn btn-dark w-100">
-                Search
-            </button>
-
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Archived</span>
+            <div class="stat-icon icon-amber">🗄️</div>
         </div>
+        <div class="stat-value">{{ archived_projects }}</div>
+    </div>
 
-    </form>
+</div>
 
+<!-- Search -->
+<form method="get" class="glass-card search-filter-form">
 
-    <!-- Table -->
+    <div class="search-box search-box-lg">
+        <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Search project..."
+            value="{{ search }}">
+    </div>
 
-    <div class="table-responsive">
+    <select name="status" class="form-control status-filter-select">
+        <option value="">All Status</option>
+        <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+        <option value="completed" {% if status == "completed" %}selected{% endif %}>Completed</option>
+        <option value="on_hold" {% if status == "on_hold" %}selected{% endif %}>On Hold</option>
+    </select>
 
-        <table class="table table-hover table-bordered align-middle">
+    <button type="submit" class="btn btn-primary">
+        Search
+    </button>
 
-            <thead class="table-dark">
+</form>
 
-                <tr>
+<!-- Table -->
+<div class="table-card">
 
-                    <th>Project</th>
-                    <th>Company</th>
-                    <th>Owner</th>
-                    <th>Status</th>
-                    <th>Visibility</th>
-                    <th>Archived</th>
-                    <th>Created</th>
-                    <th width="180">Actions</th>
+    <table class="table">
 
-                </tr>
+        <thead>
+            <tr>
+                <th>Project</th>
+                <th>Company</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Visibility</th>
+                <th>Archived</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
 
-            </thead>
+        <tbody>
 
-            <tbody>
+        {% for project in projects %}
 
-            {% for project in projects %}
-
-                <tr {% if project.is_archived %}class="table-secondary"{% endif %}>
+            <tr class="{% if project.is_archived %}row-archived{% endif %}">
 
                     <td>
                         <a href="{% url 'admin_project_detail' project.id %}">
@@ -163,206 +111,94 @@
                         </a>
                     </td>
 
-                    <td>
-                        {{ project.company.name }}
-                    </td>
+                <td>{{ project.company.name }}</td>
 
-                    <td>
+                <td>
+                    {% if project.owner %}
+                        {{ project.owner.get_full_name|default:project.owner.email }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
 
-                        {% if project.owner %}
-                            {{ project.owner.get_full_name|default:project.owner.email }}
-                        {% else %}
-                            -
-                        {% endif %}
+                <td>
+                    <span class="status-badge status-{{ project.status }}">
+                        {{ project.get_status_display }}
+                    </span>
+                </td>
 
-                    </td>
+                <td>
+                    <span class="status-badge visibility-{{ project.visibility }}">
+                        {{ project.get_visibility_display }}
+                    </span>
+                </td>
 
-                    <td>
+                <td>
+                    {% if project.is_archived %}
+                        <span class="status-badge archived-yes">Yes</span>
+                    {% else %}
+                        <span class="status-badge archived-no">No</span>
+                    {% endif %}
+                </td>
 
-                        {% if project.status == "active" %}
-                            <span class="badge bg-success">
-                                Active
-                            </span>
+                <td>{{ project.created_at|date:"d M Y" }}</td>
 
-                        {% elif project.status == "completed" %}
-                            <span class="badge bg-primary">
-                                Completed
-                            </span>
-
-                        {% else %}
-                            <span class="badge bg-warning text-dark">
-                                On Hold
-                            </span>
-                        {% endif %}
-
-                    </td>
-
-                    <td>
-
-                        {% if project.visibility == "private" %}
-                            <span class="badge bg-secondary">
-                                Private
-                            </span>
-
-                        {% elif project.visibility == "internal" %}
-                            <span class="badge bg-info">
-                                Internal
-                            </span>
-
-                        {% else %}
-                            <span class="badge bg-success">
-                                Public
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-                    <td>
-
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'admin_project_detail' project.id %}" class="btn btn-secondary btn-sm">View</a>
+                        <a href="{% url 'admin_project_edit' project.id %}" class="btn btn-secondary btn-sm">Edit</a>
                         {% if project.is_archived %}
-                            <span class="badge bg-danger">
-                                Yes
-                            </span>
+                            <a href="{% url 'admin_project_archive' project.id %}" class="btn btn-secondary btn-sm">Restore</a>
                         {% else %}
-                            <span class="badge bg-success">
-                                No
-                            </span>
+                            <a href="{% url 'admin_project_archive' project.id %}" class="btn btn-secondary btn-sm">Archive</a>
                         {% endif %}
+                        <a href="{% url 'admin_project_delete' project.id %}" class="btn btn-danger btn-sm">Delete</a>
+                    </div>
+                </td>
 
-                    </td>
+            </tr>
 
-                    <td>
+        {% empty %}
 
-                        {{ project.created_at|date:"d M Y" }}
+            <tr>
+                <td colspan="8">
+                    <div class="empty-state">
+                        <h2>📭</h2>
+                        <h4>No projects found</h4>
+                        <p>Try adjusting your search or filters.</p>
+                    </div>
+                </td>
+            </tr>
 
-                    </td>
+        {% endfor %}
 
-                    <td>
+        </tbody>
 
-                        <a href="{% url 'admin_project_detail' project.id %}"
-                           class="btn btn-sm btn-info">
+    </table>
 
-                           View
+</div>
 
-                        </a>   
+<!-- Pagination -->
+{% if projects.has_other_pages %}
 
-                        <a
-                            href="{% url 'admin_project_edit' project.id %}"
-                            class="btn btn-sm btn-warning">
+<div class="pagination-bar">
 
-                            Edit
+    {% if projects.has_previous %}
+        <a href="?page={{ projects.previous_page_number }}" class="page-link-btn">← Previous</a>
+    {% endif %}
 
-                        </a>
+    {% for i in projects.paginator.page_range %}
+        <a href="?page={{ i }}" class="page-link-btn {% if projects.number == i %}page-link-active{% endif %}">
+            {{ i }}
+        </a>
+    {% endfor %}
 
-                        {% if project.is_archived %}
-
-                          <a href="{% url 'admin_project_archive' project.id %}"
-                            class="btn btn-sm btn-success">
-                            Restore
-                         </a>
-
-                        {% else %}
-
-                         <a href="{% url 'admin_project_archive' project.id %}"
-                            class="btn btn-sm btn-secondary">
-                            Archive
-                         </a>
-
-                        {% endif %}
-
-                        <a
-                            href="{% url 'admin_project_delete' project.id %}"
-                            class="btn btn-sm btn-danger">
-
-                            Delete
-
-                        </a>
-
-                    </td>
-
-                </tr>
-
-            {% empty %}
-
-                <tr>
-
-                    <td colspan="8" class="text-center">
-
-                        No projects found.
-
-                    </td>
-
-                </tr>
-
-            {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-
-    <!-- Pagination -->
-
-    {% if projects.has_other_pages %}
-
-    <nav>
-
-        <ul class="pagination justify-content-center">
-
-            {% if projects.has_previous %}
-
-                <li class="page-item">
-
-                    <a class="page-link"
-                       href="?page={{ projects.previous_page_number }}">
-
-                        Previous
-
-                    </a>
-
-                </li>
-
-            {% endif %}
-
-            {% for i in projects.paginator.page_range %}
-
-                <li class="page-item {% if projects.number == i %}active{% endif %}">
-
-                    <a class="page-link"
-                       href="?page={{ i }}">
-
-                        {{ i }}
-
-                    </a>
-
-                </li>
-
-            {% endfor %}
-
-            {% if projects.has_next %}
-
-                <li class="page-item">
-
-                    <a class="page-link"
-                       href="?page={{ projects.next_page_number }}">
-
-                        Next
-
-                    </a>
-
-                </li>
-
-            {% endif %}
-
-        </ul>
-
-    </nav>
-
+    {% if projects.has_next %}
+        <a href="?page={{ projects.next_page_number }}" class="page-link-btn">Next →</a>
     {% endif %}
 
 </div>
+
+{% endif %}
 
 {% endblock %}

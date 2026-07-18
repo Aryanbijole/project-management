@@ -753,3 +753,5 @@ def all_projects(request):
             'projects': projects
         }
     )
+
+

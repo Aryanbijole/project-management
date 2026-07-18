@@ -1,60 +1,117 @@
 {% extends 'base.html' %}
 
+{% block title %}Search{% endblock %}
+
 {% block content %}
 
-<h1>🔍 Global Search</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔍 Global Search</h1>
+        <p class="page-subtitle">Search across projects, tasks, users, and milestones</p>
+    </div>
+</div>
 
-<form method="GET">
-    <input
-        type="text"
-        name="q"
-        value="{{ query }}"
-        placeholder="Search..."
-    >
-
-    <button type="submit">
+<form method="GET" class="glass-card search-form-card">
+    <div class="search-box search-box-lg">
+        <input
+            type="text"
+            name="q"
+            value="{{ query }}"
+            placeholder="       Search projects, tasks, users, milestones..."
+            class="form-control"
+        >
+    </div>
+    <button type="submit" class="btn btn-primary">
         Search
     </button>
 </form>
 
-<hr>
+<div class="grid-cols-2 search-results-grid">
 
-<h2>Projects</h2>
+    <!-- Projects -->
+    <div class="glass-card search-result-card">
+        <div class="section-card-title">
+            <span>📁 Projects</span>
+            {% if projects %}<span class="role-count">{{ projects|length }}</span>{% endif %}
+        </div>
 
-{% for project in projects %}
-<p>{{ project.name }}</p>
-{% empty %}
-<p>No projects found.</p>
-{% endfor %}
+        {% for project in projects %}
+        <div class="search-result-item">
+            <div class="calendar-item-icon icon-blue">📁</div>
+            <div class="search-result-name">{{ project.name }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-state search-empty">
+            <p>No projects found.</p>
+        </div>
+        {% endfor %}
+    </div>
 
-<hr>
+    <!-- Tasks -->
+    <div class="glass-card search-result-card">
+        <div class="section-card-title">
+            <span>✅ Tasks</span>
+            {% if tasks %}<span class="role-count">{{ tasks|length }}</span>{% endif %}
+        </div>
 
-<h2>Tasks</h2>
+        {% for task in tasks %}
+        <div class="search-result-item">
+            <div class="calendar-item-icon icon-green">✅</div>
+            <div class="search-result-name">{{ task.title }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-state search-empty">
+            <p>No tasks found.</p>
+        </div>
+        {% endfor %}
+    </div>
 
-{% for task in tasks %}
-<p>{{ task.title }}</p>
-{% empty %}
-<p>No tasks found.</p>
-{% endfor %}
+    <!-- Users -->
+    <div class="glass-card search-result-card">
+        <div class="section-card-title">
+            <span>👤 Users</span>
+            {% if users %}<span class="role-count">{{ users|length }}</span>{% endif %}
+        </div>
 
-<hr>
+        {% for user in users %}
+        <div class="search-result-item">
+            <div class="user-avatar user-avatar-sm">{{ user.first_name|slice:":1"|upper|default:user.email|slice:":1"|upper }}</div>
+            <div class="search-result-name">
+                {% if user.first_name %}
+                    {{ user.first_name }} {{ user.last_name }}
+                {% else %}
+                    {{ user.email }}
+                {% endif %}
 
-<h2>Users</h2>
+            </div>
+            <div class="search-result-email">{{ user.email }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-state search-empty">
+            <p>No users found.</p>
+        </div>
+        {% endfor %}
+    </div>
 
-{% for user in users %}
-<p>{{ user.email }}</p>
-{% empty %}
-<p>No users found.</p>
-{% endfor %}
+    <!-- Milestones -->
+    <div class="glass-card search-result-card">
+        <div class="section-card-title">
+            <span>🚩 Milestones</span>
+            {% if milestones %}<span class="role-count">{{ milestones|length }}</span>{% endif %}
+        </div>
 
-<hr>
+        {% for milestone in milestones %}
+        <div class="search-result-item">
+            <div class="calendar-item-icon icon-purple">🚩</div>
+            <div class="search-result-name">{{ milestone.title }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-state search-empty">
+            <p>No milestones found.</p>
+        </div>
+        {% endfor %}
+    </div>
 
-<h2>Milestones</h2>
-
-{% for milestone in milestones %}
-<p>{{ milestone.title }}</p>
-{% empty %}
-<p>No milestones found.</p>
-{% endfor %}
+</div>
 
 {% endblock %}
