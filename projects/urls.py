@@ -87,8 +87,8 @@ path(
 
 path(
     'projects/<int:project_id>/documents/upload/',
-    views.upload_project_document,
-    name='upload_project_document'
+    views.project_document_upload,
+    name="project_document_upload",
 ),
 
 

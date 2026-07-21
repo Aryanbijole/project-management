@@ -179,7 +179,7 @@ def user_create(request):
 
         company = request.current_company
 
-    
+        
 
     if request.method == "POST":
 
@@ -233,6 +233,12 @@ def user_create(request):
                 user=user,
                 role=user.role,
             )
+
+        CompanyMembership.objects.create(
+            company=company,
+            user=user,
+            role=user.role,
+        )    
 
 
         create_audit_log(
@@ -288,6 +294,12 @@ def user_edit(request, user_id):
             id=user_id,
         )
 
+        membership = CompanyMembership.objects.filter(
+            user=user_obj
+        ).first()
+
+        company = membership.company if membership else None
+
     else:
 
         company = request.current_company
@@ -314,10 +326,41 @@ def user_edit(request, user_id):
             user_obj.custom_role = None
 
         password = request.POST.get("password")
+
         if password:
+
+            target_membership = CompanyMembership.objects.filter(
+                user=user_obj,
+                company=company,
+                role=User.ROLE_ADMIN,
+            ).exists()
+
+            if (
+                not request.user.is_superuser
+                and target_membership
+                and request.user != user_obj
+            ):
+
+                messages.error(
+                    request,
+                    "Only Platform Admin can change  Company Admin's password."
+                )
+
+                return redirect("admin_users")
+
             user_obj.set_password(password)
 
         user_obj.save()
+
+        membership = CompanyMembership.objects.filter(
+            user=user_obj,
+            company=company,
+        ).first()
+
+        if membership:
+
+            membership.role = user_obj.role
+            membership.save()
 
         create_audit_log(
             request,
@@ -356,6 +399,12 @@ def user_delete(request, user_id):
             id=user_id,
         )
 
+        membership = CompanyMembership.objects.filter(
+            user=user
+        ).first()
+
+        company = membership.company if membership else None
+
     else:
 
         company = request.current_company
@@ -382,6 +431,26 @@ def user_delete(request, user_id):
 
     if user == request.user:
         messages.error(request, "You cannot delete your own account.")
+        return redirect("admin_users")
+    
+    # Company Admin cannot delete another Company Admin
+
+    target_membership = CompanyMembership.objects.filter(
+        user=user,
+        company=company,
+        role=User.ROLE_ADMIN,
+    ).exists()
+
+    if (
+        not request.user.is_superuser
+        and target_membership
+    ):
+
+        messages.error(
+            request,
+            "Only Platform Admin can delete a Company Administrator."
+        )
+
         return redirect("admin_users")
 
     # Save details before deletion
@@ -1639,8 +1708,7 @@ def role_create(request):
             can_edit_tasks="can_edit_tasks" in request.POST,
 
             can_upload_files="can_upload_files" in request.POST,
-            can_upload_files="can_upload_files" in request.POST,
-
+            
             can_view_reports="can_view_reports" in request.POST,
 
             can_invite_members="can_invite_members" in request.POST,

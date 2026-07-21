@@ -43,63 +43,169 @@ from .forms import (
 @login_required
 @company_required
 def todo_lists_view(request, project_id):
-    company = request.user.memberships.first().company
 
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User is not part of this company
+        if not membership:
+            messages.error(request, "Access denied.")
+            return redirect("dashboard")
+
+        # Company Admin -> all projects
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members -> only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this project."
+                )
+                return redirect("dashboard")
+
+    # -----------------------------------------
+
     lists = TodoList.objects.filter(project=project)
-    
-    if request.method == 'POST':
-        name = request.POST.get('name')
+
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+
         if name:
-            TodoList.objects.create(project=project, name=name)
-            messages.success(request, f"Todo list '{name}' created successfully!")
-            return redirect('todo_lists', project_id=project.id)
-        else:
-            messages.error(request, "Todo list name is required.")
-            
-    return render(request, 'tasks/todo_lists.html', {
-        'project': project,
-        'lists': lists
-    })
+
+            TodoList.objects.create(
+                project=project,
+                name=name,
+            )
+
+            messages.success(
+                request,
+                f"Todo list '{name}' created successfully!"
+            )
+
+            return redirect(
+                "todo_lists",
+                project_id=project.id,
+            )
+
+        messages.error(
+            request,
+            "Todo list name is required."
+        )
+
+    return render(
+        request,
+        "tasks/todo_lists.html",
+        {
+            "project": project,
+            "lists": lists,
+        },
+    )
 
 
 @login_required
 @company_required
 def todo_list_detail(request, project_id, list_id):
-    company = request.user.memberships.first().company
 
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
-    
-    todo_list = get_object_or_404(TodoList, id=list_id, project=project)
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User not in this company
+        if not membership:
+            messages.error(request, "Access denied.")
+            return redirect("dashboard")
+
+        # Company Admin -> access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members -> only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this project."
+                )
+                return redirect("dashboard")
+
+    # -----------------------------------------
+
+    todo_list = get_object_or_404(
+        TodoList,
+        id=list_id,
+        project=project,
+    )
+
     items = todo_list.items.all()
+
     project_members = project.members.all()
 
-    return render(request, 'tasks/todo_list_detail.html', {
-        'project': project,
-        'todo_list': todo_list,
-        'items': items,
-        'project_members': project_members
-    })
-
+    return render(
+        request,
+        "tasks/todo_list_detail.html",
+        {
+            "project": project,
+            "todo_list": todo_list,
+            "items": items,
+            "project_members": project_members,
+        },
+    )
 
 @login_required
 @company_required
 def create_todo_item(request, project_id, list_id):
-    company = request.user.memberships.first().company
-
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+            messages.error(request, "Access denied.")
+            return redirect("dashboard")
+
+        if membership.role != User.ROLE_ADMIN:
+
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this project."
+                )
+                return redirect("dashboard")
+        
+
+
     todo_list = get_object_or_404(TodoList, id=list_id, project=project)
 
     if request.method == 'POST':
@@ -112,7 +218,7 @@ def create_todo_item(request, project_id, list_id):
         priority = request.POST.get('priority', 'medium')
         status = request.POST.get('status', 'todo')
         estimated_hours = request.POST.get('estimated_hours')
-        company = request.user.memberships.first().company
+        
 
         if title:
             assigned_to = None
@@ -120,7 +226,7 @@ def create_todo_item(request, project_id, list_id):
                 assigned_to = get_object_or_404(
                     User,
                     id=assigned_to_id,
-                    memberships__company=company
+                    memberships__company=project.company
                 )
 
             item = TodoItem.objects.create(
@@ -173,15 +279,45 @@ def create_todo_item(request, project_id, list_id):
 @login_required
 @company_required
 def toggle_todo_item(request, project_id, item_id):
-    company = request.user.memberships.first().company
-
     item = get_object_or_404(
         TodoItem,
         id=item_id,
         todo_list__project_id=project_id,
-        todo_list__project__company=company
     )
-    
+
+    project = item.todo_list.project
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Access denied."
+                },
+                status=403,
+            )
+
+        if membership.role != User.ROLE_ADMIN:
+
+            if not project.members.filter(id=request.user.id).exists():
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": "Access denied."
+                    },
+                    status=403,
+                )
+        
+
     if request.method == 'POST':
         item.is_completed = not item.is_completed
         item.save()
@@ -205,23 +341,71 @@ def toggle_todo_item(request, project_id, item_id):
 @login_required
 @company_required
 def reassign_todo_item(request, project_id, item_id):
-    company = request.user.memberships.first().company
-
     item = get_object_or_404(
         TodoItem,
         id=item_id,
         todo_list__project_id=project_id,
-        todo_list__project__company=company
     )
+
+    project = item.todo_list.project
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+             company=project.company
+        ).first()
+
+        if not membership:
+            messages.error(request, "Access denied.")
+            return redirect("dashboard")
+
+        if membership.role != User.ROLE_ADMIN:
+
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this project."
+                )
+                return redirect("dashboard")
+        
+
     
     if request.method == 'POST':
+
+        # -----------------------------------------
+        # Reassignment Permission
+        # -----------------------------------------
+
+        if not request.user.is_superuser:
+    
+            # Company Admin can reassign any company task
+            if membership.role != User.ROLE_ADMIN:
+
+                # Only the creator of the task may reassign it
+                if item.created_by != request.user:
+
+                    messages.error(
+                        request,
+                        "Only the task creator or the Company Admin can reassign this task."
+                    )
+
+                    return redirect(
+                        "todo_list_detail",
+                        project_id=project.id,
+                        list_id=item.todo_list.id,
+                    )        
+            
         assigned_to_id = request.POST.get('assigned_to')
         new_user = None
         if assigned_to_id:
             new_user = get_object_or_404(
                 User,
                 id=assigned_to_id,
-                memberships__company=company
+                memberships__company=project.company
             )
             
         item.reassign(new_user, actor=request.user)
@@ -252,13 +436,39 @@ def reassign_todo_item(request, project_id, item_id):
 @company_required
 def task_detail(request, project_id, task_id):
 
-    company = request.user.memberships.first().company
-
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                 request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this task."
+                )
+                return redirect("dashboard")
 
     task = get_object_or_404(
         TodoItem,
@@ -321,14 +531,44 @@ def task_detail(request, project_id, task_id):
 @login_required
 @company_required
 def add_checklist_item(request, project_id, task_id):
-    company = request.user.memberships.first().company
-
     task = get_object_or_404(
         TodoItem,
         id=task_id,
         todo_list__project_id=project_id,
-        todo_list__project__company=company
     )
+
+    project = task.todo_list.project
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to modify this task."
+                )
+                return redirect("dashboard")
+        
+    
     if request.method == 'POST':
         title = request.POST.get('title')
 
@@ -348,14 +588,42 @@ def add_checklist_item(request, project_id, task_id):
 @company_required
 def upload_attachment(request, project_id, task_id):
 
-    company = request.user.memberships.first().company
-
     task = get_object_or_404(
         TodoItem,
         id=task_id,
         todo_list__project_id=project_id,
-        todo_list__project__company=company
     )
+
+    project = task.todo_list.project
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to upload files to this task."
+                )
+                return redirect("dashboard")
 
     if request.method == 'POST':
 
@@ -384,13 +652,41 @@ def upload_attachment(request, project_id, task_id):
 @company_required
 def kanban_board(request, project_id):
 
-    company = request.user.memberships.first().company
-
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this Kanban board."
+                )
+                return redirect("dashboard")
+        
+
     todo_tasks = TodoItem.objects.filter(
         todo_list__project=project,
         status='todo'
@@ -427,15 +723,43 @@ def kanban_board(request, project_id):
 @company_required
 def add_comment(request, project_id, task_id):
 
-    company = request.user.memberships.first().company
-
     task = get_object_or_404(
         TodoItem,
         id=task_id,
         todo_list__project_id=project_id,
-        todo_list__project__company=company
     )
 
+    project = task.todo_list.project
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to comment on this task."
+                )
+                return redirect("dashboard")
+        
     if request.method == 'POST':
 
         comment_text = request.POST.get('comment')
@@ -463,14 +787,42 @@ def add_comment(request, project_id, task_id):
 @login_required
 @company_required
 def add_task_comment(request, project_id, task_id):
-
-    company = request.user.memberships.first().company
-
     task = get_object_or_404(
         TodoItem,
         id=task_id,
-        todo_list__project__company=company
+       todo_list__project_id=project_id,
     )
+
+    project = task.todo_list.project
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to comment on this task."
+                )
+                return redirect("dashboard")
 
     if request.method == 'POST':
 
@@ -494,19 +846,45 @@ def add_task_comment(request, project_id, task_id):
 @company_required
 def start_timer(request, project_id, task_id):
 
-    company = request.user.memberships.first().company
-
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
 
     task = get_object_or_404(
         TodoItem,
         id=task_id,
-        todo_list__project=project
+        todo_list__project=project,
     )
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+               "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this task."
+                )
+                return redirect("dashboard")
 
     running = TimeEntry.objects.filter(
     task=task,
@@ -543,19 +921,45 @@ def start_timer(request, project_id, task_id):
 @company_required
 def stop_timer(request, project_id, task_id):
 
-    company = request.user.memberships.first().company
-
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
 
     task = get_object_or_404(
         TodoItem,
         id=task_id,
-        todo_list__project=project
+        todo_list__project=project,
     )
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this task."
+                )
+                return redirect("dashboard")
 
     timer = TimeEntry.objects.filter(
         task=task,
@@ -597,13 +1001,42 @@ def stop_timer(request, project_id, task_id):
 @company_required
 def log_time(request, project_id, task_id):
 
-    company = request.user.memberships.first().company
-
     task = get_object_or_404(
         TodoItem,
         id=task_id,
-        todo_list__project__company=company
+        todo_list__project_id=project_id,
     )
+
+    project = task.todo_list.project
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to log time for this task."
+                )
+                return redirect("dashboard")
 
     if request.method == "POST":
 
@@ -624,13 +1057,41 @@ def log_time(request, project_id, task_id):
 @company_required
 def gantt_view(request, project_id):
 
-    company = request.user.memberships.first().company
-
     project = get_object_or_404(
         Project,
         id=project_id,
-        company=company
     )
+
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this Gantt chart."
+                )
+                return redirect("dashboard")
+        
+
     tasks = TodoItem.objects.filter(
         todo_list__project=project
     ).order_by("due_date")
@@ -648,14 +1109,41 @@ def gantt_view(request, project_id):
 @company_required
 def all_tasks(request):
 
-    company = request.user.memberships.first().company
+    if request.user.is_superuser:
 
-    tasks = TodoItem.objects.filter(
-        todo_list__project__company=company
-    ).select_related(
-        "todo_list",
-        "assigned_to"
-    )
+        tasks = TodoItem.objects.select_related(
+            "todo_list",
+            "assigned_to",
+        )
+
+    else:
+
+        membership = request.user.memberships.first()
+
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        if membership.role == User.ROLE_ADMIN:
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__company=membership.company
+            ).select_related(
+                "todo_list",
+                "assigned_to",
+            )
+
+        else:
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__members=request.user
+            ).distinct().select_related(
+                "todo_list",
+                "assigned_to",
+            )
 
     return render(
         request,
@@ -671,16 +1159,49 @@ def all_tasks(request):
 @company_required
 def pending_tasks(request):
 
-    company = request.user.memberships.first().company
+    if request.user.is_superuser:
 
-    tasks = TodoItem.objects.filter(
-        todo_list__project__company=company
-    ).exclude(
-        status="done"
-    ).select_related(
-        "todo_list",
-        "assigned_to"
-    )
+        tasks = TodoItem.objects.exclude(
+            status="done"
+        ).select_related(
+            "todo_list",
+            "assigned_to",
+        )
+
+    else:
+
+        membership = request.user.memberships.first()
+
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        if membership.role == User.ROLE_ADMIN:
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__company=membership.company
+            ).exclude(
+                status="done"
+            ).select_related(
+                "todo_list",
+                "assigned_to",
+            )
+
+        else:
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__members=request.user
+            ).exclude(
+                status="done"
+            ).distinct().select_related(
+                "todo_list",
+               "assigned_to",
+            )
+
+
 
     return render(
         request,
@@ -696,15 +1217,45 @@ def pending_tasks(request):
 @company_required
 def completed_tasks(request):
 
-    company = request.user.memberships.first().company
+    if request.user.is_superuser:
 
-    tasks = TodoItem.objects.filter(
-        todo_list__project__company=company,
-        status="done"
-    ).select_related(
-        "todo_list",
-        "assigned_to"
-    )
+        tasks = TodoItem.objects.filter(
+            status="done"
+        ).select_related(
+            "todo_list",
+            "assigned_to",
+        )
+
+    else:
+
+        membership = request.user.memberships.first()
+
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        if membership.role == User.ROLE_ADMIN:
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__company=membership.company,
+                status="done"
+            ).select_related(
+                "todo_list",
+                "assigned_to",
+            )
+
+        else:
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__members=request.user,
+                status="done"
+            ).distinct().select_related(
+                "todo_list",
+                "assigned_to",
+            )
 
     return render(
         request,

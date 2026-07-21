@@ -4,133 +4,526 @@
 
 {% block extra_css %}
 <style>
+    /* ============================================================
+       Composer layout
+       ============================================================ */
+    .composer-wrap {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .composer-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: var(--accent-light);
+        padding: 5px 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+    }
+
+    .composer-eyebrow svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    .page-subtitle {
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 28px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+    }
+
+    .field-hint {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin: 6px 2px 0;
+    }
+
+    #title {
+        font-size: 1.05rem;
+        padding: 12px 16px;
+        transition: var(--transition);
+    }
+
+    #title:focus {
+        box-shadow: 0 0 0 3px var(--accent-light);
+        border-color: var(--accent);
+    }
+
+    /* ============================================================
+       Write / Preview segmented control
+       ============================================================ */
+    .editor-tabs {
+        display: inline-flex;
+        gap: 2px;
+        background: var(--accent-light);
+        padding: 4px;
+        border-radius: 10px;
+        border: none;
+        margin-bottom: 16px;
+    }
+
+    .tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 7px 16px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        border-radius: 7px;
+        transition: var(--transition);
+    }
+
+    .tab-btn svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+        background-color: var(--card-bg);
+        color: var(--accent);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    /* ============================================================
+       Editor shell (toolbar + textarea + footer, one bordered unit)
+       ============================================================ */
+    .editor-shell {
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--card-bg);
+        transition: var(--transition);
+    }
+
+    .editor-shell:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
     .editor-toolbar {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px;
+        gap: 4px;
+        padding: 8px 10px;
         background-color: var(--accent-light);
-        border: 1px solid var(--card-border);
-        border-bottom: none;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+        border-bottom: 1px solid var(--card-border);
         flex-wrap: wrap;
     }
-    
+
+    .toolbar-group {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
     .toolbar-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         color: var(--text-primary);
-        padding: 6px 12px;
-        border-radius: 6px;
+        min-width: 34px;
+        height: 32px;
+        padding: 0 10px;
+        border-radius: 7px;
         font-size: 0.85rem;
         font-weight: 600;
         cursor: pointer;
         transition: var(--transition);
     }
-    
+
+    .toolbar-btn.icon-only {
+        width: 32px;
+        padding: 0;
+    }
+
+    .toolbar-btn svg {
+        width: 15px;
+        height: 15px;
+    }
+
     .toolbar-btn:hover {
         background: var(--accent);
-        color: white;
+        color: #fff;
         border-color: var(--accent);
+        transform: translateY(-1px);
     }
-    
-    .editor-tabs {
-        display: flex;
-        gap: 4px;
-        margin-bottom: 12px;
-        border-bottom: 1px solid var(--card-border);
-        padding-bottom: 8px;
+
+    .toolbar-btn:active {
+        transform: translateY(0);
     }
-    
-    .tab-btn {
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        padding: 6px 16px;
-        font-weight: 600;
+
+    .toolbar-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+    }
+
+    #codeLanguage {
+        padding: 0 8px;
+        height: 32px;
+        font-size: 0.8rem;
+        width: 128px;
+        border-radius: 7px;
+        margin-bottom: 0;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--text-primary);
         cursor: pointer;
-        border-radius: 6px;
-        transition: var(--transition);
     }
-    
-    .tab-btn.active {
-        background-color: var(--accent-light);
-        color: var(--accent);
-    }
-    
-    .editor-textarea {
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
+
+    #content {
+        display: block;
+        width: 100%;
+        border: none;
+        border-radius: 0;
         font-family: 'Fira Code', 'Courier New', Courier, monospace;
         font-size: 0.95rem;
-        height: 350px;
+        line-height: 1.65;
+        height: 340px;
         resize: vertical;
+        padding: 18px 20px;
+        background: transparent;
+        color: var(--text-primary);
     }
-    
+
+    #content:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .editor-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 16px;
+        border-top: 1px solid var(--card-border);
+        background: var(--accent-light);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .editor-footer-hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .editor-footer svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    /* ============================================================
+       Preview
+       ============================================================ */
     .preview-panel {
         border: 1px solid var(--card-border);
         background-color: rgba(255, 255, 255, 0.02);
-        padding: 20px;
+        padding: 24px;
         border-radius: 12px;
         min-height: 350px;
+        max-height: 520px;
         overflow-y: auto;
+        animation: previewFadeIn 0.25s ease;
+    }
+
+    @keyframes previewFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .preview-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 300px;
+        color: var(--text-muted);
+        gap: 10px;
+    }
+
+    .preview-empty svg {
+        width: 34px;
+        height: 34px;
+        opacity: 0.5;
+    }
+
+    .markdown-content h1,
+    .markdown-content h2,
+    .markdown-content h3 {
+        color: var(--text-primary);
+        margin: 1.2em 0 0.5em;
+        font-weight: 700;
+    }
+
+    .markdown-content h1:first-child,
+    .markdown-content h2:first-child,
+    .markdown-content h3:first-child {
+        margin-top: 0;
+    }
+
+    .markdown-content h1 { font-size: 1.5rem; }
+    .markdown-content h2 { font-size: 1.25rem; }
+    .markdown-content h3 { font-size: 1.1rem; }
+
+    .markdown-content p {
+        line-height: 1.7;
+        margin-bottom: 1em;
+        color: var(--text-primary);
+    }
+
+    .markdown-content ul,
+    .markdown-content ol {
+        margin: 0 0 1em 1.4em;
+        line-height: 1.7;
+    }
+
+    .markdown-content blockquote {
+        border-left: 3px solid var(--accent);
+        margin: 0 0 1em;
+        padding: 4px 16px;
+        color: var(--text-muted);
+        background: var(--accent-light);
+        border-radius: 0 8px 8px 0;
+    }
+
+    .markdown-content code {
+        background: var(--accent-light);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.88em;
+        font-family: 'Fira Code', monospace;
+    }
+
+    .markdown-content pre {
+        border-radius: 10px;
+        overflow-x: auto;
+        margin-bottom: 1em;
+    }
+
+    .markdown-content pre code {
+        background: none;
+        padding: 0;
+    }
+
+    .markdown-content a {
+        color: var(--accent);
+        text-decoration: underline;
+    }
+
+    .markdown-content table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 1em;
+    }
+
+    .markdown-content th,
+    .markdown-content td {
+        border: 1px solid var(--card-border);
+        padding: 6px 10px;
+        text-align: left;
+    }
+
+    .markdown-content img {
+        max-width: 100%;
+        border-radius: 8px;
+    }
+
+    .markdown-content hr {
+        border: none;
+        border-top: 1px solid var(--card-border);
+        margin: 1.5em 0;
+    }
+
+    /* ============================================================
+       Actions
+       ============================================================ */
+    .composer-actions {
+        display: flex;
+        gap: 14px;
+        justify-content: flex-end;
+        margin-top: 28px;
+    }
+
+    .composer-actions .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: var(--transition);
+    }
+
+    .composer-actions .btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .composer-actions .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px var(--accent-light);
+    }
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+    @media (max-width: 640px) {
+        .editor-toolbar {
+            gap: 8px;
+        }
+
+        .toolbar-right {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        #codeLanguage {
+            flex: 1;
+            width: auto;
+        }
+
+        .composer-actions {
+            flex-direction: column-reverse;
+        }
+
+        .composer-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
+<div class="composer-wrap">
     <div class="glass-card">
+        <span class="composer-eyebrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            New Post
+        </span>
         <h1 class="page-title">Create Message</h1>
         <p class="page-subtitle">Draft a new post for {{ project.name }} using Markdown formatting.</p>
-        
+
         <form method="POST">
             {% csrf_token %}
             <div class="form-group">
                 <label for="title">Message Title</label>
-                <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Sprint 2 Planning & Review" required>
+                <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Sprint 2 Planning &amp; Review" required>
+                <p class="field-hint">Keep it short and specific — this is what teammates will see on the board.</p>
             </div>
-            
-            <div class="editor-tabs">
-                <button type="button" class="tab-btn active" id="writeTab">Write</button>
-                <button type="button" class="tab-btn" id="previewTab">Preview</button>
+
+            <div class="editor-tabs" role="tablist">
+                <button type="button" class="tab-btn active" id="writeTab" role="tab" aria-selected="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    Write
+                </button>
+                <button type="button" class="tab-btn" id="previewTab" role="tab" aria-selected="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Preview
+                </button>
             </div>
-            
+
             <!-- Write Editor Panel -->
             <div id="writePanel">
-                <div class="editor-toolbar">
-                    <button type="button" class="toolbar-btn" onclick="insertFormat('**', '**')"><strong>B</strong></button>
-                    <button type="button" class="toolbar-btn" onclick="insertFormat('*', '*')"><em>I</em></button>
-                    <button type="button" class="toolbar-btn" onclick="insertFormat('[Link Title](', ')')">🔗 Link</button>
-                    <button type="button" class="toolbar-btn" onclick="insertFormat('- ', '')">List</button>
-                    
-                    <!-- Language selection and Code block button -->
-                    <div style="display: inline-flex; align-items: center; gap: 4px; margin-left: auto;">
-                        <select id="codeLanguage" class="form-control" style="padding: 4px 8px; font-size: 0.8rem; width: 120px; border-radius: 6px; margin-bottom: 0;">
-                            <option value="python">Python</option>
-                            <option value="javascript">JavaScript</option>
-                            <option value="html">HTML</option>
-                            <option value="css">CSS</option>
-                            <option value="sql">SQL</option>
-                            <option value="bash">Bash</option>
-                        </select>
-                        <button type="button" class="toolbar-btn" onclick="insertCodeBlock()">💻 Code Block</button>
+                <div class="editor-shell">
+                    <div class="editor-toolbar">
+                        <div class="toolbar-group">
+                            <button type="button" class="toolbar-btn icon-only" title="Bold (Ctrl+B)" onclick="insertFormat('**', '**', 'bold text')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 0 8H6z"/><path d="M6 12h9a4 4 0 0 1 0 8H6z"/></svg>
+                            </button>
+                            <button type="button" class="toolbar-btn icon-only" title="Italic (Ctrl+I)" onclick="insertFormat('*', '*', 'italic text')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+                            </button>
+                            <button type="button" class="toolbar-btn" title="Insert link" onclick="insertLink()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                Link
+                            </button>
+                            <button type="button" class="toolbar-btn" title="Bulleted list" onclick="insertFormat('- ', '', 'List item')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                                List
+                            </button>
+                        </div>
+
+                        <!-- Language selection and Code block button -->
+                        <div class="toolbar-right">
+                            <select id="codeLanguage" class="form-control">
+                                <option value="python">Python</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="sql">SQL</option>
+                                <option value="bash">Bash</option>
+                            </select>
+                            <button type="button" class="toolbar-btn" title="Insert code block" onclick="insertCodeBlock()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                Code Block
+                            </button>
+                        </div>
+                    </div>
+
+                    <textarea id="content" name="content" class="form-control" placeholder="Write message body in Markdown here..." required></textarea>
+
+                    <div class="editor-footer">
+                        <span class="editor-footer-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            Markdown supported
+                        </span>
+                        <span id="charCount">0 characters</span>
                     </div>
                 </div>
-                <textarea id="content" name="content" class="form-control editor-textarea" placeholder="Write message body in Markdown here..." required></textarea>
             </div>
-            
+
             <!-- Preview Panel -->
             <div id="previewPanel" class="preview-panel" style="display: none;">
                 <div class="markdown-content" id="previewContainer">
-                    <p style="color: var(--text-muted);">Nothing to preview.</p>
+                    <div class="preview-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span>Nothing to preview.</span>
+                    </div>
                 </div>
             </div>
-            
-            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px;">
+
+            <div class="composer-actions">
                 <a href="{% url 'message_board' project.id %}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Publish Post</button>
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Publish Post
+                </button>
             </div>
         </form>
     </div>
@@ -145,11 +538,20 @@
     const writePanel = document.getElementById('writePanel');
     const previewPanel = document.getElementById('previewPanel');
     const previewContainer = document.getElementById('previewContainer');
+    const charCount = document.getElementById('charCount');
+
+    const EMPTY_PREVIEW_HTML = `
+        <div class="preview-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Nothing to preview.</span>
+        </div>`;
 
     // Tab switcher logic
     writeTab.addEventListener('click', () => {
         writeTab.classList.add('active');
         previewTab.classList.remove('active');
+        writeTab.setAttribute('aria-selected', 'true');
+        previewTab.setAttribute('aria-selected', 'false');
         writePanel.style.display = 'block';
         previewPanel.style.display = 'none';
     });
@@ -157,13 +559,15 @@
     previewTab.addEventListener('click', () => {
         previewTab.classList.add('active');
         writeTab.classList.remove('active');
+        previewTab.setAttribute('aria-selected', 'true');
+        writeTab.setAttribute('aria-selected', 'false');
         writePanel.style.display = 'none';
         previewPanel.style.display = 'block';
-        
+
         // Render Markdown content dynamically using marked.js
         const rawContent = contentTextarea.value;
         if (rawContent.trim() === '') {
-            previewContainer.innerHTML = '<p style="color: var(--text-muted);">Nothing to preview.</p>';
+            previewContainer.innerHTML = EMPTY_PREVIEW_HTML;
         } else {
             previewContainer.innerHTML = marked.parse(rawContent);
             // Run highlight.js on preview code blocks
@@ -173,17 +577,50 @@
         }
     });
 
+    // Live character counter
+    function updateCharCount() {
+        const len = contentTextarea.value.length;
+        charCount.textContent = len === 1 ? '1 character' : `${len} characters`;
+    }
+    contentTextarea.addEventListener('input', updateCharCount);
+    updateCharCount();
+
     // Editor formatting toolbar function
-    function insertFormat(startTag, endTag) {
+    // If nothing is selected, falls back to `placeholder` text and
+    // leaves it highlighted so the user can just type over it.
+    function insertFormat(startTag, endTag, placeholder = '') {
         const text = contentTextarea.value;
         const start = contentTextarea.selectionStart;
         const end = contentTextarea.selectionEnd;
-        const selected = text.substring(start, end);
-        
+        const selected = text.substring(start, end) || placeholder;
+
         const replacement = startTag + selected + endTag;
         contentTextarea.value = text.substring(0, start) + replacement + text.substring(end);
         contentTextarea.focus();
         contentTextarea.setSelectionRange(start + startTag.length, start + startTag.length + selected.length);
+        updateCharCount();
+    }
+
+    // Link button: asks for the URL (and the label, if nothing is
+    // selected) instead of leaving empty [Link Title]() to fill in by hand.
+    function insertLink() {
+        const text = contentTextarea.value;
+        const start = contentTextarea.selectionStart;
+        const end = contentTextarea.selectionEnd;
+        const selected = text.substring(start, end);
+
+        const linkText = selected || prompt('Link text to display:', 'Link Title');
+        if (linkText === null || linkText === '') return;
+
+        const url = prompt('Paste the URL:', 'https://');
+        if (url === null || url === '') return;
+
+        const replacement = `[${linkText}](${url})`;
+        contentTextarea.value = text.substring(0, start) + replacement + text.substring(end);
+        contentTextarea.focus();
+        const cursorPos = start + replacement.length;
+        contentTextarea.setSelectionRange(cursorPos, cursorPos);
+        updateCharCount();
     }
 
     // Code block inserting function
@@ -191,7 +628,19 @@
         const lang = document.getElementById('codeLanguage').value;
         const startTag = "```" + lang + "\n";
         const endTag = "\n```";
-        insertFormat(startTag, endTag);
+        insertFormat(startTag, endTag, '// your code here');
     }
+
+    // Quality-of-life keyboard shortcuts: Ctrl/Cmd+B and Ctrl/Cmd+I
+    contentTextarea.addEventListener('keydown', (e) => {
+        const mod = e.ctrlKey || e.metaKey;
+        if (mod && e.key.toLowerCase() === 'b') {
+            e.preventDefault();
+            insertFormat('**', '**', 'bold text');
+        } else if (mod && e.key.toLowerCase() === 'i') {
+            e.preventDefault();
+            insertFormat('*', '*', 'italic text');
+        }
+    });
 </script>
 {% endblock %}

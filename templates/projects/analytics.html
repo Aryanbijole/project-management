@@ -74,6 +74,268 @@
 
     </div>
 
+    <!-- ========================================================= -->
+<!-- PROJECT ANALYTICS -->
+<!-- ========================================================= -->
+
+<div class="glass-card" style="margin-top:40px; padding:30px;">
+
+    <h2 style="margin-bottom:25px;">
+        📁 Project Analytics
+    </h2>
+
+    <form method="GET">
+
+        {% if companies %}
+
+        <div class="form-group">
+
+            <label>Select Company</label>
+
+            <select
+                name="company"
+                class="form-control"
+                onchange="this.form.submit()"
+            >
+
+                <option value="">
+                    -- Select Company --
+                </option>
+
+                {% for company in companies %}
+
+                <option
+                    value="{{ company.id }}"
+                    {% if selected_company and selected_company.id == company.id %}
+                    selected
+                    {% endif %}
+                >
+
+                    {{ company.name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        {% endif %}
+
+        <div class="form-group" style="margin-top:20px;">
+
+            <label>Select Project</label>
+
+            <select
+                name="project"
+                class="form-control"
+                onchange="this.form.submit()"
+            >
+
+                <option value="">
+                    -- Select Project --
+                </option>
+
+                {% for project in company_projects %}
+
+                <option
+                    value="{{ project.id }}"
+                    {% if selected_project and selected_project.id == project.id %}
+                    selected
+                    {% endif %}
+                >
+
+                    {{ project.name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+    </form>
+
+    {% if selected_project %}
+
+    <hr style="margin:30px 0;">
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+
+            <div class="stat-card-header">
+
+                <span class="stat-label">
+                    Project Tasks
+                </span>
+
+                <div class="stat-icon icon-blue">
+                    📋
+                </div>
+
+            </div>
+
+            <div class="stat-value">
+
+                {{ project_total_tasks }}
+
+            </div>
+
+        </div>
+
+        <div class="stat-card">
+
+            <div class="stat-card-header">
+
+                <span class="stat-label">
+
+                    Completed
+
+                </span>
+
+                <div class="stat-icon icon-green">
+
+                    ✅
+
+                </div>
+
+            </div>
+
+            <div class="stat-value">
+
+                {{ project_completed_tasks }}
+
+            </div>
+
+        </div>
+
+        <div class="stat-card">
+
+            <div class="stat-card-header">
+
+                <span class="stat-label">
+
+                    Pending
+
+                </span>
+
+                <div class="stat-icon icon-amber">
+
+                    ⏳
+
+                </div>
+
+            </div>
+
+            <div class="stat-value">
+
+                {{ project_pending_tasks }}
+
+            </div>
+
+        </div>
+
+        <div class="stat-card">
+
+            <div class="stat-card-header">
+
+                <span class="stat-label">
+
+                    Members
+
+                </span>
+
+                <div class="stat-icon icon-pink">
+
+                    👥
+
+                </div>
+
+            </div>
+
+            <div class="stat-value">
+
+                {{ project_members }}
+
+            </div>
+
+        </div>
+
+        
+
+    
+
+    <div
+        class="glass-card"
+        style="margin-top:30px;"
+    >
+
+        <div
+            style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:15px;
+            "
+        >
+
+            <h3>
+
+                Project Completion
+
+            </h3>
+
+            <h2>
+
+                {{ project_completion_percentage }}%
+
+            </h2>
+
+        </div>
+
+        <div class="progress-bar-track">
+
+            <div
+                class="progress-bar-fill"
+                style="width:{{ project_completion_percentage }}%;"
+            ></div>
+
+        </div>
+
+        <div
+            style="
+                display:flex;
+                justify-content:space-between;
+                margin-top:10px;
+                color:var(--text-secondary);
+            "
+        >
+
+            <span>
+
+                {{ project_completed_tasks }}
+                Completed
+
+            </span>
+
+            <span>
+
+                {{ project_pending_tasks }}
+                Pending
+
+            </span>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
 </div>
 
 {% endblock %}

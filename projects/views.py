@@ -98,23 +98,40 @@ def create_project(request):
 @login_required
 @company_required
 def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
 
-    membership = request.user.memberships.first()
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+    )
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
 
-    if project.company != membership.company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
-    
-    # Check authorization (user must be member of project's company, or explicitly a project member)
-    is_company_member = request.user.memberships.filter(company=project.company).exists()
-    is_project_member = project.members.filter(id=request.user.id).exists()
+    if not request.user.is_superuser:
 
-    
-    if not (is_company_member or is_project_member):
-        messages.error(request, "You are not authorized to access this project.")
-        return redirect('dashboard')
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
 
+        # User does not belong to this company
+        if not membership:
+            messages.error(
+                 request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        # Company Admin can access every project
+        if membership.role != "admin":
+
+            # Members can access only assigned projects
+            if not project.members.filter(id=request.user.id).exists():
+                messages.error(
+                    request,
+                    "You are not authorized to access this project."
+                )
+                return redirect("dashboard")
+            
     # Get tools
     tools = project.tools.all()
     enabled_tools = tools.filter(is_enabled=True)
@@ -150,65 +167,165 @@ def project_detail(request, project_id):
 @login_required
 @company_required
 def add_project_member(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
 
-    membership = request.user.memberships.first()
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
 
-    if project.company != membership.company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
-    
-    if request.method == 'POST':
-        user_id = request.POST.get('user_id')
+    # -----------------------------------------
+    # Permission Check
+    # -----------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+            messages.error(request, "Access denied.")
+            return redirect("dashboard")
+
+        # Only Company Admin can add members
+        if membership.role != User.ROLE_ADMIN:
+            messages.error(
+                request,
+                "Only the Company Admin can add project members."
+            )
+            return redirect(
+                "project_detail",
+                project_id=project.id
+            )
+
+    # -----------------------------------------
+    # Add Member
+    # -----------------------------------------
+
+    if request.method == "POST":
+
+        user_id = request.POST.get("user_id")
+
         if user_id:
-            user = get_object_or_404(User, id=user_id)
+
+            # Superuser can add anyone
+            if request.user.is_superuser:
+
+                user = get_object_or_404(
+                    User,
+                    id=user_id,
+                    is_active=True,
+                )
+
+            # Company Admin can only add users from their company
+            else:
+
+                user = get_object_or_404(
+                    User,
+                    id=user_id,
+                    memberships__company=project.company,
+                    is_active=True,
+                )
+
             project.members.add(user)
-            messages.success(request, f"Added {user.email} to project members.")
+
+            messages.success(
+                request,
+                f"{user.get_full_name() or user.email} added to the project successfully."
+            )
+
         else:
-            messages.error(request, "User ID not specified.")
-    return redirect('project_detail', project_id=project.id)
+
+            messages.error(
+                request,
+                "No user was selected."
+            )
+
+    return redirect(
+        "project_detail",
+        project_id=project.id
+    )
 
 
 @login_required
 @company_required
 def configure_tools(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
 
-    membership = request.user.memberships.first()
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
 
-    if project.company != membership.company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
-    
-    # User must be project creator or organization admin
-    is_admin = request.user.memberships.filter(company=project.company, role=User.ROLE_ADMIN).exists()
-    is_creator = (project.created_by == request.user)
-    
-    if not (is_admin or is_creator):
-        messages.error(request, "Only project owners or administrators can configure tools.")
-        return redirect('project_detail', project_id=project.id)
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        # User does not belong to the company
+        if not membership:
+            messages.error(request, "Access denied.")
+            return redirect("dashboard")
+
+        is_admin = membership.role == User.ROLE_ADMIN
+        is_creator = project.created_by == request.user
+
+        if not (is_admin or is_creator):
+            messages.error(
+                request,
+                "Only the Project Creator or Company Admin can configure project tools."
+            )
+            return redirect(
+                "project_detail",
+                project_id=project.id
+            )
+
+    # --------------------------------------------------
+    # Configure Tools
+    # --------------------------------------------------
 
     tools = project.tools.all()
 
-    if request.method == 'POST':
+    if request.method == "POST":
+
         for tool in tools:
-            # Check if enabled check box was checked
-            is_enabled = request.POST.get(f"enabled_{tool.tool_key}") == 'on'
-            # Check name input
-            custom_name = request.POST.get(f"name_{tool.tool_key}", tool.name).strip()
-            
-            tool.is_enabled = is_enabled
+
+            tool.is_enabled = (
+                request.POST.get(f"enabled_{tool.tool_key}") == "on"
+            )
+
+            custom_name = request.POST.get(
+                f"name_{tool.tool_key}",
+                tool.name
+            ).strip()
+
             if custom_name:
                 tool.name = custom_name
-            tool.save()
-            
-        messages.success(request, "Project tools configured successfully!")
-        return redirect('project_detail', project_id=project.id)
 
-    return render(request, 'projects/configure_tools.html', {
-        'project': project,
-        'tools': tools
-    })
+            tool.save()
+
+        messages.success(
+            request,
+            "Project tools configured successfully!"
+        )
+
+        return redirect(
+            "project_detail",
+            project_id=project.id
+        )
+
+    return render(
+        request,
+        "projects/configure_tools.html",
+        {
+            "project": project,
+            "tools": tools,
+        },
+    )
 
 @login_required
 @company_required
@@ -219,16 +336,53 @@ def invite_project_member(request, project_id):
         id=project_id
     )
 
-    if project.company != request.user.memberships.first().company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
 
+    if not request.user.is_superuser:
 
-    if request.method == 'POST':
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
 
-        
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
 
-        email = request.POST.get('email')
+        is_admin = membership.role == User.ROLE_ADMIN
+        is_creator = project.created_by == request.user
+
+        if not (is_admin or is_creator):
+            messages.error(
+                request,
+                "Only the Project Creator or Company Admin can invite members."
+            )
+            return redirect(
+                "project_detail",
+                project_id=project.id
+            )
+
+    # --------------------------------------------------
+    # Send Invitation
+    # --------------------------------------------------
+
+    if request.method == "POST":
+
+        email = request.POST.get("email", "").strip()
+
+        if not email:
+            messages.error(
+                request,
+                "Please enter an email address."
+            )
+            return redirect(
+                "project_detail",
+                project_id=project.id
+            )
 
         invite = ProjectInvitation.objects.create(
             project=project,
@@ -242,28 +396,31 @@ def invite_project_member(request, project_id):
         )
 
         send_mail(
-            subject='Project Invitation',
-            message=f'''
-You have been invited to join project:
-{project.name}
+            subject="Project Invitation",
+            message=f"""
+You have been invited to join the project:
 
-Open:
+Project: {project.name}
+
+Invitation Link:
+
 {invite_link}
-''',
+""",
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
-            fail_silently=False
+            fail_silently=False,
         )
 
         messages.success(
             request,
-            "Invitation email sent."
+            "Invitation email sent successfully."
         )
 
     return redirect(
-        'project_detail',
+        "project_detail",
         project_id=project.id
     )
+
 
 @login_required
 def accept_invitation(request, token):
@@ -274,28 +431,53 @@ def accept_invitation(request, token):
         accepted=False
     )
 
+    # -----------------------------------------
+    # Only invited email can accept
+    # -----------------------------------------
+
+    if request.user.email.lower() != invite.email.lower():
+
+        messages.error(
+            request,
+            "This invitation was sent to another email address."
+        )
+
+        return redirect("dashboard")
+
     from accounts.models import CompanyMembership
 
-    CompanyMembership.objects.get_or_create(
+    # -----------------------------------------
+    # Company Membership
+    # -----------------------------------------
+
+    membership, created = CompanyMembership.objects.get_or_create(
         company=invite.project.company,
         user=request.user,
-        defaults={"role": User.ROLE_MEMBER},
+        defaults={
+            "role": User.ROLE_MEMBER
+        },
     )
 
-    invite.project.members.add(
-        request.user
-    )
+    # -----------------------------------------
+    # Add to Project
+    # -----------------------------------------
+
+    invite.project.members.add(request.user)
+
+    # -----------------------------------------
+    # Mark Invitation Accepted
+    # -----------------------------------------
 
     invite.accepted = True
     invite.save()
 
     messages.success(
         request,
-        "You joined the project."
+        f"You have successfully joined '{invite.project.name}'."
     )
 
     return redirect(
-        'project_detail',
+        "project_detail",
         project_id=invite.project.id
     )
 
@@ -308,15 +490,50 @@ def add_milestone(request, project_id):
         id=project_id
     )
 
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        is_admin = membership.role == User.ROLE_ADMIN
+        is_creator = project.created_by == request.user
+
+        if not (is_admin or is_creator):
+            messages.error(
+                request,
+                "Only the Project Creator or Company Admin can create milestones."
+            )
+            return redirect(
+                "project_detail",
+                project_id=project.id
+            )
+
+    # --------------------------------------------------
+    # Create Milestone
+    # --------------------------------------------------
+
     if request.method == "POST":
 
-        milestone =Milestone.objects.create(
+        milestone = Milestone.objects.create(
             project=project,
             title=request.POST.get("title"),
             description=request.POST.get("description"),
             due_date=request.POST.get("due_date")
         )
 
+        # Notify project members
         for member in project.members.all():
 
             if member != request.user:
@@ -324,12 +541,15 @@ def add_milestone(request, project_id):
                 Notification.objects.create(
                     user=member,
                     title="New Milestone",
-                    message=f"Milestone '{milestone.title}' was added to project '{project.name}'."
+                    message=(
+                        f"Milestone '{milestone.title}' "
+                        f"was added to project '{project.name}'."
+                    )
                 )
 
         messages.success(
             request,
-            "Milestone created."
+            "Milestone created successfully."
         )
 
     return redirect(
@@ -338,10 +558,13 @@ def add_milestone(request, project_id):
     )
 
 
-
 @login_required
 @company_required
 def analytics_dashboard(request):
+
+    # =====================================================
+    # SUPERUSER
+    # =====================================================
 
     if request.user.is_superuser:
 
@@ -357,9 +580,31 @@ def analytics_dashboard(request):
             is_superuser=False
         ).count()
 
+        companies = Company.objects.all().order_by("name")
+
+        selected_company = None
+        company_projects = Project.objects.none()
+
+        company_id = request.GET.get("company")
+
+        if company_id:
+
+            selected_company = get_object_or_404(
+                Company,
+                id=company_id
+            )
+
+            company_projects = Project.objects.filter(
+                company=selected_company
+            ).order_by("name")
+
+    # =====================================================
+    # COMPANY USERS
+    # =====================================================
+
     else:
 
-        company = request.user.memberships.first().company
+        company = request.current_company
 
         total_projects = Project.objects.filter(
             company=company
@@ -378,155 +623,400 @@ def analytics_dashboard(request):
             memberships__company=company
         ).distinct().count()
 
+        companies = None
+        selected_company = company
+
+        membership = request.user.memberships.filter(
+            company=company
+        ).first()
+
+        # Company Admin
+        if membership and membership.role == User.ROLE_ADMIN:
+
+            company_projects = Project.objects.filter(
+                company=company
+            ).order_by("name")
+
+        # Normal Member
+        else:
+
+            company_projects = Project.objects.filter(
+                company=company,
+                members=request.user
+            ).distinct().order_by("name")
+
+    # =====================================================
+    # OVERALL COMPLETION
+    # =====================================================
+
     pending_tasks = total_tasks - completed_tasks
 
     completion_percentage = 0
 
-    if total_tasks > 0:
+    if total_tasks:
 
         completion_percentage = round(
             (completed_tasks / total_tasks) * 100,
             2
         )
+
+    # =====================================================
+    # PROJECT ANALYTICS
+    # =====================================================
+
+    selected_project = None
+
+    project_total_tasks = 0
+    project_completed_tasks = 0
+    project_pending_tasks = 0
+    project_completion_percentage = 0
+
+    project_total_milestones = 0
+    completed_milestones = 0
+
+    project_members = 0
+
+    project_id = request.GET.get("project")
+
+    if project_id:
+
+        if request.user.is_superuser:
+
+            selected_project = get_object_or_404(
+                Project,
+                id=project_id
+            )
+
+        else:
+
+            membership = request.user.memberships.filter(
+                company=request.current_company
+            ).first()
+
+            if membership and membership.role == User.ROLE_ADMIN:
+
+                selected_project = get_object_or_404(
+                    Project,
+                    id=project_id,
+                    company=request.current_company
+                )
+
+            else:
+
+                selected_project = get_object_or_404(
+                    Project,
+                    id=project_id,
+                    company=request.current_company,
+                    members=request.user
+                )
+
+        project_total_tasks = TodoItem.objects.filter(
+            todo_list__project=selected_project
+        ).count()
+
+        project_completed_tasks = TodoItem.objects.filter(
+            todo_list__project=selected_project,
+            status="done"
+        ).count()
+
+        project_pending_tasks = (
+            project_total_tasks - project_completed_tasks
+        )
+
+        if project_total_tasks:
+
+            project_completion_percentage = round(
+                (
+                    project_completed_tasks /
+                    project_total_tasks
+                ) * 100,
+                2
+            )
+
+        project_completion = None
+
+        if selected_project:
+
+            project_tasks = TodoItem.objects.filter(
+                todo_list__project=selected_project
+            )
+
+            project_total_tasks = project_tasks.count()
+
+            project_completed_tasks = project_tasks.filter(
+                status="done"
+            ).count()
+
+            project_pending_tasks = (
+                project_total_tasks -
+                project_completed_tasks
+            )
+
+            if project_total_tasks > 0:
+                project_completion = round(
+                    (project_completed_tasks / project_total_tasks) * 100,
+                    2
+                )
+            else:
+                project_completion = 0
+
+    # =====================================================
+    # TEMPLATE
+    # =====================================================
+
     return render(
         request,
-        'projects/analytics.html',
+        "projects/analytics.html",
         {
-            'total_projects': total_projects,
-            'total_tasks': total_tasks,
-            'completed_tasks': completed_tasks,
-            'pending_tasks': pending_tasks,
-            'completion_percentage': completion_percentage,
-            'total_members': total_members,
+            # Overall Analytics
+            "total_projects": total_projects,
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "pending_tasks": pending_tasks,
+            "completion_percentage": completion_percentage,
+            "total_members": total_members,
+
+            # Company Selection
+            "companies": companies,
+            "selected_company": selected_company,
+
+            # Project Selection
+            "company_projects": company_projects,
+            "selected_project": selected_project,
+
+            # Project Analytics
+            "project_total_tasks": project_total_tasks,
+            "project_completed_tasks": project_completed_tasks,
+            "project_pending_tasks": project_pending_tasks,
+            "project_completion_percentage": project_completion_percentage,
+
+
+            "project_members": project_members,
         }
     )
-
 
 @login_required
 @company_required
 def calendar_view(request):
+
+    # --------------------------------------------------
+    # Superuser
+    # --------------------------------------------------
 
     if request.user.is_superuser:
 
         tasks = (
             TodoItem.objects
             .exclude(due_date__isnull=True)
+            .select_related(
+                "todo_list",
+                "todo_list__project"
+            )
         )
 
-        milestones = Milestone.objects.all()
+        milestones = Milestone.objects.select_related(
+            "project"
+        )
+
+    # --------------------------------------------------
+    # Company Users
+    # --------------------------------------------------
 
     else:
 
-        company = request.user.memberships.first().company
+        company = request.current_company
 
-        tasks = (
-            TodoItem.objects
-            .filter(
-                todo_list__project__company=company
-            )
-            .exclude(
-                due_date__isnull=True
-            )
-        )
+        membership = request.user.memberships.filter(
+            company=company
+        ).first()
 
-        milestones = Milestone.objects.filter(
-            project__company=company
-        )
+        # ----------------------------------------------
+        # Company Admin
+        # ----------------------------------------------
+
+        if membership and membership.role == User.ROLE_ADMIN:
+
+            tasks = (
+                TodoItem.objects
+                .filter(
+                    todo_list__project__company=company
+                )
+                .exclude(
+                    due_date__isnull=True
+                )
+                .select_related(
+                    "todo_list",
+                    "todo_list__project"
+                )
+            )
+
+            milestones = Milestone.objects.filter(
+                project__company=company
+            ).select_related(
+                "project"
+            )
+
+        # ----------------------------------------------
+        # Company Member
+        # ----------------------------------------------
+
+        else:
+
+            tasks = (
+                TodoItem.objects
+                .filter(
+                    todo_list__project__company=company,
+                    todo_list__project__members=request.user
+                )
+                .exclude(
+                    due_date__isnull=True
+                )
+                .distinct()
+                .select_related(
+                    "todo_list",
+                    "todo_list__project"
+                )
+            )
+
+            milestones = Milestone.objects.filter(
+                project__company=company,
+                project__members=request.user
+            ).distinct().select_related(
+                "project"
+            )
+
     return render(
         request,
-        'projects/calendar.html',
+        "projects/calendar.html",
         {
-            'tasks': tasks,
-            'milestones': milestones,
-        }
+            "tasks": tasks,
+            "milestones": milestones,
+        },
     )
+
 
 @login_required
 @company_required
 def global_search(request):
 
-    query = request.GET.get('q', '')
+    query = request.GET.get("q", "").strip()
 
     projects = Project.objects.none()
     tasks = TodoItem.objects.none()
     users = User.objects.none()
     milestones = Milestone.objects.none()
+    documents = ProjectDocument.objects.none()
+
+    # ==================================================
+    # SUPERUSER
+    # ==================================================
 
     if request.user.is_superuser:
 
         projects = Project.objects.filter(
             name__icontains=query
-        )   
+        )
 
         tasks = TodoItem.objects.filter(
             title__icontains=query
         )
 
-        documents = ProjectDocument.objects.filter(
-           title__icontains=query
+        users = User.objects.filter(
+            email__icontains=query
         )
+
+        milestones = Milestone.objects.filter(
+            title__icontains=query
+        )
+
+        documents = ProjectDocument.objects.filter(
+            title__icontains=query
+        )
+
+    # ==================================================
+    # COMPANY USERS
+    # ==================================================
 
     else:
 
-        company = request.user.memberships.first().company
+        company = request.current_company
 
-        projects = Project.objects.filter(
-            company=company,
-            name__icontains=query
-        )
+        membership = request.user.memberships.filter(
+            company=company
+        ).first()
 
-        tasks = TodoItem.objects.filter(
-            todo_list__project__company=company,
-            title__icontains=query
-        )
+        # ------------------------------------------
+        # Company Admin
+        # ------------------------------------------
 
-        documents = ProjectDocument.objects.filter(
-            project__company=company,
-            title__icontains=query
-        )
+        if membership and membership.role == User.ROLE_ADMIN:
+
+            projects = Project.objects.filter(
+                company=company,
+                name__icontains=query
+            )
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__company=company,
+                title__icontains=query
+            )
+
+            users = User.objects.filter(
+                memberships__company=company,
+                email__icontains=query
+            ).distinct()
+
+            milestones = Milestone.objects.filter(
+                project__company=company,
+                title__icontains=query
+            )
+
+            documents = ProjectDocument.objects.filter(
+                project__company=company,
+                title__icontains=query
+            )
+
+        # ------------------------------------------
+        # Normal Member
+        # ------------------------------------------
+
+        else:
+
+            projects = Project.objects.filter(
+                company=company,
+                members=request.user,
+                name__icontains=query
+            ).distinct()
+
+            tasks = TodoItem.objects.filter(
+                todo_list__project__company=company,
+                todo_list__project__members=request.user,
+                title__icontains=query
+            ).distinct()
+
+            milestones = Milestone.objects.filter(
+                project__company=company,
+                project__members=request.user,
+                title__icontains=query
+            ).distinct()
+
+            documents = ProjectDocument.objects.filter(
+                project__company=company,
+                project__members=request.user,
+                title__icontains=query
+            ).distinct()
 
     return render(
         request,
-        'projects/search.html',
+        "projects/search.html",
         {
-            'query': query,
-            'projects': projects,
-            'tasks': tasks,
-            'users': users,
-            'milestones': milestones,
-        }
-    )
-
-@login_required
-@company_required
-def upload_project_document(
-    request,
-    project_id
-):
-
-    project = get_object_or_404(
-        Project,
-        id=project_id
-    )
-
-    membership = request.user.memberships.first()
-
-    if project.company != membership.company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
-
-    if request.method == "POST":
-
-        ProjectDocument.objects.create(
-            project=project,
-            title=request.POST.get("title"),
-            file=request.FILES["file"],
-            uploaded_by=request.user
-        )
-
-    return redirect(
-        "project_documents",
-        project_id=project.id
+            "query": query,
+            "projects": projects,
+            "tasks": tasks,
+            "users": users,
+            "milestones": milestones,
+            "documents": documents,
+        },
     )
 
 
@@ -535,7 +1025,46 @@ def upload_project_document(
 @company_required
 def project_document_upload(request, project_id):
 
-    project = get_object_or_404(Project, id=project_id)
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
+
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+            messages.error(
+                request,
+                "Access denied."
+            )
+            return redirect("dashboard")
+
+        is_admin = membership.role == User.ROLE_ADMIN
+        is_creator = project.created_by == request.user
+
+        if not (is_admin or is_creator):
+
+            messages.error(
+                request,
+                "Only the Project Creator or Company Admin can upload documents."
+            )
+
+            return redirect(
+                "project_detail",
+                project_id=project.id
+            )
+
+    # --------------------------------------------------
+    # Upload
+    # --------------------------------------------------
 
     if request.method == "POST":
 
@@ -560,7 +1089,7 @@ def project_document_upload(request, project_id):
 
             return redirect(
                 "project_documents",
-                project.id
+                project_id=project.id
             )
 
     else:
@@ -572,26 +1101,69 @@ def project_document_upload(request, project_id):
         "projects/document_upload.html",
         {
             "project": project,
-            "form": form
-        }
+            "form": form,
+        },
     )
 
 @login_required
 @company_required
 def project_documents(request, project_id):
 
-    project = get_object_or_404(Project, id=project_id)
+    project = get_object_or_404(
+        Project,
+        id=project_id
+    )
 
-    documents = ProjectDocument.objects.filter(
-        project=project
-    ).order_by("-uploaded_at")
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+
+            messages.error(
+                request,
+                "Access denied."
+            )
+
+            return redirect("dashboard")
+
+        # Company Admin
+        if membership.role != User.ROLE_ADMIN:
+
+            # Normal member must belong to the project
+            if not project.members.filter(id=request.user.id).exists():
+
+                messages.error(
+                    request,
+                    "You are not authorized to view these project documents."
+                )
+
+                return redirect("dashboard")
+
+    # --------------------------------------------------
+    # Documents
+    # --------------------------------------------------
+
+    documents = (
+        ProjectDocument.objects
+        .filter(project=project)
+        .select_related("uploaded_by")
+        .order_by("-uploaded_at")
+    )
 
     return render(
         request,
         "projects/document_list.html",
         {
             "project": project,
-            "documents": documents
+            "documents": documents,
+            "membership": None if request.user.is_superuser else membership,
         }
     )
 
@@ -604,16 +1176,50 @@ def download_document(request, document_id):
         id=document_id
     )
 
-    membership = request.user.memberships.first()
+    project = document.project
 
-    if document.project.company != membership.company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
+
+    if not request.user.is_superuser:
+
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+
+            messages.error(
+                request,
+                "Access denied."
+            )
+
+            return redirect("dashboard")
+
+        # Company Admin
+        if membership.role != User.ROLE_ADMIN:
+
+            # Normal members must belong to project
+            if not project.members.filter(
+                id=request.user.id
+            ).exists():
+
+                messages.error(
+                    request,
+                    "You are not authorized to download this document."
+                )
+
+                return redirect("dashboard")
+
+    # --------------------------------------------------
+    # Download
+    # --------------------------------------------------
 
     return FileResponse(
         document.file.open("rb"),
         as_attachment=True,
-        filename=document.filename
+        filename=document.filename,
     )
 
 @login_required
@@ -625,15 +1231,52 @@ def delete_document(request, document_id):
         id=document_id
     )
 
-    membership = request.user.memberships.first()
+    project = document.project
 
-    if document.project.company != membership.company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
 
-    project_id = document.project.id
+    if not request.user.is_superuser:
 
-    document.file.delete(save=False)
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+
+            messages.error(
+                request,
+                "Access denied."
+            )
+
+            return redirect("dashboard")
+
+        is_admin = membership.role == User.ROLE_ADMIN
+        is_creator = project.created_by == request.user
+        is_uploader = document.uploaded_by == request.user
+
+        if not (is_admin or is_creator or is_uploader):
+
+            messages.error(
+                request,
+                "Only the Company Admin, Project Creator, or Document Uploader can delete this document."
+            )
+
+            return redirect(
+                "project_documents",
+                project_id=project.id
+            )
+
+    # --------------------------------------------------
+    # Delete Document
+    # --------------------------------------------------
+
+    project_id = project.id
+
+    if document.file:
+        document.file.delete(save=False)
+
     document.delete()
 
     messages.success(
@@ -643,7 +1286,7 @@ def delete_document(request, document_id):
 
     return redirect(
         "project_documents",
-        project_id
+        project_id=project_id
     )
 
 @login_required
@@ -655,50 +1298,133 @@ def project_activity(request, project_id):
         id=project_id
     )
 
-    membership = request.user.memberships.first()
+    # --------------------------------------------------
+    # Permission Check
+    # --------------------------------------------------
 
-    if project.company != membership.company:
-        messages.error(request, "Access denied.")
-        return redirect("dashboard")
+    if not request.user.is_superuser:
 
-    activities = project.activities.select_related(
-        'user'
-    ).order_by('-created_at')
+        membership = request.user.memberships.filter(
+            company=project.company
+        ).first()
+
+        if not membership:
+
+            messages.error(
+                request,
+                "Access denied."
+            )
+
+            return redirect("dashboard")
+
+        # Company Admin can access every company project
+        if membership.role != User.ROLE_ADMIN:
+
+            # Members can access only assigned projects
+            if not project.members.filter(
+                id=request.user.id
+            ).exists():
+
+                messages.error(
+                    request,
+                    "You are not authorized to view this project's activity."
+                )
+
+                return redirect("dashboard")
+
+    # --------------------------------------------------
+    # Activities
+    # --------------------------------------------------
+
+    activities = (
+        project.activities
+        .select_related("user")
+        .order_by("-created_at")
+    )
 
     return render(
         request,
-        'projects/activity_timeline.html',
+        "projects/activity_timeline.html",
         {
-            'project': project,
-            'activities': activities,
-        }
+            "project": project,
+            "activities": activities,
+            "membership": None if request.user.is_superuser else membership,
+        },
     )
+
 
 @login_required
 @company_required
 def completed_projects(request):
 
+    # --------------------------------------------------
+    # Superuser
+    # --------------------------------------------------
+
     if request.user.is_superuser:
 
-        projects = Project.objects.filter(
-            status="completed"
+        projects = (
+            Project.objects
+            .filter(status="completed")
+            .select_related("company", "created_by")
+            .prefetch_related("members")
+            .order_by("-created_at")
         )
+
+    # --------------------------------------------------
+    # Company Users
+    # --------------------------------------------------
 
     else:
 
-        company = request.user.memberships.first().company
+        company = request.current_company
 
-        projects = Project.objects.filter(
-            company=company,
-            status="completed"
-        )
+        membership = request.user.memberships.filter(
+            company=company
+        ).first()
+
+        # -----------------------------
+        # Company Admin
+        # -----------------------------
+
+        if membership.role == User.ROLE_ADMIN:
+
+            projects = (
+                Project.objects
+                .filter(
+                    company=company,
+                    status="completed"
+                )
+                .select_related("company", "created_by")
+                .prefetch_related("members")
+                .order_by("-created_at")
+            )
+
+        # -----------------------------
+        # Normal Member
+        # -----------------------------
+
+        else:
+
+            projects = (
+                Project.objects
+                .filter(
+                    company=company,
+                    status="completed",
+                    members=request.user
+                )
+                .select_related("company", "created_by")
+                .prefetch_related("members")
+                .distinct()
+                .order_by("-created_at")
+            )
 
     return render(
         request,
-        'projects/completed_projects.html',
+        "projects/completed_projects.html",
         {
-            'projects': projects
-        }
+            "projects": projects,
+        },
     )
 
 
@@ -706,26 +1432,73 @@ def completed_projects(request):
 @company_required
 def active_projects(request):
 
+    # --------------------------------------------------
+    # Superuser
+    # --------------------------------------------------
+
     if request.user.is_superuser:
 
-        projects = Project.objects.filter(
-            status="active"
+        projects = (
+            Project.objects
+            .filter(status="active")
+            .select_related("company", "created_by")
+            .prefetch_related("members")
+            .order_by("-created_at")
         )
+
+    # --------------------------------------------------
+    # Company Users
+    # --------------------------------------------------
 
     else:
 
-        company = request.user.memberships.first().company
+        company = request.current_company
 
-        projects = Project.objects.filter(
-            company=company,
-            status="active"
-        )
+        membership = request.user.memberships.filter(
+            company=company
+        ).first()
+
+        # -----------------------------------------
+        # Company Admin
+        # -----------------------------------------
+
+        if membership.role == User.ROLE_ADMIN:
+
+            projects = (
+                Project.objects
+                .filter(
+                    company=company,
+                    status="active"
+                )
+                .select_related("company", "created_by")
+                .prefetch_related("members")
+                .order_by("-created_at")
+            )
+
+        # -----------------------------------------
+        # Normal Member
+        # -----------------------------------------
+
+        else:
+
+            projects = (
+                Project.objects
+                .filter(
+                    company=company,
+                    status="active",
+                    members=request.user
+                )
+                .select_related("company", "created_by")
+                .prefetch_related("members")
+                .distinct()
+                .order_by("-created_at")
+            )
 
     return render(
         request,
-        'projects/active_projects.html',
+        "projects/active_projects.html",
         {
-            'projects': projects
+            "projects": projects,
         }
     )
 
@@ -734,24 +1507,84 @@ def active_projects(request):
 @company_required
 def all_projects(request):
 
+    # --------------------------------------------------
+    # Superuser
+    # --------------------------------------------------
+
     if request.user.is_superuser:
 
-        projects = Project.objects.all()
+        projects = (
+            Project.objects
+            .select_related(
+                "company",
+                "created_by"
+            )
+            .prefetch_related(
+                "members"
+            )
+            .order_by("-created_at")
+        )
+
+    # --------------------------------------------------
+    # Company Users
+    # --------------------------------------------------
 
     else:
 
-        company = request.user.memberships.first().company
+        company = request.current_company
 
-        projects = Project.objects.filter(
+        membership = request.user.memberships.filter(
             company=company
-        )
+        ).first()
+
+        # -----------------------------------------
+        # Company Admin
+        # -----------------------------------------
+
+        if membership.role == User.ROLE_ADMIN:
+
+            projects = (
+                Project.objects
+                .filter(
+                    company=company
+                )
+                .select_related(
+                    "company",
+                    "created_by"
+                )
+                .prefetch_related(
+                    "members"
+                )
+                .order_by("-created_at")
+            )
+
+        # -----------------------------------------
+        # Normal Member
+        # -----------------------------------------
+
+        else:
+
+            projects = (
+                Project.objects
+                .filter(
+                    company=company,
+                    members=request.user
+                )
+                .select_related(
+                    "company",
+                    "created_by"
+                )
+                .prefetch_related(
+                    "members"
+                )
+                .distinct()
+                .order_by("-created_at")
+            )
 
     return render(
         request,
-        'projects/all_projects.html',
+        "projects/all_projects.html",
         {
-            'projects': projects
+            "projects": projects,
         }
     )
-
-

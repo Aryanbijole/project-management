@@ -202,23 +202,65 @@
     {% endfor %}
 </div>
 
-<!-- Documents + Gantt -->
-<div class="grid-cols-2 utility-panel-grid">
+<div class="grid-cols-3 utility-panel-grid">
+
+    <!-- Documents -->
 
     <div class="utility-panel">
+
         <h4 class="tool-tile-title">📁 Documents</h4>
-        <p class="tool-tile-desc">Central project file storage.</p>
-        <a href="{% url 'project_documents' project.id %}" class="btn btn-primary btn-sm">
+
+        <p class="tool-tile-desc">
+            Central project file storage.
+        </p>
+
+        <a href="{% url 'project_documents' project.id %}"
+           class="btn btn-primary btn-sm">
+
             Open Documents
+
         </a>
+
     </div>
 
+
+    <!-- Gantt -->
+
     <div class="utility-panel">
+
         <h4 class="tool-tile-title">📅 Gantt Timeline</h4>
-        <p class="tool-tile-desc">View project schedule and deadlines.</p>
-        <a href="{% url 'gantt_view' project.id %}" class="btn btn-primary btn-sm">
+
+        <p class="tool-tile-desc">
+            View project schedule and deadlines.
+        </p>
+
+        <a href="{% url 'gantt_view' project.id %}"
+           class="btn btn-primary btn-sm">
+
             Open Timeline
+
         </a>
+
+    </div>
+
+
+    <!-- Activity Timeline -->
+
+    <div class="utility-panel">
+
+        <h4 class="tool-tile-title">📜 Activity Timeline</h4>
+
+        <p class="tool-tile-desc">
+            See every project event including tasks, comments, uploads, milestones and member activity.
+        </p>
+
+        <a href="{% url 'project_activity' project.id %}"
+           class="btn btn-primary btn-sm">
+
+            View Activity
+
+        </a>
+
     </div>
 
 </div>

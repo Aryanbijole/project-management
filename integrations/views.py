@@ -8,22 +8,88 @@ from accounts.decorators import company_required
 @login_required
 @company_required
 def create_external_tool(request, project_id):
-    company = request.user.memberships.first().company
 
-    project = get_object_or_404(
-        Project,
-        id=project_id,
-        company=company
-    )
+    # ------------------------------------------
+    # Superuser
+    # ------------------------------------------
 
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        url = request.POST.get('url')
+    if request.user.is_superuser:
+
+        project = get_object_or_404(
+            Project,
+            id=project_id
+        )
+
+    # ------------------------------------------
+    # Company Users
+    # ------------------------------------------
+
+    else:
+
+        project = get_object_or_404(
+            Project,
+            id=project_id,
+            company=request.current_company
+        )
+
+    # ------------------------------------------
+    # Only Project Owner or Company Admin
+    # ------------------------------------------
+
+    if not request.user.is_superuser:
+
+        is_admin = CompanyMembership.objects.filter(
+            company=project.company,
+            user=request.user,
+            role=User.ROLE_ADMIN
+        ).exists()
+
+        is_creator = (
+            project.created_by == request.user
+        )
+
+        if not (is_admin or is_creator):
+
+            messages.error(
+                request,
+                "Only project owners or company administrators can manage integrations."
+            )
+
+            return redirect(
+                "project_detail",
+                project_id=project.id
+            )
+
+    # ------------------------------------------
+    # Create Integration
+    # ------------------------------------------
+
+    if request.method == "POST":
+
+        name = request.POST.get("name", "").strip()
+        url = request.POST.get("url", "").strip()
 
         if name and url:
-            ExternalTool.objects.create(project=project, name=name, url=url)
-            messages.success(request, f"External tool '{name}' integrated successfully!")
-        else:
-            messages.error(request, "Name and URL are required.")
 
-    return redirect('project_detail', project_id=project.id)
+            ExternalTool.objects.create(
+                project=project,
+                name=name,
+                url=url
+            )
+
+            messages.success(
+                request,
+                f"External tool '{name}' integrated successfully!"
+            )
+
+        else:
+
+            messages.error(
+                request,
+                "Tool name and URL are required."
+            )
+
+    return redirect(
+        "project_detail",
+        project_id=project.id
+    )

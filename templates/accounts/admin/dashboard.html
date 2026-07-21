@@ -1,97 +1,162 @@
-{% extends "base.html" %}
+{{% extends "base.html" %}
 
 {% block title %}Administration{% endblock %}
 
 {% block content %}
 
-<div class="container-fluid">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            🛠 Administration Dashboard
+        </h1>
 
-    <h2 class="mb-4">
-        Administration Dashboard
-    </h2>
+        {% if is_superuser_panel %}
+            <p class="page-subtitle">
+                Global Administration Panel
+            </p>
+        {% else %}
+            <p class="page-subtitle">
+                {{ company.name }}
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+
+<div class="dashboard-stats-grid">
+
+    <div class="metric-card">
+        <div class="metric-icon">👥</div>
+        <div class="metric-title">Members</div>
+        <div class="viz-stat-value">{{ total_members }}</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">📁</div>
+        <div class="metric-title">Projects</div>
+        <div class="viz-stat-value">{{ total_projects }}</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">🚀</div>
+        <div class="metric-title">Active</div>
+        <div class="viz-stat-value">{{ active_projects }}</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">📦</div>
+        <div class="metric-title">Archived</div>
+        <div class="viz-stat-value">{{ archived_projects }}</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">👥</div>
+        <div class="metric-title">Groups</div>
+        <div class="viz-stat-value">{{ total_groups }}</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">📨</div>
+        <div class="metric-title">Pending Invites</div>
+        <div class="viz-stat-value">{{ pending_invites }}</div>
+    </div>
 
     {% if is_superuser_panel %}
-        <p class="text-muted">
-            Global Administration
-        </p>
-    {% else %}
-        <p class="text-muted">
-            {{ company.name }}
-        </p>
+
+    <div class="metric-card">
+        <div class="metric-icon">🏢</div>
+        <div class="metric-title">Companies</div>
+        <div class="viz-stat-value">{{ total_companies }}</div>
+    </div>
+
     {% endif %}
 
-    <div class="row">
+</div>
 
-        <div class="col-md-3 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>Total Members</h6>
-                    <h2>{{ total_members }}</h2>
-                </div>
-            </div>
+
+
+<div class="grid-cols-2 mt-4">
+
+    <div class="glass-card">
+
+        <div class="section-card-title">
+            📊 Workspace Summary
         </div>
 
-        <div class="col-md-3 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>Total Projects</h6>
-                    <h2>{{ total_projects }}</h2>
-                </div>
-            </div>
-        </div>
+        <table class="table table-borderless mt-3">
 
-        <div class="col-md-3 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>Active Projects</h6>
-                    <h2>{{ active_projects }}</h2>
-                </div>
-            </div>
-        </div>
+            <tr>
+                <td>Total Members</td>
+                <td><strong>{{ total_members }}</strong></td>
+            </tr>
 
-        <div class="col-md-3 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>Archived Projects</h6>
-                    <h2>{{ archived_projects }}</h2>
-                </div>
-            </div>
-        </div>
+            <tr>
+                <td>Total Projects</td>
+                <td><strong>{{ total_projects }}</strong></td>
+            </tr>
+
+            <tr>
+                <td>Groups</td>
+                <td><strong>{{ total_groups }}</strong></td>
+            </tr>
+
+            <tr>
+                <td>Pending Invites</td>
+                <td><strong>{{ pending_invites }}</strong></td>
+            </tr>
+
+        </table>
 
     </div>
 
-    <div class="row">
 
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>Groups</h6>
-                    <h2>{{ total_groups }}</h2>
-                </div>
-            </div>
+    <div class="glass-card">
+
+        <div class="section-card-title">
+            📈 Project Health
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>Pending Invitations</h6>
-                    <h2>{{ pending_invites }}</h2>
-                </div>
+        <div class="progress mb-3 mt-4" style="height:14px;">
+
+            <div
+                class="progress-bar bg-success"
+                style="width:{% widthratio active_projects total_projects 100 %}%">
             </div>
+
         </div>
 
-        {% if is_superuser_panel %}
+        <p>
 
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>Total Companies</h6>
-                    <h2>{{ total_companies }}</h2>
-                </div>
+            <strong>{{ active_projects }}</strong>
+            active out of
+
+            <strong>{{ total_projects }}</strong>
+
+            projects.
+
+        </p>
+
+        <hr>
+
+        <div class="d-flex justify-content-between">
+
+            <div>
+
+                <h3>{{ archived_projects }}</h3>
+
+                <small>Archived</small>
+
             </div>
-        </div>
 
-        {% endif %}
+            <div>
+
+                <h3>{{ pending_invites }}</h3>
+
+                <small>Invitations</small>
+
+            </div>
+
+        </div>
 
     </div>
 

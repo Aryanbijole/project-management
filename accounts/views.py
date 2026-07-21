@@ -117,6 +117,27 @@ def dashboard_view(request):
             memberships__user=request.user
         ).order_by("name")
 
+    # ------------------------------------------
+    # Selected company
+    # ------------------------------------------
+
+    selected_company = None
+
+    if request.user.is_superuser:
+
+        company_id = request.GET.get("company")
+
+        if company_id:
+            selected_company = get_object_or_404(
+                Company,
+                id=company_id
+            )
+
+    elif companies.exists():
+
+        # Company admins / normal users always use their own company
+        selected_company = companies.first()    
+
     company_admin_membership = CompanyMembership.objects.filter(
         user=request.user,
         role=User.ROLE_ADMIN
@@ -127,6 +148,10 @@ def dashboard_view(request):
     # Projects user belongs to
     if request.user.is_superuser:
         projects = Project.objects.all()
+
+        if selected_company:
+            projects = projects.filter(company=selected_company) 
+
     else:
         projects = Project.objects.filter(
             Q(members=request.user) |
@@ -137,6 +162,10 @@ def dashboard_view(request):
     # Groups in user's companies
     if request.user.is_superuser:
         groups = Group.objects.all()
+
+        if selected_company:
+            groups = groups.filter(company=selected_company)
+
     else:
         groups = Group.objects.filter(
             company__in=companies
@@ -147,6 +176,12 @@ def dashboard_view(request):
         company_users = User.objects.filter(
             is_active=True
         )
+
+        if selected_company:
+            company_users = company_users.filter(
+                memberships__company=selected_company
+            ).distinct()
+
     else:
         company_users = User.objects.filter(
             memberships__company__in=companies,
@@ -164,14 +199,23 @@ def dashboard_view(request):
         )
 
     if request.user.is_superuser:
+        recent_project_activities = ProjectActivity.objects.all()
+
+        if selected_company:
+            recent_project_activities = recent_project_activities.filter(
+                project__company=selected_company
+            )
+
         recent_project_activities = (
-            ProjectActivity.objects
+            recent_project_activities
             .select_related(
                 "project",
                 "user"
             )
-            .order_by("-created_at")[:10]
+           .order_by("-created_at")[:10]
         )
+
+
     else:
         recent_project_activities = (
             ProjectActivity.objects
@@ -185,8 +229,15 @@ def dashboard_view(request):
         
 
     if request.user.is_superuser:
+        recent_task_activities = TodoActivity.objects.all()
+
+        if selected_company:
+            recent_task_activities = recent_task_activities.filter(
+                todo_item__todo_list__project__company=selected_company
+            )
+
         recent_task_activities = (
-            TodoActivity.objects
+            recent_task_activities
             .select_related(
                 "todo_item",
                 "actor",
@@ -194,6 +245,8 @@ def dashboard_view(request):
             )
             .order_by("-created_at")[:10]
         )
+
+
     else:
         recent_task_activities = (
             TodoActivity.objects
@@ -218,6 +271,12 @@ def dashboard_view(request):
         "recent_project_activities": recent_project_activities,
         "recent_task_activities": recent_task_activities,
         "is_company_admin": is_company_admin,
+        "selected_company": selected_company,
+        "selected_company_id": (
+            selected_company.id
+            if selected_company
+            else None
+        ),
     })
 
 

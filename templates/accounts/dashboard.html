@@ -284,32 +284,51 @@ margin-bottom:35px;
                 <div class="form-group" style="margin-bottom: 12px;">
                     <textarea name="description" class="form-control" placeholder="Brief Description..." style="height: 60px; resize: none;"></textarea>
                 </div>
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <select
-                        name="company_id"
-                        class="form-control"
-                        onchange="window.location='?company='+this.value"
-                        required>
+                <div class="form-group" style="margin-bottom:12px;">
 
-                        <option value="">Select Company</option>
+                {% if request.user.is_superuser %}
 
-                        {% for comp in companies %}
+                <select
+                    name="company_id"
+                    class="form-control"
+                    onchange="window.location='?company='+this.value"
+                    required>
 
-                        <option
-                            value="{{ comp.id }}"
-                            {% if selected_company and selected_company.id == comp.id %}
-                               selected
-                            {% endif %}
-                        >
+                    <option value="">Select Company</option>
 
-                            {{ comp.name }}
+                    {% for comp in companies %}
 
-                        </option>
+                    <option
+                        value="{{ comp.id }}"
+                        {% if selected_company_id == comp.id %}
+                           selected
+                        {% endif %}
+                    >
+                        {{ comp.name }}
+                    </option>
 
-                        {% endfor %}
+                    {% endfor %}
 
-                    </select>
+                </select>
+
+                {% else %}
+
+                <input
+                    type="text"
+                    class="form-control"
+                    value="{{ selected_company.name }}"
+                    readonly>
+
+                <input
+                    type="hidden"
+                    name="company_id"
+                    value="{{ selected_company.id }}">
+
+                {% endif %}
+
                 </div>
+
+
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label style="font-size: 0.8rem;">Add Members</label>
                     <select name="members" class="form-control" style="height: 80px;" multiple>

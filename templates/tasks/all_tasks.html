@@ -43,6 +43,15 @@
                 <span class="task-meta-value">{{ task.todo_list.project.name }}</span>
             </div>
 
+            {% if request.user.is_superuser %}
+            <div class="task-meta-item">
+                <span class="task-meta-label">🏢 Company</span>
+                <span class="task-meta-value">
+                    {{ task.todo_list.project.company.name }}
+                </span>
+            </div>
+            {% endif %}
+
             <div class="task-meta-item">
                 <span class="task-meta-label">👤 Assigned To</span>
                 {% if task.assigned_to %}

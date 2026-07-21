@@ -64,7 +64,6 @@
             <label>Role</label>
             <select name="role" class="form-control">
                 <option value="admin" {% if user_obj.role == "admin" %}selected{% endif %}>Admin</option>
-                <option value="manager" {% if user_obj.role == "manager" %}selected{% endif %}>Manager</option>
                 <option value="member" {% if user_obj.role == "member" %}selected{% endif %}>Member</option>
             </select>
         </div>
