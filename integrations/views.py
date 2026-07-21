@@ -4,6 +4,10 @@ from django.contrib import messages
 from projects.models import Project
 from integrations.models import ExternalTool
 from accounts.decorators import company_required
+from accounts.models import CompanyMembership
+from accounts.models import Company, CompanyMembership
+from accounts.models import User
+from accounts.models import User, CompanyMembership, Company
 
 @login_required
 @company_required
