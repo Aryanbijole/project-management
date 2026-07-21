@@ -1,4 +1,4 @@
-{{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Administration{% endblock %}
 
@@ -6,158 +6,124 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">
-            🛠 Administration Dashboard
-        </h1>
+        <h1 class="page-title">🛠 Administration Dashboard</h1>
 
         {% if is_superuser_panel %}
-            <p class="page-subtitle">
-                Global Administration Panel
-            </p>
+            <p class="page-subtitle">Global Administration Panel</p>
         {% else %}
-            <p class="page-subtitle">
-                {{ company.name }}
-            </p>
+            <p class="page-subtitle">{{ company.name }}</p>
         {% endif %}
     </div>
 </div>
 
+<div class="stats-grid">
 
-<div class="dashboard-stats-grid">
-
-    <div class="metric-card">
-        <div class="metric-icon">👥</div>
-        <div class="metric-title">Members</div>
-        <div class="viz-stat-value">{{ total_members }}</div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Members</span>
+            <div class="stat-icon icon-blue">👥</div>
+        </div>
+        <div class="stat-value">{{ total_members }}</div>
     </div>
 
-    <div class="metric-card">
-        <div class="metric-icon">📁</div>
-        <div class="metric-title">Projects</div>
-        <div class="viz-stat-value">{{ total_projects }}</div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Projects</span>
+            <div class="stat-icon icon-purple">📁</div>
+        </div>
+        <div class="stat-value">{{ total_projects }}</div>
     </div>
 
-    <div class="metric-card">
-        <div class="metric-icon">🚀</div>
-        <div class="metric-title">Active</div>
-        <div class="viz-stat-value">{{ active_projects }}</div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Active</span>
+            <div class="stat-icon icon-green">🚀</div>
+        </div>
+        <div class="stat-value">{{ active_projects }}</div>
     </div>
 
-    <div class="metric-card">
-        <div class="metric-icon">📦</div>
-        <div class="metric-title">Archived</div>
-        <div class="viz-stat-value">{{ archived_projects }}</div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Archived</span>
+            <div class="stat-icon icon-amber">📦</div>
+        </div>
+        <div class="stat-value">{{ archived_projects }}</div>
     </div>
 
-    <div class="metric-card">
-        <div class="metric-icon">👥</div>
-        <div class="metric-title">Groups</div>
-        <div class="viz-stat-value">{{ total_groups }}</div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Groups</span>
+            <div class="stat-icon icon-pink">👥</div>
+        </div>
+        <div class="stat-value">{{ total_groups }}</div>
     </div>
 
-    <div class="metric-card">
-        <div class="metric-icon">📨</div>
-        <div class="metric-title">Pending Invites</div>
-        <div class="viz-stat-value">{{ pending_invites }}</div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Pending Invites</span>
+            <div class="stat-icon icon-blue">📨</div>
+        </div>
+        <div class="stat-value">{{ pending_invites }}</div>
     </div>
 
     {% if is_superuser_panel %}
-
-    <div class="metric-card">
-        <div class="metric-icon">🏢</div>
-        <div class="metric-title">Companies</div>
-        <div class="viz-stat-value">{{ total_companies }}</div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Companies</span>
+            <div class="stat-icon icon-purple">🏢</div>
+        </div>
+        <div class="stat-value">{{ total_companies }}</div>
     </div>
-
     {% endif %}
 
 </div>
 
-
-
-<div class="grid-cols-2 mt-4">
+<div class="grid-cols-2 admin-summary-grid">
 
     <div class="glass-card">
+        <div class="section-card-title">📊 Workspace Summary</div>
 
-        <div class="section-card-title">
-            📊 Workspace Summary
+        <div class="summary-list">
+            <div class="summary-row">
+                <span>Total Members</span>
+                <strong>{{ total_members }}</strong>
+            </div>
+            <div class="summary-row">
+                <span>Total Projects</span>
+                <strong>{{ total_projects }}</strong>
+            </div>
+            <div class="summary-row">
+                <span>Groups</span>
+                <strong>{{ total_groups }}</strong>
+            </div>
+            <div class="summary-row">
+                <span>Pending Invites</span>
+                <strong>{{ pending_invites }}</strong>
+            </div>
         </div>
-
-        <table class="table table-borderless mt-3">
-
-            <tr>
-                <td>Total Members</td>
-                <td><strong>{{ total_members }}</strong></td>
-            </tr>
-
-            <tr>
-                <td>Total Projects</td>
-                <td><strong>{{ total_projects }}</strong></td>
-            </tr>
-
-            <tr>
-                <td>Groups</td>
-                <td><strong>{{ total_groups }}</strong></td>
-            </tr>
-
-            <tr>
-                <td>Pending Invites</td>
-                <td><strong>{{ pending_invites }}</strong></td>
-            </tr>
-
-        </table>
-
     </div>
 
-
     <div class="glass-card">
+        <div class="section-card-title">📈 Project Health</div>
 
-        <div class="section-card-title">
-            📈 Project Health
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" style="width: {% widthratio active_projects total_projects 100 %}%;"></div>
         </div>
 
-        <div class="progress mb-3 mt-4" style="height:14px;">
-
-            <div
-                class="progress-bar bg-success"
-                style="width:{% widthratio active_projects total_projects 100 %}%">
-            </div>
-
-        </div>
-
-        <p>
-
-            <strong>{{ active_projects }}</strong>
-            active out of
-
-            <strong>{{ total_projects }}</strong>
-
-            projects.
-
+        <p class="project-health-caption">
+            <strong>{{ active_projects }}</strong> active out of <strong>{{ total_projects }}</strong> projects.
         </p>
 
-        <hr>
-
-        <div class="d-flex justify-content-between">
-
-            <div>
-
-                <h3>{{ archived_projects }}</h3>
-
-                <small>Archived</small>
-
+        <div class="health-split">
+            <div class="health-split-item">
+                <div class="stat-value">{{ archived_projects }}</div>
+                <span class="stat-label">Archived</span>
             </div>
-
-            <div>
-
-                <h3>{{ pending_invites }}</h3>
-
-                <small>Invitations</small>
-
+            <div class="health-split-item">
+                <div class="stat-value">{{ pending_invites }}</div>
+                <span class="stat-label">Invitations</span>
             </div>
-
         </div>
-
     </div>
 
 </div>

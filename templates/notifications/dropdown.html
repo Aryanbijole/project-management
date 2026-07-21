@@ -1,41 +1,23 @@
-<div class="notification-dropdown">
+<div class="dropdown-header">
+    Notifications
+</div>
 
-    <div class="dropdown-header">
-        Notifications
+{% if latest_notifications %}
+
+    {% for n in latest_notifications %}
+    <div class="notification-item">
+        <strong>{{ n.title }}</strong>
+        <small>{{ n.message }}</small>
+        <small>{{ n.created_at|timesince }} ago</small>
     </div>
+    {% endfor %}
 
-    {% if latest_notifications %}
+{% else %}
 
-        {% for n in latest_notifications %}
+    <div class="notification-item">No Notifications</div>
 
-        <div class="notification-item">
+{% endif %}
 
-            <strong>{{ n.title }}</strong><br>
-
-            <small>{{ n.message }}</small><br>
-
-            <small style="color:gray;">
-                {{ n.created_at|timesince }} ago
-            </small>
-
-        </div>
-
-        {% endfor %}
-
-    {% else %}
-
-        <div class="notification-item">
-            No Notifications
-        </div>
-
-    {% endif %}
-
-    <div class="dropdown-footer">
-
-        <a href="{% url 'notifications' %}">
-            View All
-        </a>
-
-    </div>
-
+<div class="dropdown-footer">
+    <a href="{% url 'notifications' %}">View All</a>
 </div>

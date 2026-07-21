@@ -4,93 +4,89 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Edit Project</h2>
+        <p class="page-subtitle">Update project details, ownership, and membership.</p>
+    </div>
+</div>
 
-    <h2 class="mb-4">Edit Project</h2>
+<div class="glass-card" style="max-width: 720px;">
 
-    <form method="post">
+    <form method="post" class="django-form">
 
         {% csrf_token %}
 
         {% if request.user.is_superuser %}
 
-        <div class="mb-3">
-            <label class="form-label">Company</label>
-            {{ form.company }}
-        </div>
+       
 
         {% endif %}
 
-        <div class="mb-3">
-            <label class="form-label">Project Name</label>
+        <div class="form-group">
+            <label>Project Name</label>
             {{ form.name }}
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Description</label>
+        <div class="form-group">
+            <label>Description</label>
             {{ form.description }}
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Project Owner</label>
+        <div class="form-group">
+            <label>Project Owner</label>
             {{ form.owner }}
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Project Members</label>
+        <div class="form-group">
+            <label>Project Members</label>
 
-            <div class="border rounded p-3" style="max-height:250px; overflow-y:auto;">
+            <div class="member-select-list">
                 {{ form.members }}
             </div>
 
-            <small class="text-muted">
+            <span class="form-hint">
                 Select all users who are part of this project.
-            </small>
+            </span>
 
         </div>
 
-        <div class="row">
+        <div class="grid-cols-2">
 
-            <div class="col-md-6">
-
-                <div class="mb-3">
-                    <label class="form-label">Visibility</label>
-                    {{ form.visibility }}
-                </div>
-
+            <div class="form-group">
+                <label>Visibility</label>
+                {{ form.visibility }}
             </div>
 
-            <div class="col-md-6">
-
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    {{ form.status }}
-                </div>
-
+            <div class="form-group">
+                <label>Status</label>
+                {{ form.status }}
             </div>
 
         </div>
 
-        <div class="form-check mb-4">
+        <div class="permission-check mb-4">
 
             {{ form.is_archived }}
 
-            <label class="form-check-label">
-                Archive this Project
-            </label>
+            <span>Archive this Project</span>
 
         </div>
 
-        <button type="submit" class="btn btn-success">
-            Update Project
-        </button>
+        <div class="form-actions">
+
+            <button type="submit" class="btn btn-primary">
+                Update Project
+            </button>
 
             <a href="{% url 'admin_project_list' %}" class="btn btn-secondary">
                 Cancel
             </a>
+
         </div>
 
     </form>
+
 </div>
 
 {% endblock %}
