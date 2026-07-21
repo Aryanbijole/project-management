@@ -4,394 +4,202 @@
 
 {% block content %}
 
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <div>
-
-            <h2>{{ project.name }}</h2>
-
-            <p class="text-muted mb-0">
-                {{ project.company.name }}
-            </p>
-
-        </div>
-
-        <div>
-
-            <a href="{% url 'admin_project_edit' project.id %}"
-               class="btn btn-warning me-2">
-                Edit 
-            </a>
-
-            <a href="{% url 'admin_project_delete' project.id %}"
-               class="btn btn-danger">
-                Delete
-            </a>
-
-        </div>
-
+<div class="page-header">
+    <div>
+        <h2 class="page-title">{{ project.name }}</h2>
+        <p class="page-subtitle">{{ project.company.name }}</p>
     </div>
 
-    <div class="row mb-4">
+    <div class="row-actions">
+        <a href="{% url 'admin_project_edit' project.id %}" class="btn btn-secondary">
+            Edit
+        </a>
+        <a href="{% url 'admin_project_delete' project.id %}" class="btn btn-danger">
+            Delete
+        </a>
+    </div>
+</div>
 
-        <div class="col-md-3">
+<div class="stats-grid grid-cols-4">
 
-            <div class="card shadow-sm">
-
-                <div class="card-body text-center">
-
-                    <h6>Total Tasks</h6>
-
-                    <h2>{{ total_tasks }}</h2>
-
-                </div>
-
-            </div>
-
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Tasks</span>
+            <span class="stat-icon icon-blue">📋</span>
         </div>
-
-        <div class="col-md-3">
-
-            <div class="card shadow-sm">
-
-                <div class="card-body text-center">
-
-                    <h6>Completed</h6>
-
-                    <h2 class="text-success">
-
-                        {{ completed_tasks }}
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-3">
-
-            <div class="card shadow-sm">
-
-                <div class="card-body text-center">
-
-                    <h6>Pending</h6>
-
-                    <h2 class="text-warning">
-
-                        {{ pending_tasks }}
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-3">
-
-            <div class="card shadow-sm">
-
-                <div class="card-body text-center">
-
-                    <h6>Completion</h6>
-
-                    <h2 class="text-primary">
-
-                        {{ progress }}%
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
+        <span class="stat-value">{{ total_tasks }}</span>
     </div>
 
-    <div class="mb-4">
-
-        <h5>Project Progress</h5>
-
-        <div class="progress" style="height:28px;">
-
-            <div
-                class="progress-bar bg-success progress-bar-striped progress-bar-animated"
-                role="progressbar"
-                style="width: {{ progress }}%;"
-                aria-valuenow="{{ progress }}"
-                aria-valuemin="0"
-                aria-valuemax="100">
-
-                {{ progress }}%
-
-            </div>
-
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Completed</span>
+            <span class="stat-icon icon-green">✅</span>
         </div>
-
+        <span class="stat-value" style="color: var(--success);">{{ completed_tasks }}</span>
     </div>
 
-    <div class="row">
-
-        <div class="col-lg-6">
-
-            <div class="card shadow-sm mb-4">
-
-                <div class="card-header">
-
-                    <strong>Project Information</strong>
-
-                </div>
-
-                <div class="card-body">
-
-                    <table class="table table-borderless mb-0">
-
-                        <tr>
-
-                            <th width="35%">Company</th>
-
-                            <td>{{ project.company.name }}</td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Owner</th>
-
-                            <td>
-
-                                {% if project.owner %}
-
-                                    {{ project.owner.get_full_name|default:project.owner.email }}
-
-                                {% else %}
-
-                                    -
-
-                                {% endif %}
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Created By</th>
-
-                            <td>
-
-                                {{ project.created_by.get_full_name|default:project.created_by.email }}
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Created On</th>
-
-                            <td>
-
-                                {{ project.created_at|date:"d M Y H:i" }}
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Status</th>
-
-                            <td>
-
-                                {{ project.get_status_display }}
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Visibility</th>
-
-                            <td>
-
-                                {{ project.get_visibility_display }}
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Archived</th>
-
-                            <td>
-
-                                {% if project.is_archived %}
-
-                                    Yes
-
-                                {% else %}
-
-                                    No
-
-                                {% endif %}
-
-                            </td>
-
-                        </tr>
-
-                    </table>
-
-                </div>
-
-            </div>
-
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Pending</span>
+            <span class="stat-icon icon-amber">⏳</span>
         </div>
-
-        <div class="col-lg-6">
-
-            <div class="card shadow-sm mb-4">
-
-                <div class="card-header">
-
-                    <strong>Description</strong>
-
-                </div>
-
-                <div class="card-body">
-
-                    {{ project.description|default:"No description available." }}
-
-                </div>
-
-            </div>
-
-            <div class="card shadow-sm">
-
-                <div class="card-header">
-
-                    <strong>Project Members</strong>
-
-                </div>
-
-                <div class="card-body">
-
-                    <ul class="list-group">
-
-                        {% for member in project.members.all %}
-
-                            <li class="list-group-item">
-
-                                {{ member.get_full_name|default:member.email }}
-
-                            </li>
-
-                        {% empty %}
-
-                            <li class="list-group-item">
-
-                                No members assigned.
-
-                            </li>
-
-                        {% endfor %}
-
-                    </ul>
-
-                </div>
-
-            </div>
-
-        </div>
-
+        <span class="stat-value" style="color: var(--warning);">{{ pending_tasks }}</span>
     </div>
 
-    <div class="card shadow-sm mt-4">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Completion</span>
+            <span class="stat-icon icon-purple">📈</span>
+        </div>
+        <span class="stat-value" style="color: var(--accent);">{{ progress }}%</span>
+    </div>
 
-        <div class="card-header">
+</div>
 
-            <strong>Recent Tasks</strong>
+<div class="glass-card progress-card">
+    <div class="section-card-title">
+        Project Progress
+        <span class="role-count">{{ progress }}%</span>
+    </div>
+    <div class="progress-bar-track">
+        <div class="progress-bar-fill" style="width: {{ progress }}%;"></div>
+    </div>
+</div>
 
+<div class="grid-cols-2">
+
+    <div class="glass-card">
+        <div class="section-card-title">Project Information</div>
+
+        <ul class="stacked-list">
+            <li class="group-item">
+                <span class="group-item-meta">Company</span>
+                <div class="group-item-name">{{ project.company.name }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Owner</span>
+                <div class="group-item-name">
+                    {% if project.owner %}
+                        {{ project.owner.get_full_name|default:project.owner.email }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}
+                </div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Created By</span>
+                <div class="group-item-name">{{ project.created_by.get_full_name|default:project.created_by.email }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Created On</span>
+                <div class="group-item-name">{{ project.created_at|date:"d M Y H:i" }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Status</span>
+                <div class="group-item-name">{{ project.get_status_display }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Visibility</span>
+                <div class="group-item-name">{{ project.get_visibility_display }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Archived</span>
+                <div class="group-item-name">
+                    {% if project.is_archived %}
+                        <span class="status-badge status-blocked">Yes</span>
+                    {% else %}
+                        <span class="status-badge status-done">No</span>
+                    {% endif %}
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div>
+        <div class="glass-card">
+            <div class="section-card-title">Description</div>
+            <p class="task-card-desc">{{ project.description|default:"No description available." }}</p>
         </div>
 
-        <div class="card-body">
+        <div class="glass-card project-tools-card" style="grid-column: unset;">
+            <div class="section-card-title">Project Members</div>
 
-            <table class="table table-hover mb-0">
-
-                <thead>
-
-                    <tr>
-
-                        <th>Task</th>
-
-                        <th>Priority</th>
-
-                        <th>Status</th>
-
-                        <th>Assigned To</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                {% for task in recent_tasks %}
-
-                    <tr>
-
-                        <td>{{ task.title }}</td>
-
-                        <td>{{ task.get_priority_display }}</td>
-
-                        <td>{{ task.get_status_display }}</td>
-
-                        <td>
-
-                            {% if task.assigned_to %}
-
-                                {{ task.assigned_to.get_full_name|default:task.assigned_to.email }}
-
-                            {% else %}
-
-                                -
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
+            <div class="project-member-list">
+                {% for member in project.members.all %}
+                    <div class="user-row">
+                        <div class="user-row-info">
+                            <span class="user-avatar user-avatar-sm">{{ member.get_full_name|default:member.email|first|upper }}</span>
+                            <span class="user-row-name">{{ member.get_full_name|default:member.email }}</span>
+                        </div>
+                    </div>
                 {% empty %}
-
-                    <tr>
-
-                        <td colspan="4" class="text-center">
-
-                            No tasks found.
-
-                        </td>
-
-                    </tr>
-
+                    <p class="empty-hint">No members assigned.</p>
                 {% endfor %}
-
-                </tbody>
-
-            </table>
-
+            </div>
         </div>
-
     </div>
 
+</div>
+
+<div class="table-card reports-tables-grid">
+    <div class="section-card-title" style="padding: 20px 24px 0;">Recent Tasks</div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for task in recent_tasks %}
+            <tr>
+                <td class="task-card-title" style="font-size: 0.92rem;">{{ task.title }}</td>
+                <td>
+                    <span class="priority-badge
+                        {% if task.priority == 'high' %}priority-high
+                        {% elif task.priority == 'medium' %}priority-medium
+                        {% else %}priority-low{% endif %}">
+                        {{ task.get_priority_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge status-{{ task.status }}">
+                        {{ task.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if task.assigned_to %}
+                        <div class="task-assignee">
+                            <span class="user-avatar user-avatar-sm">{{ task.assigned_to.get_full_name|default:task.assigned_to.email|first|upper }}</span>
+                            {{ task.assigned_to.get_full_name|default:task.assigned_to.email }}
+                        </div>
+                    {% else %}
+                        <span class="task-unassigned">Unassigned</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">
+                    <div class="empty-state">
+                        <h4>No tasks found</h4>
+                        <p>Tasks added to this project will show up here.</p>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

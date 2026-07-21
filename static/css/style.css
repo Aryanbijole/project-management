@@ -2157,3 +2157,204 @@ input:focus-visible,
 .reports-tables-grid {
     margin-top: 32px;
 }
+
+
+/* ============ Notification Dropdown ============ */
+.notification-wrapper {
+    position: relative;
+}
+
+.notification-btn {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.notification-btn:hover {
+    background-color: var(--accent-light);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: var(--danger);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.notification-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    z-index: 300;
+}
+
+.notification-menu.show {
+    display: block;
+}
+
+.dropdown-header {
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.notification-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+}
+
+.notification-item small {
+    color: var(--text-muted);
+    display: block;
+}
+
+.dropdown-footer {
+    padding: 12px 20px;
+    text-align: center;
+    border-top: 1px solid var(--card-border);
+}
+
+.dropdown-footer a {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.dropdown-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ============ User Management Page ============ */
+.company-select-form {
+    margin-bottom: 24px;
+}
+
+.company-select {
+    width: auto;
+    min-width: 260px;
+    padding-right: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+                       linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(1em + 2px),
+                          calc(100% - 15px) calc(1em + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+/* ============ Sidebar Nav Groups (Project Management submenu) ============ */
+.nav-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-group > .nav-item {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.nav-group > .nav-item:hover {
+    background-color: transparent;
+    transform: none;
+}
+
+.nav-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 2px 0 4px 0;
+}
+
+.nav-subitem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px 9px 42px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.92rem;
+    border-radius: 10px;
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+.nav-subitem:hover, .nav-subitem.active {
+    background-color: rgba(255, 255, 255, 0.08);
+    opacity: 1;
+    color: #fff;
+    transform: translateX(4px);
+}
+
+
+.sidebar-divider {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-section-label {
+    padding: 0 18px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+
+
+.nav-group > .nav-item {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.nav-group > .nav-item:hover {
+    background-color: transparent;
+    transform: none;
+}

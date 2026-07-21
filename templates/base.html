@@ -99,26 +99,25 @@
                 </a>
 
                 {% if request.user.is_superuser or is_company_admin %}
-                    <div class="nav-group">
+                 <div class="nav-group">
 
-                        <div class="nav-item">
-                            <span>📂</span> Project Management
-                        </div>
+                    <a href="{% url 'admin_project_list' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_project_list' %}active{% endif %}">
+                        <span>📂</span> Project Management
+                    </a>
 
-                        <div class="nav-submenu">
+                    <div class="nav-submenu">
 
-                            <a href="{% url 'admin_project_list' %}" class="nav-subitem">
-                                <span>📂</span> Active Projects
-                            </a>
+                        <a href="{% url 'admin_project_list' %}?status=active" class="nav-subitem">
+                         <span>📂</span> Active Projects
+                        </a>
 
-                            <a href="{% url 'admin_archived_projects' %}" class="nav-subitem">
-                                <span>📂</span> Archived Projects
-                            </a>
+                        <a href="{% url 'admin_archived_projects' %}" class="nav-subitem">
+                            <span>📂</span> Archived Projects
+                        </a>
 
-                        </div>
+                </div>
 
-                    </div>
-
+            </div>
                 {% else %}
 
                     <a href="{% url 'project_list' %}" class="nav-item">
@@ -369,5 +368,32 @@
     }
 
     </script>
+
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('notificationButton');
+        const menu = document.getElementById('notificationMenu');
+
+        if (btn && menu) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                    menu.classList.remove('show');
+                }
+            });
+        }
+    });
+    </script>
 </body>
+
+
+
+
+
 </html>

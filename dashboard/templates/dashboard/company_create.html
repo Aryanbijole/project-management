@@ -4,79 +4,88 @@
 
 {% block content %}
 
-<h2>Create Company</h2>
-
-<form method="post">
-
-    {% csrf_token %}
-
-    <div class="form-group">
-
-        <label>Company Name</label>
-
-        <input
-            type="text"
-            name="name"
-            class="form-control"
-            required
-        >
-
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Create Company</h2>
+        <p class="page-subtitle">Set up a new company and its administrator account.</p>
     </div>
+</div>
 
-    <hr>
+<div class="glass-card" style="max-width: 640px;">
 
-    <h4>Company Administrator</h4>
+    <form method="post" class="django-form">
 
-    <div class="form-group">
-        <label>First Name</label>
-        <input
-            type="text"
-            name="admin_first_name"
-            class="form-control"
-            required
-        >
-    </div>
+        {% csrf_token %}
 
-    <div class="form-group">
-        <label>Last Name</label>
-        <input
-            type="text"
-            name="admin_last_name"
-            class="form-control"
-        >
-    </div>
+        <div class="form-group">
 
-    <div class="form-group">
-        <label>Email</label>
-        <input
-            type="email"
-            name="admin_email"
-            class="form-control"
-            required
-        >
-    </div>
+            <label>Company Name</label>
 
-    <div class="form-group">
-        <label>Password</label>
-        <input
-            type="password"
-            name="admin_password"
-            class="form-control"
-            required
-        >
-    </div>
+            <input
+                type="text"
+                name="name"
+                class="form-control"
+                required
+            >
 
-    <br>
+        </div>
 
-    <button class="btn btn-primary">
-        Create Company
-    </button>
+        <div class="form-divider-heading">Company Administrator</div>
 
-    <a href="{% url 'admin_company_list' %}"
-       class="btn btn-secondary">
-        Cancel
-    </a>
+        <div class="form-group">
+            <label>First Name</label>
+            <input
+                type="text"
+                name="admin_first_name"
+                class="form-control"
+                required
+            >
+        </div>
 
-</form>
+        <div class="form-group">
+            <label>Last Name</label>
+            <input
+                type="text"
+                name="admin_last_name"
+                class="form-control"
+            >
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input
+                type="email"
+                name="admin_email"
+                class="form-control"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input
+                type="password"
+                name="admin_password"
+                class="form-control"
+                required
+            >
+        </div>
+
+        <div class="form-actions">
+
+            <button class="btn btn-primary">
+                Create Company
+            </button>
+
+            <a href="{% url 'admin_company_list' %}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
 
 {% endblock %}
