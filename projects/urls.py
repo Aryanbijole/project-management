@@ -128,4 +128,23 @@ path(
     name="completed_projects"
 ),
 
+
+path(
+    "company/projects/",
+    views.company_project_list,
+    name="company_project_list",
+),
+
+path(
+    "company/projects/create/",
+    views.company_project_create,
+    name="company_project_create",
+),
+
+path(
+    "company/projects/<int:project_id>/",
+    views.company_project_detail,
+    name="company_project_detail",
+),
+
 ]

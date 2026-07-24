@@ -477,8 +477,17 @@ def task_detail(request, project_id, task_id):
     )
 
     time_entries = TimeEntry.objects.filter(
-        task=task
-    ).order_by('-created_at')
+        task=task,
+        is_manual=False
+    ).exclude(
+        start_time__isnull=True
+    ).order_by("-start_time")
+
+
+    manual_entries = TimeEntry.objects.filter(
+        task=task,
+        is_manual=True
+    ).order_by("-created_at")
 
     if request.method == 'POST':
 
@@ -507,11 +516,13 @@ def task_detail(request, project_id, task_id):
         )
     
     running_timer = TimeEntry.objects.filter(
-    task=task,
-    user=request.user,
-    end_time__isnull=True,
-    is_manual=False
-     ).first()
+        task=task,
+        user=request.user,
+        start_time__isnull=False,
+        end_time__isnull=True,
+        is_manual=False
+    ).order_by("-start_time").first()
+
 
     return render(
         request,
@@ -524,6 +535,7 @@ def task_detail(request, project_id, task_id):
             'checklist_items': task.checklist_items.all(),
             'attachments': task.attachments.all(),
             'time_entries': time_entries,
+            "manual_entries": manual_entries,      # manual log entries
             'running_timer': running_timer,
         }
     )
@@ -1044,7 +1056,8 @@ def log_time(request, project_id, task_id):
             task=task,
             user=request.user,
             hours=request.POST.get("hours"),
-            note=request.POST.get("note")
+            note=request.POST.get("note"),
+            is_manual=True
         )
 
     return redirect(

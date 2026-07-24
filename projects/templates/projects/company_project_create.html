@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Project
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📁 Create Project</h1>
+        <p class="page-subtitle">Set up a new project for your organization</p>
+    </div>
+</div>
+
+<div class="glass-card">
+    <form method="post" class="django-form">
+
+        {% csrf_token %}
+
+        {% if is_superuser_panel %}
+
+        <div class="mb-3">
+
+            <label>Company</label>
+
+            <select
+                name="company"
+                class="form-control"
+                onchange="window.location='?company='+this.value">
+
+                <option value="">
+                    Select Company
+                </option>
+
+                {% for c in companies %}
+
+                <option
+                    value="{{ c.id }}"
+                    {% if selected_company == c.id|stringformat:"s" %}
+                    selected
+                    {% endif %}
+                >
+
+                    {{ c.name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        {% if not selected_company %}
+
+            <div class="alert alert-warning">
+
+                Please select a company first.
+
+            </div>
+
+        {% endif %}
+
+        {% else %}
+
+        <div class="mb-3">
+
+            <label>Company</label>
+
+            <input
+                class="form-control"
+                value="{{ company.name }}"
+                readonly>
+
+        </div>
+
+        {% endif %}
+
+        {% if selected_company or not is_superuser_panel %}
+
+            {{ form.as_p }}
+
+            <button class="btn btn-primary">
+
+                Create Project
+
+            </button>
+
+            <a href="{% url 'company_project_list' %}"
+               class="btn btn-secondary">
+
+                Cancel
+
+            </a>
+
+        {% endif %}
+
+    </form>
+</div>
+
+{% endblock %}

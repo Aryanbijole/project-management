@@ -96,49 +96,52 @@
 
     <div class="mb-3">
 
-        <label class="form-label">
-            Members
-        </label>
+    <label class="form-label">
+        Members
+    </label>
 
-        {% if users %}
+    {% if users %}
 
-        <div class="member-select-list">
+    <select
+        name="members"
+        class="form-control"
+        multiple
+        size="8"
+        required
+    >
 
-            {% for user in users %}
+        {% for user in users %}
 
-            <option value="{{ user.id }}">
+        <option value="{{ user.id }}">
+            {{ user.first_name }} {{ user.last_name }}
+            ({{ user.email }})
+        </option>
 
-                {{ user.first_name }}
-                {{ user.last_name }}
-                ({{ user.email }})
+        {% endfor %}
 
-            </option>
+    </select>
 
-            {% endfor %}
+    <small class="text-muted">
+        Hold <strong>Ctrl</strong> (Windows) or
+        <strong>Cmd</strong> (Mac)
+        to select multiple members.
+    </small>
 
-        </select>
+    {% else %}
 
-        <small class="text-muted">
+    <div class="alert alert-warning">
 
-            Hold Ctrl (Windows) or Cmd (Mac) to select multiple members.
-
-        </small>
-
+        {% if is_superuser_panel %}
+            Please select a company first.
         {% else %}
-
-        <div class="alert alert-warning">
-
-            {% if is_superuser_panel %}
-                Please select a company first.
-            {% else %}
-                No users available in this company.
-            {% endif %}
-
-        </div>
-
+            No users available in this company.
         {% endif %}
 
     </div>
+
+    {% endif %}
+
+</div>
 
 
         <div class="form-actions">

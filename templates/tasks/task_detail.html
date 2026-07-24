@@ -194,7 +194,7 @@
         <div class="glass-card">
             <div class="section-card-title">📋 Logged Time Entries</div>
 
-            {% for entry in time_entries %}
+            {% for entry in manual_entries %}
             <div class="time-entry-item">
                 <strong>{{ entry.user.email }}</strong>
                 <p>{{ entry.hours }} hours</p>

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Project Details{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2 class="page-title">{{ project.name }}</h2>
+        <p class="page-subtitle">{{ project.company.name }}</p>
+    </div>
+
+    
+</div>
+
+<div class="stats-grid grid-cols-4">
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Total Tasks</span>
+            <span class="stat-icon icon-blue">📋</span>
+        </div>
+        <span class="stat-value">{{ total_tasks }}</span>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Completed</span>
+            <span class="stat-icon icon-green">✅</span>
+        </div>
+        <span class="stat-value" style="color: var(--success);">{{ completed_tasks }}</span>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Pending</span>
+            <span class="stat-icon icon-amber">⏳</span>
+        </div>
+        <span class="stat-value" style="color: var(--warning);">{{ pending_tasks }}</span>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Completion</span>
+            <span class="stat-icon icon-purple">📈</span>
+        </div>
+        <span class="stat-value" style="color: var(--accent);">{{ progress }}%</span>
+    </div>
+
+</div>
+
+<div class="glass-card progress-card">
+    <div class="section-card-title">
+        Project Progress
+        <span class="role-count">{{ progress }}%</span>
+    </div>
+    <div class="progress-bar-track">
+        <div class="progress-bar-fill" style="width: {{ progress }}%;"></div>
+    </div>
+</div>
+
+<div class="grid-cols-2">
+
+    <div class="glass-card">
+        <div class="section-card-title">Project Information</div>
+
+        <ul class="stacked-list">
+            <li class="group-item">
+                <span class="group-item-meta">Company</span>
+                <div class="group-item-name">{{ project.company.name }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Owner</span>
+                <div class="group-item-name">
+                    {% if project.owner %}
+                        {{ project.owner.get_full_name|default:project.owner.email }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}
+                </div>
+            </li>
+
+            
+
+            <li class="group-item">
+                <span class="group-item-meta">Created On</span>
+                <div class="group-item-name">{{ project.created_at|date:"d M Y H:i" }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Status</span>
+                <div class="group-item-name">{{ project.get_status_display }}</div>
+            </li>
+
+            <li class="group-item">
+                <span class="group-item-meta">Visibility</span>
+                <div class="group-item-name">{{ project.get_visibility_display }}</div>
+            </li>
+
+            
+        </ul>
+    </div>
+
+    <div>
+        <div class="glass-card">
+            <div class="section-card-title">Description</div>
+            <p class="task-card-desc">{{ project.description|default:"No description available." }}</p>
+        </div>
+
+        <div class="glass-card project-tools-card" style="grid-column: unset;">
+            <div class="section-card-title">Project Members</div>
+
+            <div class="project-member-list">
+                {% for member in project.members.all %}
+                    <div class="user-row">
+                        <div class="user-row-info">
+                            <span class="user-avatar user-avatar-sm">{{ member.get_full_name|default:member.email|first|upper }}</span>
+                            <span class="user-row-name">{{ member.get_full_name|default:member.email }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="empty-hint">No members assigned.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="table-card reports-tables-grid">
+    <div class="section-card-title" style="padding: 20px 24px 0;">Recent Tasks</div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for task in recent_tasks %}
+            <tr>
+                <td class="task-card-title" style="font-size: 0.92rem;">{{ task.title }}</td>
+                <td>
+                    <span class="priority-badge
+                        {% if task.priority == 'high' %}priority-high
+                        {% elif task.priority == 'medium' %}priority-medium
+                        {% else %}priority-low{% endif %}">
+                        {{ task.get_priority_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge status-{{ task.status }}">
+                        {{ task.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if task.assigned_to %}
+                        <div class="task-assignee">
+                            <span class="user-avatar user-avatar-sm">{{ task.assigned_to.get_full_name|default:task.assigned_to.email|first|upper }}</span>
+                            {{ task.assigned_to.get_full_name|default:task.assigned_to.email }}
+                        </div>
+                    {% else %}
+                        <span class="task-unassigned">Unassigned</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">
+                    <div class="empty-state">
+                        <h4>No tasks found</h4>
+                        <p>Tasks added to this project will show up here.</p>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

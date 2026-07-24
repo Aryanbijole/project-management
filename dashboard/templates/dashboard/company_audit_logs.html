@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Company Audit Logs{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📜 Company Audit Logs</h1>
+        <p class="page-subtitle">
+            View activities performed inside your organization.
+        </p>
+    </div>
+</div>
+
+<div class="glass-card">
+
+    <form method="GET" class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <input
+                type="text"
+                name="q"
+                value="{{ search }}"
+                class="form-control"
+                placeholder="Search activity...">
+        </div>
+
+        <div class="col-md-3">
+
+            <select
+                name="action"
+                class="form-select">
+
+                <option value="">All Actions</option>
+
+                <option value="CREATE"
+                    {% if action == "CREATE" %}selected{% endif %}>
+                    Create
+                </option>
+
+                <option value="UPDATE"
+                    {% if action == "UPDATE" %}selected{% endif %}>
+                    Update
+                </option>
+
+                <option value="DELETE"
+                    {% if action == "DELETE" %}selected{% endif %}>
+                    Delete
+                </option>
+
+                <option value="LOGIN"
+                    {% if action == "LOGIN" %}selected{% endif %}>
+                    Login
+                </option>
+
+                <option value="LOGOUT"
+                    {% if action == "LOGOUT" %}selected{% endif %}>
+                    Logout
+                </option>
+
+                <option value="UPLOAD"
+                    {% if action == "UPLOAD" %}selected{% endif %}>
+                    Upload
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <button
+                class="btn btn-primary w-100">
+
+                Search
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<div class="table-card mt-4">
+
+    <div class="section-card-title">
+
+        Recent Activity
+
+    </div>
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+
+                <th>Date</th>
+
+                <th>User</th>
+
+                <th>Module</th>
+
+                <th>Action</th>
+
+                <th>Description</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for log in logs %}
+
+            <tr>
+
+                <td>
+
+                    {{ log.created_at|date:"d M Y H:i" }}
+
+                </td>
+
+                <td>
+
+                    {% if log.user %}
+
+                        <div class="task-assignee">
+
+                            <span class="user-avatar user-avatar-sm">
+
+                                {{ log.user.get_full_name|default:log.user.email|first|upper }}
+
+                            </span>
+
+                            {{ log.user.get_full_name|default:log.user.email }}
+
+                        </div>
+
+                    {% else %}
+
+                        System
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {{ log.module }}
+
+                </td>
+
+                <td>
+
+                    {% if log.action == "CREATE" %}
+
+                        <span class="status-badge status-done">
+
+                            Create
+
+                        </span>
+
+                    {% elif log.action == "UPDATE" %}
+
+                        <span class="priority-badge priority-medium">
+
+                            Update
+
+                        </span>
+
+                    {% elif log.action == "DELETE" %}
+
+                        <span class="priority-badge priority-high">
+
+                            Delete
+
+                        </span>
+
+                    {% elif log.action == "LOGIN" %}
+
+                        <span class="status-badge">
+
+                            Login
+
+                        </span>
+
+                    {% elif log.action == "LOGOUT" %}
+
+                        <span class="status-badge status-blocked">
+
+                            Logout
+
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge">
+
+                            {{ log.action }}
+
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {{ log.description }}
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="5">
+
+                    <div class="empty-state">
+
+                        <h4>No Audit Logs Found</h4>
+
+                        <p>
+
+                            Activities inside your company will appear here.
+
+                        </p>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<div class="glass-card mt-4">
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <div>
+
+            {% if logs.has_previous %}
+
+                <a
+                    class="btn btn-secondary"
+                    href="?page={{ logs.previous_page_number }}&q={{ search }}&action={{ action }}">
+
+                    ← Previous
+
+                </a>
+
+            {% endif %}
+
+        </div>
+
+        <div>
+
+            Page
+
+            <strong>
+
+                {{ logs.number }}
+
+            </strong>
+
+            of
+
+            <strong>
+
+                {{ logs.paginator.num_pages }}
+
+            </strong>
+
+        </div>
+
+        <div>
+
+            {% if logs.has_next %}
+
+                <a
+                    class="btn btn-primary"
+                    href="?page={{ logs.next_page_number }}&q={{ search }}&action={{ action }}">
+
+                    Next →
+
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

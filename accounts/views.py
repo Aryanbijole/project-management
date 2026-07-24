@@ -19,6 +19,7 @@ from accounts.decorators import (
 from audit.utils import create_audit_log
 from communication.models import GroupMessage
 from .models import Group
+from dashboard.permissions import has_company_permission
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -261,6 +262,40 @@ def dashboard_view(request):
             .order_by("-created_at")[:10]
         )
 
+    # ------------------------------------------
+    # Custom Role Permissions
+    # ------------------------------------------
+
+    can_create_projects = False
+    can_invite_members = False
+    can_view_reports = False
+    can_view_audit_logs = False
+
+    if selected_company:
+        can_create_projects = has_company_permission(
+            request.user,
+            selected_company,
+            "can_create_projects",
+        )
+
+        can_invite_members = has_company_permission(
+            request.user,
+            selected_company,
+            "can_invite_members",
+        )
+
+        can_view_reports = has_company_permission(
+            request.user,
+            selected_company,
+            "can_view_reports",
+        )
+
+        can_view_audit_logs = has_company_permission(
+            request.user,
+            selected_company,
+            "can_view_audit_logs",
+        )    
+
     return render(request, 'accounts/dashboard.html', {
         'companies': companies,
         'projects': projects,
@@ -277,6 +312,10 @@ def dashboard_view(request):
             if selected_company
             else None
         ),
+        "can_create_projects": can_create_projects,
+        "can_invite_members": can_invite_members,
+        "can_view_reports": can_view_reports,
+        "can_view_audit_logs": can_view_audit_logs,
     })
 
 

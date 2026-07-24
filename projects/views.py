@@ -16,8 +16,16 @@ from django.db.models import Q
 from accounts.models import Notification
 from .forms import ProjectDocumentForm
 from django.http import FileResponse
+from projects.forms import ProjectForm
+from audit.models import AuditLog
 from accounts.decorators import company_required
+from audit.utils import create_audit_log
 from accounts.models import CompanyMembership
+from dashboard.permissions import has_company_permission
+from dashboard.permissions import (
+    can_create_projects,
+    
+)
 
 
 class ProjectListView(ListView):
@@ -1587,4 +1595,131 @@ def all_projects(request):
         {
             "projects": projects,
         }
+    )
+
+@login_required
+@company_required
+def company_project_list(request):
+
+    company = request.current_company
+
+    projects = (
+        Project.objects.filter(
+            company=company,
+            is_archived=False,
+        )
+        .select_related(
+            "company",
+            "owner",
+            "created_by",
+        )
+        .order_by("-created_at")
+    )
+
+    search = request.GET.get("search", "")
+
+    if search:
+        projects = projects.filter(
+            Q(name__icontains=search)
+        )
+
+    can_create_projects = has_company_permission(
+        request.user,
+        company,
+        "can_create_projects",
+    )
+
+    return render(
+        request,
+        "projects/company_project_list.html",
+        {
+            "projects": projects,
+            "can_create_projects": can_create_projects,
+        },
+    )
+
+
+@login_required
+@company_required
+@can_create_projects
+def company_project_create(request):
+
+    company = request.current_company
+
+    if request.method == "POST":
+
+        form = ProjectForm(
+            request.POST,
+            company=company,
+        )
+
+        if form.is_valid():
+
+            project_name = form.cleaned_data["name"].strip()
+
+            if Project.objects.filter(
+                company=company,
+                name__iexact=project_name,
+            ).exists():
+
+                messages.error(
+                    request,
+                    "A project with this name already exists.",
+                )
+
+            else:
+
+                project = form.save(commit=False)
+
+                project.company = company
+
+                project.created_by = request.user
+
+                project.save()
+
+                form.save_m2m()
+
+                create_audit_log(
+                    request,
+                    module="Project",
+                    action="CREATE",
+                    description=f"Created project '{project.name}'",
+                )
+
+                messages.success(
+                    request,
+                    "Project created successfully.",
+                )
+
+                return redirect("company_project_list")
+
+    else:
+
+        form = ProjectForm(company=company)
+
+    return render(
+        request,
+        "projects/company_project_create.html",
+        {
+            "form": form,
+            "company": company,
+        },
+    )
+
+@login_required
+@company_required
+def company_project_detail(request, project_id):
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        company=request.current_company,
+    )
+
+    return render(
+        request,
+        "projects/company_project_detail.html",
+        {
+            "project": project,
+        },
     )
