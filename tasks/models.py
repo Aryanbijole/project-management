@@ -117,6 +117,12 @@ class TaskAttachment(models.Model):
         upload_to='task_attachments/'
     )
 
+    # NEW FIELD
+    original_name = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
     uploaded_by = models.ForeignKey(
         'accounts.User',
         on_delete=models.SET_NULL,
@@ -128,7 +134,7 @@ class TaskAttachment(models.Model):
     )
 
     def __str__(self):
-        return self.file.name
+        return self.original_name if self.original_name else self.file.name
 
 class ChecklistItem(models.Model):
     task = models.ForeignKey(

@@ -643,11 +643,14 @@ def upload_attachment(request, project_id, task_id):
 
         if uploaded_file:
 
-            TaskAttachment.objects.create(
+            attachment = TaskAttachment.objects.create(
                 task=task,
-                file=uploaded_file,
-                uploaded_by=request.user
+                uploaded_by=request.user,
+                original_name=uploaded_file.name,
             )
+
+            attachment.file = uploaded_file
+            attachment.save()
 
             messages.success(
                 request,

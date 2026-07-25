@@ -104,7 +104,7 @@
             <ul class="attachment-list">
                 {% for attachment in attachments %}
                 <li class="attachment-item">
-                    <a href="{{ attachment.file.url }}">📄 {{ attachment.file.name }}</a>
+                    <a href="{{ attachment.file.url }}">📄 {{ attachment.original_name|default:attachment.file.name }}</a>
                 </li>
                 {% endfor %}
             </ul>
