@@ -14,6 +14,10 @@ from pathlib import Path
 from decouple import config
 import cloudinary
 import dj_database_url
+import cloudinary.uploader
+import cloudinary.api
+import dj_database_url
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,8 +81,7 @@ ROOT_URLCONF = 'pm_platform.urls'
 
 
 
-import dj_database_url
-from decouple import config
+
 
 DATABASE_URL = config("DATABASE_URL", default="")
 
@@ -200,7 +203,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 STORAGES = {
     "default": {
-        "BACKEND": "pm_platform.storage.backends.CloudinaryStorage",
+        "BACKEND": "pm_platform.backends.CloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
