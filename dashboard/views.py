@@ -393,14 +393,20 @@ def user_edit(request, user_id):
 
         return redirect("admin_users")
     
-    
+    if request.user.is_superuser:
+        roles = Role.objects.all().order_by("company__name", "name")
+    else:
+        roles = Role.objects.filter(
+            company=company
+        ).order_by("name")
+
 
     return render(
         request,
         "dashboard/user_edit.html",
         {
             "user_obj": user_obj,
-            "roles": Role.objects.all(),
+            "roles": roles,
         },
     )
 
@@ -1138,9 +1144,15 @@ def group_create(request):
                 .order_by("first_name", "last_name")
             )
 
+            projects = (
+                Project.objects.filter(company=selected_company)
+                .order_by("name")
+            )
+
         else:
 
             users = User.objects.none()
+            projects = Project.objects.none()
 
     # -----------------------------
     # Company Admin
@@ -1178,6 +1190,11 @@ def group_create(request):
             .order_by("first_name", "last_name")
         )
 
+        projects = (
+            Project.objects.filter(company=selected_company)
+            .order_by("name")
+        )
+
     # -----------------------------
     # Create Group
     # -----------------------------
@@ -1192,14 +1209,17 @@ def group_create(request):
 
             return redirect("admin_group_create")
 
+        project_id = request.POST.get("project")
+
         group = Group.objects.create(
 
             name=request.POST.get("name").strip(),
 
             company=selected_company,
 
-        )
+            project_id=project_id,
 
+        )
         member_ids = request.POST.getlist("members")
 
         if member_ids:
@@ -1227,6 +1247,7 @@ def group_create(request):
             "company": selected_company,
             "companies": companies,
             "users": users,
+            "projects": projects,
             "selected_company": company_id,
             "is_superuser_panel": request.user.is_superuser,
         },
