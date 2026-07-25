@@ -1224,11 +1224,11 @@ def download_document(request, document_id):
     # Download
     # --------------------------------------------------
 
-    return FileResponse(
-        document.file.open("rb"),
-        as_attachment=True,
-        filename=document.filename,
-    )
+    # --------------------------------------------------
+    # Download
+    # --------------------------------------------------
+
+    return redirect(document.file.url)
 
 @login_required
 @company_required
