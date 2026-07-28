@@ -1,139 +1,104 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Role{% endblock %}
+{% block title %}Edit Custom Role{% endblock %}
 
 {% block content %}
 
-<div class="container mt-4">
-
-<h2>Edit Custom Role</h2>
-
-<form method="post">
-
-{% csrf_token %}
-
-<div class="mb-3">
-<label>Role Name</label>
-<input
-type="text"
-name="name"
-class="form-control"
-value="{{ role.name }}"
-required>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔐 Edit Custom Role</h1>
+        <p class="page-subtitle">Update role details and permissions</p>
+    </div>
 </div>
 
-<div class="mb-4">
-<label>Description</label>
-<textarea
-name="description"
-class="form-control"
-rows="3">{{ role.description }}</textarea>
-</div>
+<div class="glass-card">
+    <form method="post">
 
-<hr>
+        {% csrf_token %}
 
-<h4>Project Permissions</h4>
+        <div class="form-group">
+            <label>Role Name</label>
+            <input
+                type="text"
+                name="name"
+                class="form-control"
+                value="{{ role.name }}"
+                required>
+        </div>
 
-<div class="form-check">
-<input class="form-check-input"
-type="checkbox"
-name="can_create_projects"
-{% if role.can_create_projects %}checked{% endif %}>
-<label class="form-check-label">
-Create Projects
-</label>
-</div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea
+                name="description"
+                class="form-control"
+                rows="3">{{ role.description }}</textarea>
+        </div>
 
-<div class="form-check mb-3">
-<input class="form-check-input"
-type="checkbox"
-name="can_edit_projects"
-{% if role.can_edit_projects %}checked{% endif %}>
-<label class="form-check-label">
-Edit Projects
-</label>
-</div>
+        <div class="form-divider-heading">📁 Project Permissions</div>
 
-<hr>
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_create_projects" {% if role.can_create_projects %}checked{% endif %}>
+                <span>➕ Create Projects</span>
+            </label>
 
-<h4>Task Permissions</h4>
+            <label class="permission-check">
+                <input type="checkbox" name="can_edit_projects" {% if role.can_edit_projects %}checked{% endif %}>
+                <span>✏️ Edit Projects</span>
+            </label>
+        </div>
 
-<div class="form-check">
-<input class="form-check-input"
-type="checkbox"
-name="can_create_tasks"
-{% if role.can_create_tasks %}checked{% endif %}>
-<label class="form-check-label">
-Create Tasks
-</label>
-</div>
+        <div class="form-divider-heading">✅ Task Permissions</div>
 
-<div class="form-check mb-3">
-<input class="form-check-input"
-type="checkbox"
-name="can_edit_tasks"
-{% if role.can_edit_tasks %}checked{% endif %}>
-<label class="form-check-label">
-Edit Tasks
-</label>
-</div>
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_create_tasks" {% if role.can_create_tasks %}checked{% endif %}>
+                <span>➕ Create Tasks</span>
+            </label>
 
-<hr>
+            <label class="permission-check">
+                <input type="checkbox" name="can_edit_tasks" {% if role.can_edit_tasks %}checked{% endif %}>
+                <span>✏️ Edit Tasks</span>
+            </label>
+        </div>
 
-<h4>Communication</h4>
+        <div class="form-divider-heading">🤝 Communication</div>
 
-<div class="form-check">
-<input class="form-check-input"
-type="checkbox"
-name="can_upload_files"
-{% if role.can_upload_files %}checked{% endif %}>
-<label class="form-check-label">
-Upload Files
-</label>
-</div>
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_upload_files" {% if role.can_upload_files %}checked{% endif %}>
+                <span>📎 Upload Files</span>
+            </label>
 
-<div class="form-check">
-<input class="form-check-input"
-type="checkbox"
-name="can_invite_members"
-{% if role.can_invite_members %}checked{% endif %}>
-<label class="form-check-label">
-Invite Members
-</label>
-</div>
+            <label class="permission-check">
+                <input type="checkbox" name="can_invite_members" {% if role.can_invite_members %}checked{% endif %}>
+                <span>✉️ Invite Members</span>
+            </label>
+        </div>
 
-<hr>
+        <div class="form-divider-heading">📊 Reports</div>
 
-<h4>Reports</h4>
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_view_reports" {% if role.can_view_reports %}checked{% endif %}>
+                <span>📊 View Reports</span>
+            </label>
 
-<div class="form-check">
-<input class="form-check-input"
-type="checkbox"
-name="can_view_reports"
-{% if role.can_view_reports %}checked{% endif %}>
-<label class="form-check-label">
-View Reports
-</label>
-</div>
+            <label class="permission-check">
+                <input type="checkbox" name="can_view_audit_logs" {% if role.can_view_audit_logs %}checked{% endif %}>
+                <span>📋 View Audit Logs</span>
+            </label>
+        </div>
 
-<div class="form-check mb-4">
-<input class="form-check-input"
-type="checkbox"
-name="can_view_audit_logs"
-{% if role.can_view_audit_logs %}checked{% endif %}>
-<label class="form-check-label">
-View Audit Logs
-</label>
-</div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Update Role
+            </button>
 
-<button class="btn btn-success">
-Update Role
-</button>
-
-<a href="{% url 'admin_role_list' %}"
-class="btn btn-secondary">
-Cancel
-</a>
+            <a href="{% url 'admin_role_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
 
     </form>
 </div>

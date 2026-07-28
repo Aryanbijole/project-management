@@ -4,142 +4,82 @@
 
 {% block content %}
 
-<h2>Create Group</h2>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🧩 Create Group</h1>
+        <p class="page-subtitle">Organize users into a group</p>
+    </div>
+</div>
 
 {% if is_superuser_panel %}
-
-<form method="GET" class="mb-4">
-
-    <div class="mb-3">
-
-        <label class="form-label">
-            Company
-        </label>
-
-        <select
-            name="company"
-            class="form-control"
-            onchange="this.form.submit()">
-
-            <option value="">
-                Select Company
-            </option>
-
+<form method="GET" class="glass-card company-select-form">
+    <div class="form-group">
+        <label>Company</label>
+        <select name="company" class="form-control company-select" onchange="this.form.submit()">
+            <option value="">Select Company</option>
             {% for c in companies %}
-
-                <option
-                    value="{{ c.id }}"
-                    {% if selected_company == c.id|stringformat:"s" %}
-                        selected
-                    {% endif %}
-                >
-                    {{ c.name }}
-                </option>
-
+            <option value="{{ c.id }}" {% if selected_company == c.id|stringformat:"s" %}selected{% endif %}>
+                🏢 {{ c.name }}
+            </option>
             {% endfor %}
-
         </select>
-
     </div>
-
 </form>
-
 {% endif %}
 
+<div class="glass-card">
+    <form method="POST">
 
-<form method="POST">
+        {% csrf_token %}
 
-    {% csrf_token %}
+        {% if is_superuser_panel %}
+            <input type="hidden" name="company" value="{{ selected_company }}">
+        {% endif %}
 
-    {% if is_superuser_panel %}
+        <div class="form-group">
+            <label>Group Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Engineering Team" required>
+        </div>
 
-        <input
-            type="hidden"
-            name="company"
-            value="{{ selected_company }}">
+        {% if not is_superuser_panel %}
+        <div class="form-group">
+            <label>Company</label>
+            <input type="text" class="form-control" value="{{ company.name }}" readonly>
+        </div>
+        {% endif %}
 
-    {% endif %}
-
-    <div class="mb-3">
-
-        <label class="form-label">
-            Group Name
-        </label>
-
-        <input
-            type="text"
-            name="name"
-            class="form-control"
-            required>
-
-    </div>
-
-
-    {% if not is_superuser_panel %}
-
-    <div class="mb-3">
-
-        <label class="form-label">
-            Company
-        </label>
-
-        <input
-            type="text"
-            class="form-control"
-            value="{{ company.name }}"
-            readonly>
-
-    </div>
-
-    {% endif %}
-
-
-    <div class="mb-3">
-
-        <label class="form-label">
-            Members
-        </label>
+        <div class="form-divider-heading">Members</div>
 
         {% if users %}
 
         <div class="member-select-list">
-
             {% for user in users %}
-
-            <option value="{{ user.id }}">
-
-                {{ user.first_name }}
-                {{ user.last_name }}
-                ({{ user.email }})
-
-            </option>
-
+            <label class="member-check">
+                <input type="checkbox" name="members" value="{{ user.id }}">
+                <div class="user-avatar user-avatar-sm">
+                    {{ user.first_name|slice:":1"|upper|default:user.email|slice:":1"|upper }}
+                </div>
+                <div class="member-check-info">
+                    <div class="member-check-name">
+                        {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.email }}{% endif %}
+                    </div>
+                    <div class="member-check-email">{{ user.email }}</div>
+                </div>
+            </label>
             {% endfor %}
-
-        </select>
-
-        <small class="text-muted">
-
-            Hold Ctrl (Windows) or Cmd (Mac) to select multiple members.
-
-        </small>
+        </div>
 
         {% else %}
 
         <div class="alert alert-warning">
-
             {% if is_superuser_panel %}
                 Please select a company first.
             {% else %}
                 No users available in this company.
             {% endif %}
-
         </div>
 
         {% endif %}
-
-    </div>
-
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">

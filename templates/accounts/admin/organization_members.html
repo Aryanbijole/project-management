@@ -4,46 +4,37 @@
 
 {% block content %}
 
-<div class="container">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <div>
-            <h2>🏢 Organization Members</h2>
-
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🏢 Organization Members</h1>
+        <p class="page-subtitle">
             {% if not is_superuser_panel %}
-                <p class="text-muted mb-0">
-                    {{ company.name }}
-                </p>
+                {{ company.name }}
             {% else %}
-                <p class="text-muted mb-0">
-                    All Companies
-                </p>
+                All Companies
             {% endif %}
-        </div>
-
+        </p>
     </div>
 
-    <table class="table">
+    {% if memberships %}
+    <span class="role-count">{{ memberships|length }} member{{ memberships|length|pluralize }}</span>
+    {% endif %}
+</div>
+
+<div class="table-card">
+
+    <table class="table role-table">
 
         <thead>
-
             <tr>
-
                 <th>Name</th>
-
                 <th>Email</th>
-
                 <th>Role</th>
-
                 {% if is_superuser_panel %}
                     <th>Company</th>
                 {% endif %}
-
-                <th width="170">Actions</th>
-
+                <th>Actions</th>
             </tr>
-
         </thead>
 
         <tbody>
@@ -53,54 +44,31 @@
         <tr>
 
             <td>
-
-                {{ membership.user.first_name }}
-                {{ membership.user.last_name }}
-
+                <div class="role-name-cell">
+                    <div class="user-avatar user-avatar-sm">
+                        {{ membership.user.first_name|slice:":1"|upper|default:membership.user.email|slice:":1"|upper }}
+                    </div>
+                    {{ membership.user.first_name }} {{ membership.user.last_name }}
+                </div>
             </td>
 
-            <td>
-
-                {{ membership.user.email }}
-
-            </td>
+            <td>{{ membership.user.email }}</td>
 
             <td>
-
-                {{ membership.get_role_display }}
-
+                <span class="status-badge status-active">{{ membership.get_role_display }}</span>
             </td>
 
             {% if is_superuser_panel %}
-
-            <td>
-
-                {{ membership.company.name }}
-
-            </td>
-
+            <td>{{ membership.company.name }}</td>
             {% endif %}
 
             <td>
-
-                <a href="{% url 'organization_member_edit' membership.id %}"
-                   class="btn btn-warning btn-sm">
-
-                    Edit
-
-                </a>
-
-                {% if not membership.user.is_superuser %}
-
-                <a href="{% url 'organization_member_delete' membership.id %}"
-                   class="btn btn-danger btn-sm">
-
-                    Remove
-
-                </a>
-
-                {% endif %}
-
+                <div class="row-actions">
+                    <a href="{% url 'organization_member_edit' membership.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                    {% if not membership.user.is_superuser %}
+                    <a href="{% url 'organization_member_delete' membership.id %}" class="btn btn-danger btn-sm">Remove</a>
+                    {% endif %}
+                </div>
             </td>
 
         </tr>
@@ -108,17 +76,13 @@
         {% empty %}
 
         <tr>
-
-            {% if is_superuser_panel %}
-                <td colspan="5">
-            {% else %}
-                <td colspan="4">
-            {% endif %}
-
-                No organization members found.
-
+            <td colspan="{% if is_superuser_panel %}5{% else %}4{% endif %}">
+                <div class="empty-state">
+                    <h2>🏢</h2>
+                    <h4>No members found</h4>
+                    <p>Organization members will show up here.</p>
+                </div>
             </td>
-
         </tr>
 
         {% endfor %}

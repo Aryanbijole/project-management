@@ -1,245 +1,109 @@
 {% extends "base.html" %}
 
-{% block title %}Create Role{% endblock %}
+{% block title %}Create Custom Role{% endblock %}
 
 {% block content %}
 
-<div class="container">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔐 Create Custom Role</h1>
+        <p class="page-subtitle">Define a custom role and its permissions</p>
+    </div>
+</div>
 
-    <h2>Create Custom Role</h2>
-
+<div class="glass-card">
     <form method="post">
 
         {% csrf_token %}
 
         {% if is_superuser_panel %}
-
-        <div class="mb-3">
-
-            <label class="form-label">
-                Company
-            </label>
-
-            <select
-                name="company"
-                class="form-select"
-                required>
-
-                <option value="">
-                    Select Company
-                </option>
-
+        <div class="form-group">
+            <label>Company</label>
+            <select name="company" class="form-control" required>
+                <option value="">Select Company</option>
                 {% for company in companies %}
-
-                <option value="{{ company.id }}">
-                    {{ company.name }}
-                </option>
-
+                <option value="{{ company.id }}">{{ company.name }}</option>
                 {% endfor %}
-
             </select>
-
         </div>
-
         {% endif %}
 
+        <div class="form-group">
+            <label>Role Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Content Editor" required>
+        </div>
 
-        <div class="mb-3">
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="3" class="form-control" placeholder="What is this role for?"></textarea>
+        </div>
 
-            <label class="form-label">
-                Role Name
+        <div class="form-divider-heading">📁 Project Permissions</div>
+
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_create_projects">
+                <span>➕ Create Projects</span>
+            </label>
+        </div>
+
+        <div class="form-divider-heading">✅ Task Permissions</div>
+
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_create_tasks">
+                <span>➕ Create Tasks</span>
             </label>
 
-            <input
-                type="text"
-                name="name"
-                class="form-control"
-                required>
-
+            <label class="permission-check">
+                <input type="checkbox" name="can_edit_tasks">
+                <span>✏️ Edit Tasks</span>
+            </label>
         </div>
 
+        <div class="form-divider-heading">🤝 Collaboration</div>
 
-        <div class="mb-4">
-
-            <label class="form-label">
-                Description
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_upload_files">
+                <span>📎 Upload Files</span>
             </label>
 
-            <textarea
-                name="description"
-                rows="3"
-                class="form-control"></textarea>
-
+            <label class="permission-check">
+                <input type="checkbox" name="can_invite_members">
+                <span>✉️ Invite Members</span>
+            </label>
         </div>
 
-        <hr>
+        <div class="form-divider-heading">📊 Reports</div>
 
-        <h5>Project Permissions</h5>
-
-        <div class="form-check">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="can_create_projects"
-                id="create_projects">
-
-            <label
-                class="form-check-label"
-                for="create_projects">
-
-                Create Projects
-
+        <div class="permissions-grid">
+            <label class="permission-check">
+                <input type="checkbox" name="can_view_reports">
+                <span>📊 View Reports</span>
             </label>
 
-        </div>
-
-        <hr>
-
-        <h5>Task Permissions</h5>
-
-        <div class="form-check">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="can_create_tasks"
-                id="create_tasks">
-
-            <label
-                class="form-check-label"
-                for="create_tasks">
-
-                Create Tasks
-
+            <label class="permission-check">
+                <input type="checkbox" name="can_view_audit_logs">
+                <span>📋 View Audit Logs</span>
             </label>
-
         </div>
 
-        <div class="form-check">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="can_edit_tasks"
-                id="edit_tasks">
-
-            <label
-                class="form-check-label"
-                for="edit_tasks">
-
-                Edit Tasks
-
-            </label>
-
+        <div class="alert alert-warning persistent-alert">
+            <strong>Note:</strong> Custom roles cannot manage users, companies, groups, edit or delete projects, or perform any platform/company administration. Those permissions are reserved for Company Admins and Platform Superusers.
         </div>
 
-        <hr>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Create Role
+            </button>
 
-        <h5>Collaboration</h5>
-
-        <div class="form-check">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="can_upload_files"
-                id="upload_files">
-
-            <label
-                class="form-check-label"
-                for="upload_files">
-
-                Upload Files
-
-            </label>
-
+            <a href="{% url 'admin_role_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
         </div>
-
-        <div class="form-check">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="can_invite_members"
-                id="invite_members">
-
-            <label
-                class="form-check-label"
-                for="invite_members">
-
-                Invite Members
-
-            </label>
-
-        </div>
-
-        <hr>
-
-        <h5>Reports</h5>
-
-        <div class="form-check">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="can_view_reports"
-                id="view_reports">
-
-            <label
-                class="form-check-label"
-                for="view_reports">
-
-                View Reports
-
-            </label>
-
-        </div>
-
-        <div class="form-check mb-4">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="can_view_audit_logs"
-                id="audit_logs">
-
-            <label
-                class="form-check-label"
-                for="audit_logs">
-
-                View Audit Logs
-
-            </label>
-
-        </div>
-
-        <div class="alert alert-warning">
-
-            <strong>Note:</strong>
-
-            Custom roles cannot manage users, companies, groups, edit or delete projects, or perform any platform/company administration. Those permissions are reserved for Company Admins and Platform Superusers.
-
-        </div>
-
-        <button
-            type="submit"
-            class="btn btn-primary">
-
-            Create Role
-
-        </button>
-
-        <a
-            href="{% url 'admin_role_list' %}"
-            class="btn btn-secondary">
-
-            Cancel
-
-        </a>
 
     </form>
-
 </div>
 
 {% endblock %}
