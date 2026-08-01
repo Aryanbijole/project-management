@@ -4,8 +4,132 @@
 
 {% block content %}
 
+<style>
+    /* ============ Scrollable panels ============ */
+    .scroll-panel-outer { position:relative; }
+    .scroll-panel {
+        max-height: 260px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 6px;
+        margin-bottom: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--card-border, rgba(255,255,255,0.18)) transparent;
+    }
+    .scroll-panel-sm { max-height: 180px; }
+    .scroll-panel-lg { max-height: 340px; }
+    .scroll-panel::-webkit-scrollbar { width: 6px; }
+    .scroll-panel::-webkit-scrollbar-track { background: transparent; }
+    .scroll-panel::-webkit-scrollbar-thumb {
+        background: var(--card-border, rgba(255,255,255,0.18));
+        border-radius: 10px;
+    }
+    .scroll-panel::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted, rgba(255,255,255,0.35));
+    }
+    .scroll-panel-outer::after {
+        content: "";
+        position: absolute; left:0; right:6px; bottom:8px; height:24px;
+        background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.24));
+        pointer-events: none;
+        border-radius: 0 0 8px 8px;
+    }
+
+    /* ============ Page header ============ */
+    .dash-subtitle {
+        color: var(--text-muted, #9b9bb0);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    /* ============ Stat cards ============ */
+    .stat-card-link { text-decoration:none; color:inherit; display:block; }
+    .stat-card {
+        text-align:center;
+        position:relative;
+        overflow:hidden;
+        padding-top:26px !important;
+        transition: transform .22s ease, box-shadow .22s ease;
+    }
+    .stat-card::before {
+        content:"";
+        position:absolute; top:0; left:0; right:0; height:4px;
+        background: var(--stat-color, #7c6ff0);
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 14px 26px -10px rgba(0,0,0,0.4); }
+    .stat-card-icon {
+        width:44px; height:44px; margin:0 auto 12px;
+        display:flex; align-items:center; justify-content:center;
+        border-radius:12px; font-size:1.25rem;
+        background: var(--stat-tint, rgba(124,111,240,0.16));
+    }
+    .stat-card-value { font-size:2rem; font-weight:800; line-height:1.1; margin-bottom:2px; letter-spacing:-0.02em; }
+    .stat-card-label { font-size:0.75rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted,#9b9bb0); font-weight:600; }
+    .stat-indigo { --stat-color:#7c6ff0; --stat-tint:rgba(124,111,240,0.16); }
+    .stat-green  { --stat-color:#22c55e; --stat-tint:rgba(34,197,94,0.16); }
+    .stat-blue   { --stat-color:#38bdf8; --stat-tint:rgba(56,189,248,0.16); }
+    .stat-amber  { --stat-color:#f59e0b; --stat-tint:rgba(245,158,11,0.16); }
+    .stat-orange { --stat-color:#fb923c; --stat-tint:rgba(251,146,60,0.16); }
+    .stat-teal   { --stat-color:#2dd4bf; --stat-tint:rgba(45,212,191,0.16); }
+
+    /* ============ Section headers ============ */
+    .sct-title {
+        display:flex; align-items:center; gap:10px;
+        font-weight:700; font-size:1rem;
+        margin-bottom:16px; padding-bottom:14px;
+        border-bottom:1px solid var(--card-border, rgba(255,255,255,0.08));
+    }
+    .sct-icon {
+        width:30px; height:30px; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+        border-radius:9px; font-size:0.95rem;
+        background: rgba(124,111,240,0.16);
+    }
+    .sct-sub-heading {
+        font-weight:700; font-size:0.8rem; margin-bottom:12px; padding-top:14px;
+        border-top:1px solid var(--card-border, rgba(255,255,255,0.08));
+        color:var(--text-muted,#9b9bb0); text-transform:uppercase; letter-spacing:.04em;
+    }
+
+    /* ============ Empty states ============ */
+    .empty-state { text-align:center; padding:26px 10px; }
+    .empty-state-icon { font-size:1.7rem; margin-bottom:8px; opacity:.55; }
+    .empty-state p { margin:0; font-size:0.85rem; color:var(--text-muted,#9b9bb0); }
+
+    /* ============ List item polish (additive, no existing classes overridden) ============ */
+    .org-item { padding:8px 10px; border-radius:8px; transition: background .18s ease; }
+    .org-item:hover { background: rgba(124,111,240,0.08); }
+    .group-list-item:hover {
+        background: rgba(124,111,240,0.08) !important;
+        border-color: rgba(124,111,240,0.4) !important;
+        transform: translateX(2px);
+    }
+
+    /* ============ Project card polish ============ */
+    .project-card-link { position:relative; transition: transform .2s ease, box-shadow .2s ease; }
+    .project-card-link:hover { transform: translateY(-3px); box-shadow: 0 12px 22px -10px rgba(0,0,0,0.4); }
+    .project-card-meta span {
+        display:inline-flex; align-items:center; gap:4px;
+        background: rgba(124,111,240,0.1);
+        padding:3px 9px; border-radius:20px; font-size:0.75rem;
+        margin-right:6px;
+    }
+
+    /* ============ Activity feed polish ============ */
+    .activity-item { border-left:3px solid #7c6ff0 !important; transition: background .18s ease; }
+    .activity-item:hover { background: rgba(124,111,240,0.06) !important; }
+    .activity-time-pill {
+        background: rgba(124,111,240,0.12);
+        color:#b9b3f5;
+        padding:2px 8px; border-radius:20px; font-size:0.72rem;
+    }
+</style>
+
 <div style="margin-bottom: 32px;">
-    <h1 class="page-title">Welcome, {{ user.first_name }}!</h1>
+    <div style="margin-bottom:28px;">
+        <h1 class="page-title">Welcome, {{ user.first_name }}!</h1>
+        <div class="dash-subtitle">Here's what's happening across your workspace today.</div>
+    </div>
 
 <!-- Analytics Cards -->
 <div style="
@@ -16,56 +140,56 @@ margin-bottom:35px;
 ">
 
     <!-- Total Projects -->
-    <a href="{% url 'all_projects' %}" style="text-decoration:none;color:inherit;">
-        <div class="glass-card" style="text-align:center;">
-            <h2>📁</h2>
-            <h1>{{ project_count }}</h1>
-            <p>Total Projects</p>
+    <a href="{% url 'all_projects' %}" class="stat-card-link">
+        <div class="glass-card stat-card stat-indigo">
+            <div class="stat-card-icon">📁</div>
+            <div class="stat-card-value">{{ project_count }}</div>
+            <div class="stat-card-label">Total Projects</div>
         </div>
     </a>
 
     <!-- Active Projects -->
-    <a href="{% url 'active_projects' %}" style="text-decoration:none;color:inherit;">
-        <div class="glass-card" style="text-align:center;">
-            <h2>🟢</h2>
-            <h1>{{ active_project_count }}</h1>
-            <p>Active Projects</p>
+    <a href="{% url 'active_projects' %}" class="stat-card-link">
+        <div class="glass-card stat-card stat-green">
+            <div class="stat-card-icon">🟢</div>
+            <div class="stat-card-value">{{ active_project_count }}</div>
+            <div class="stat-card-label">Active Projects</div>
         </div>
     </a>
 
     <!-- Completed Projects -->
-    <a href="{% url 'completed_projects' %}" style="text-decoration:none;color:inherit;">
-        <div class="glass-card" style="text-align:center;">
-            <h2>✅</h2>
-            <h1>{{ completed_project_count }}</h1>
-            <p>Completed Projects</p>
+    <a href="{% url 'completed_projects' %}" class="stat-card-link">
+        <div class="glass-card stat-card stat-blue">
+            <div class="stat-card-icon">✅</div>
+            <div class="stat-card-value">{{ completed_project_count }}</div>
+            <div class="stat-card-label">Completed Projects</div>
         </div>
     </a>
 
     <!-- Total Tasks -->
-    <a href="{% url 'all_tasks' %}" style="text-decoration:none;color:inherit;">
-        <div class="glass-card" style="text-align:center;">
-            <h2>📋</h2>
-            <h1>{{ task_count }}</h1>
-            <p>Total Tasks</p>
+    <a href="{% url 'all_tasks' %}" class="stat-card-link">
+        <div class="glass-card stat-card stat-amber">
+            <div class="stat-card-icon">📋</div>
+            <div class="stat-card-value">{{ task_count }}</div>
+            <div class="stat-card-label">Total Tasks</div>
         </div>
     </a>
 
     <!-- Pending Tasks -->
-    <a href="{% url 'pending_tasks' %}" style="text-decoration:none;color:inherit;">
-        <div class="glass-card" style="text-align:center;">
-            <h2>⏳</h2>
-            <h1>{{ pending_tasks }}</h1>
-            <p>Pending Tasks</p>
+    <a href="{% url 'pending_tasks' %}" class="stat-card-link">
+        <div class="glass-card stat-card stat-orange">
+            <div class="stat-card-icon">⏳</div>
+            <div class="stat-card-value">{{ pending_tasks }}</div>
+            <div class="stat-card-label">Pending Tasks</div>
         </div>
     </a>
 
     <!-- Completed Tasks -->
-    <a href="{% url 'completed_tasks' %}" style="text-decoration:none;color:inherit;">
-        <div class="glass-card" style="text-align:center;">
-            <h2>✔️</h2>
-            <h1>{{ completed_tasks }}</h1>
-            <p>Completed Tasks</p>
+    <a href="{% url 'completed_tasks' %}" class="stat-card-link">
+        <div class="glass-card stat-card stat-teal">
+            <div class="stat-card-icon">✔️</div>
+            <div class="stat-card-value">{{ completed_tasks }}</div>
+            <div class="stat-card-label">Completed Tasks</div>
         </div>
     </a>
 
@@ -77,20 +201,27 @@ margin-bottom:35px;
     <!-- Organizations Column -->
     <div>
         <div class="glass-card">
-            <h3 class="section-card-title"><span>🏢 Organizations</span></h3>
+            <h3 class="sct-title"><span class="sct-icon">🏢</span><span>Organizations</span></h3>
 
             {% if companies %}
-                <ul class="stacked-list">
-                    {% for company in companies %}
-                    <li class="org-item">{{ company.name }}</li>
-                    {% endfor %}
-                </ul>
+                <div class="scroll-panel-outer">
+                    <div class="scroll-panel scroll-panel-sm">
+                        <ul class="stacked-list">
+                            {% for company in companies %}
+                            <li class="org-item">{{ company.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
             {% else %}
-                <p class="empty-hint">You do not belong to any organizations yet.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏢</div>
+                    <p>You do not belong to any organizations yet.</p>
+                </div>
             {% endif %}
 
             {% if request.user.is_superuser %}
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Create New Organization</h4>
+            <h4 class="sct-sub-heading">Create New Organization</h4>
             <form action="{% url 'create_company' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -104,47 +235,54 @@ margin-bottom:35px;
         </div>
 
         <div class="glass-card">
-            <h3 class="section-card-title"><span>👥 Teams &amp; Groups</span></h3>
+            <h3 class="sct-title"><span class="sct-icon">👥</span><span>Teams &amp; Groups</span></h3>
 
             {% if groups %}
-                <ul class="stacked-list">
-                    {% for group in groups %}
-                    <a href="{% url 'group_workspace' group.id %}"
-                        style="text-decoration:none;color:inherit;display:block;">
+                <div class="scroll-panel-outer">
+                    <div class="scroll-panel">
+                        <ul class="stacked-list">
+                            {% for group in groups %}
+                            <a href="{% url 'group_workspace' group.id %}"
+                                style="text-decoration:none;color:inherit;display:block;">
 
-                        <li style="
-                            padding:12px;
-                            border:1px solid var(--card-border);
-                            border-radius:8px;
-                            cursor:pointer;
-                            transition:0.2s;
-                        ">
+                                <li class="group-list-item" style="
+                                    padding:12px;
+                                    border:1px solid var(--card-border);
+                                    border-radius:8px;
+                                    cursor:pointer;
+                                    transition:0.2s;
+                                ">
 
-                            <div style="font-weight:600;">
-                                {{ group.name }}
-                            </div>
+                                    <div style="font-weight:600;">
+                                        {{ group.name }}
+                                    </div>
 
-                            <div style="
-                                color:var(--text-muted);
-                                font-size:0.8rem;
-                       
-                            ">
-                                {{ group.company.name }}
-                                    &bull;
-                                {{ group.members.count }} members
-                            </div>
+                                    <div style="
+                                        color:var(--text-muted);
+                                        font-size:0.8rem;
+                               
+                                    ">
+                                        {{ group.company.name }}
+                                            &bull;
+                                        {{ group.members.count }} members
+                                    </div>
 
-                        </li>
+                                </li>
 
-                    </a>
-                    {% endfor %}
-                </ul>
+                            </a>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
             {% else %}
-                <p class="empty-hint">No custom groups formed yet.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <p>No custom groups formed yet.</p>
+                </div>
             {% endif %}
 
             {% if request.user.is_superuser or is_company_admin %}
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Create Group</h4>
+            <h4 class="sct-sub-heading">Create Group</h4>
             <form action="{% url 'create_group' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -255,27 +393,32 @@ margin-bottom:35px;
     <!-- Projects Column -->
     <div>
         <div class="glass-card">
-            <h3 class="section-card-title"><span>📋 Active Projects</span></h3>
+            <h3 class="sct-title"><span class="sct-icon">📋</span><span>Active Projects</span></h3>
 
             {% if projects %}
-                <div class="project-card-list">
-                    {% for proj in projects %}
-                    <a href="{% url 'project_detail' proj.id %}" class="project-card-link">
-                        <div class="project-card-title">{{ proj.name }}</div>
-                        <div class="project-card-desc">{{ proj.description|truncatewords:15 }}</div>
-                        <div class="project-card-meta">
-                            <span>🏢 {{ proj.company.name }}</span>
-                            <span>👥 {{ proj.members.count }} members</span>
-                        </div>
-                    </a>
-                    {% endfor %}
+                <div class="scroll-panel-outer">
+                    <div class="project-card-list scroll-panel scroll-panel-lg">
+                        {% for proj in projects %}
+                        <a href="{% url 'project_detail' proj.id %}" class="project-card-link">
+                            <div class="project-card-title">{{ proj.name }}</div>
+                            <div class="project-card-desc">{{ proj.description|truncatewords:15 }}</div>
+                            <div class="project-card-meta">
+                                <span>🏢 {{ proj.company.name }}</span>
+                                <span>👥 {{ proj.members.count }} members</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
             {% else %}
-                <p class="empty-hint">You are not associated with any projects yet.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <p>You are not associated with any projects yet.</p>
+                </div>
             {% endif %}
 
             {% if request.user.is_superuser or is_company_admin %}
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; padding-top: 12px; border-top: 1px solid var(--card-border);">Start New Project</h4>
+            <h4 class="sct-sub-heading">Start New Project</h4>
             <form action="{% url 'create_project' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -349,7 +492,7 @@ margin-bottom:35px;
     <div>
         {% if request.user.is_superuser or is_company_admin %}
         <div class="glass-card">
-            <h3 class="section-card-title"><span>📩 Invite New Users</span></h3>
+            <h3 class="sct-title"><span class="sct-icon">📩</span><span>Invite New Users</span></h3>
             <form action="{% url 'send_invite' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -410,53 +553,60 @@ margin-bottom:35px;
 
             {% if sent_invites %}
             <h4 class="form-divider-heading" style="margin-top: 20px;">Sent Invites</h4>
-            <div class="invite-list-wrap">
-                <ul class="stacked-list" style="gap: 8px;">
-                    {% for invite in sent_invites %}
-                    <li class="invite-item">
-                        <div>
-                            <div class="invite-item-email">{{ invite.email }}</div>
-                            <div class="invite-item-meta">{{ invite.company.name }} &bull; {{ invite.get_role_display }}</div>
-                        </div>
-                        <div>
-                            {% if invite.is_accepted %}
-                            <span class="status-badge status-accepted">Accepted</span>
-                            {% else %}
-                            <span class="status-badge status-pending">Pending</span>
-                            {% endif %}
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
+            <div class="scroll-panel-outer">
+                <div class="invite-list-wrap scroll-panel scroll-panel-sm">
+                    <ul class="stacked-list" style="gap: 8px;">
+                        {% for invite in sent_invites %}
+                        <li class="invite-item">
+                            <div>
+                                <div class="invite-item-email">{{ invite.email }}</div>
+                                <div class="invite-item-meta">{{ invite.company.name }} &bull; {{ invite.get_role_display }}</div>
+                            </div>
+                            <div>
+                                {% if invite.is_accepted %}
+                                <span class="status-badge status-accepted">Accepted</span>
+                                {% else %}
+                                <span class="status-badge status-pending">Pending</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             {% endif %}
         </div>
         {% endif %}
 
         <div class="glass-card">
-            <h3 class="section-card-title"><span>💬 Active Users</span></h3>
+            <h3 class="sct-title"><span class="sct-icon">💬</span><span>Active Users</span></h3>
 
             {% if company_users %}
-                <div>
-                    {% for c_user in company_users %}
-                    <div class="user-row">
-                        <div class="user-row-info">
-                            <div class="user-avatar user-avatar-sm">
-                                {{ c_user.first_name|slice:":1"|upper }}
+                <div class="scroll-panel-outer">
+                    <div class="scroll-panel">
+                        {% for c_user in company_users %}
+                        <div class="user-row">
+                            <div class="user-row-info">
+                                <div class="user-avatar user-avatar-sm">
+                                    {{ c_user.first_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="user-row-name">{{ c_user.first_name }} {{ c_user.last_name }}</div>
+                                    <div class="user-row-role">{{ c_user.get_role_display }}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="user-row-name">{{ c_user.first_name }} {{ c_user.last_name }}</div>
-                                <div class="user-row-role">{{ c_user.get_role_display }}</div>
-                            </div>
+                            <a href="{% url 'chat_user' c_user.id %}" class="btn btn-secondary btn-ping">
+                                Ping
+                            </a>
                         </div>
-                        <a href="{% url 'chat_user' c_user.id %}" class="btn btn-secondary btn-ping">
-                            Ping
-                        </a>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
             {% else %}
-                <p class="empty-hint" style="margin-bottom: 0;">No active members in your organization directory.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <p>No active members in your organization directory.</p>
+                </div>
             {% endif %}
         </div>
     </div>
@@ -464,68 +614,67 @@ margin-bottom:35px;
 
 <div class="glass-card">
 
-    <h3 style="font-weight:700; margin-bottom:20px;">
-        📋 Recent Activities
-    </h3>
+    <h3 class="sct-title"><span class="sct-icon">📋</span><span>Recent Activities</span></h3>
 
     {% if recent_activities %}
 
-        <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="scroll-panel-outer">
+            <div class="scroll-panel scroll-panel-lg" style="display:flex; flex-direction:column; gap:12px;">
 
-        {% for activity in recent_activities %}
+            {% for activity in recent_activities %}
 
-            <div style="
-                padding:12px;
-                border:1px solid var(--card-border);
-                border-radius:10px;
-                background:rgba(255,255,255,0.02);
-            ">
-
-                <div style="
-                    display:flex;
-                    justify-content:space-between;
-                    margin-bottom:6px;
+                <div class="activity-item" style="
+                    padding:12px;
+                    border:1px solid var(--card-border);
+                    border-radius:10px;
+                    background:rgba(255,255,255,0.02);
                 ">
 
-                    <strong>
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        margin-bottom:6px;
+                    ">
 
-                        {{ activity.todo_item.todo_list.project.name}}
+                        <strong>
 
-                    </strong>
+                            {{ activity.todo_item.todo_list.project.name}}
+
+                        </strong>
+
+                        <small class="activity-time-pill">
+
+                            {{ activity.created_at|date:"d M H:i" }}
+
+                        </small>
+
+                    </div>
+
+                    <div style="font-size:.9rem;">
+
+                        {{ activity.activity_type  }}
+
+                    </div>
 
                     <small style="color:var(--text-muted);">
 
-                        {{ activity.created_at|date:"d M H:i" }}
+                        {{ activity.description }}
 
                     </small>
 
                 </div>
 
-                <div style="font-size:.9rem;">
-
-                    {{ activity.activity_type  }}
-
-                </div>
-
-                <small style="color:var(--text-muted);">
-
-                    {{ activity.description }}
-
-                </small>
+            {% endfor %}
 
             </div>
-
-        {% endfor %}
-
         </div>
 
     {% else %}
 
-        <p style="color:var(--text-muted);">
-
-            No recent activity.
-
-        </p>
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p>No recent activity.</p>
+        </div>
 
     {% endif %}
 

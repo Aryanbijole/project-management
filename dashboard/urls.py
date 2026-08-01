@@ -193,4 +193,16 @@ path(
     views.user_project_list,
     name="project_list",
 ),
+
+path(
+    "company/reports/",
+    views.company_reports,
+    name="company_reports",
+),
+
+path(
+    "company/audit-logs/",
+    views.company_audit_logs,
+    name="company_audit_logs",
+),
 ]

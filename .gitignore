@@ -1,13 +1,15 @@
 # Environment variables
 .env
 
-# Python virtual environments
+# Virtual environments
 .venv/
 venv/
+env/
 
 # Python cache
 __pycache__/
 *.py[cod]
+*.pyo
 
 # SQLite
 db.sqlite3
@@ -15,8 +17,17 @@ db.sqlite3
 # VS Code
 .vscode/
 
+# PyCharm
+.idea/
+
 # Media uploads
 media/
+
+# Static files collected for deployment
+staticfiles/
+
+# Logs
+*.log
 
 # OS files
 .DS_Store

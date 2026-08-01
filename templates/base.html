@@ -38,11 +38,13 @@
                     <span>🏠</span> Dashboard
                 </a>
 
-                {% if request.user.is_superuser or request.user.role == User.ROLE_ADMIN %}
+                {% if request.user.is_superuser or is_company_admin %}
 
                   <a href="{% url 'admin_project_list' %}" class="nav-item">
                       <span>📂</span> Project Management
                   </a>
+
+                
 
                 {% else %}
 
@@ -76,6 +78,8 @@
                 class="nav-item {% if 'notifications' in request.path %}active{% endif %}">
                 <span>🔔</span> Notifications
                 </a>
+
+                
                 
                 {% if request.user.is_superuser or is_company_admin %}
 
@@ -98,6 +102,8 @@
                 <span>👥</span> User Management
                 </a>
 
+                
+
                 {% if request.user.is_superuser or is_company_admin %}
                  <div class="nav-group">
 
@@ -118,6 +124,10 @@
                 </div>
 
             </div>
+
+                
+
+
                 {% else %}
 
                     <a href="{% url 'project_list' %}" class="nav-item">
@@ -151,11 +161,50 @@
                 <span>📊</span> Reports
                 </a>
 
-                
-                <a href="{% url 'admin_audit_logs' %}" class="nav-item">
-                <span>📋 </span> Audit Logs
+                <a href="{% url 'admin_audit_logs' %}"
+                class="nav-item {% if 'audit-logs' in request.path %}active{% endif %}">
+                <span>📜</span> Audit Logs
                 </a>
                 
+
+                {% endif %}
+
+                {% if not request.user.is_superuser and not is_company_admin %}
+
+                <hr style="margin:20px 0; opacity:.2;">
+
+                <p style="
+                    padding:0 18px;
+                    font-size:12px;
+                    font-weight:700;
+                    color:#888;
+                    letter-spacing:1px;
+                ">
+                    WORKSPACE
+                </p>
+
+                {% if can_create_projects %}
+                <a href="{% url 'company_project_list' %}"
+                    class="nav-item {% if 'company/projects' in request.path %}active{% endif %}">
+                    <span>📂</span> Projects
+                </a>
+                {% endif %}
+
+                {% if can_view_reports %}
+                <a href="{% url 'company_reports' %}"
+                    class="nav-item {% if 'company/reports' in request.path %}active{% endif %}">
+                    <span>📊</span> Reports
+                </a>
+                {% endif %}
+
+                {% if can_view_audit_logs %}
+                <a href="{% url 'company_audit_logs' %}"
+                    class="nav-item {% if 'company/audit-logs' in request.path %}active{% endif %}">
+                    <span>📜</span> Audit Logs
+                </a>
+                {% endif %}
+
+    
 
                 {% endif %}
 

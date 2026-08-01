@@ -12,6 +12,10 @@ from accounts.models import (
     CompanyMembership,
     Role,
 )
+from dashboard.permissions import (
+    can_view_reports,
+    can_view_audit_logs,
+)
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from projects.forms import ProjectForm
@@ -19,6 +23,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from accounts.utils import create_notification
 from audit.models import AuditLog
+
+
 from accounts.decorators import (
     company_required,
     company_admin_required,
@@ -207,6 +213,21 @@ def user_create(request):
             company=company,
         )
 
+        # Check whether this email already exists in this company
+        existing_user = User.objects.filter(email=email).first()
+
+        if existing_user and CompanyMembership.objects.filter(
+            company=company,
+            user=existing_user,
+        ).exists():
+
+            messages.warning(
+                request,
+                f"A user with email '{email}' already exists in this company."
+            )
+
+            return redirect("admin_users")    
+
         user = User.objects.create_user(
             username=email,
             email=email,
@@ -234,11 +255,7 @@ def user_create(request):
                 role=user.role,
             )
 
-        CompanyMembership.objects.create(
-            company=company,
-            user=user,
-            role=user.role,
-        )    
+        
 
 
         create_audit_log(
@@ -376,14 +393,20 @@ def user_edit(request, user_id):
 
         return redirect("admin_users")
     
-    
+    if request.user.is_superuser:
+        roles = Role.objects.all().order_by("company__name", "name")
+    else:
+        roles = Role.objects.filter(
+            company=company
+        ).order_by("name")
+
 
     return render(
         request,
         "dashboard/user_edit.html",
         {
             "user_obj": user_obj,
-            "roles": Role.objects.all(),
+            "roles": roles,
         },
     )
 
@@ -574,6 +597,8 @@ def project_list(request):
         ),
     }
 
+    
+
     return render(
         request,
         "dashboard/projects.html",
@@ -613,6 +638,30 @@ def project_create(request):
         )
 
         if form.is_valid():
+
+            project_name = form.cleaned_data["name"].strip()
+
+            if Project.objects.filter(
+                company=company,
+                name__iexact=project_name
+            ).exists():
+
+                messages.error(
+                    request,
+                    "A project with this name already exists."
+                )
+
+                return render(
+                    request,
+                    "dashboard/project_create.html",
+                    {
+                        "form": form,
+                        "company": company,
+                        "companies": Company.objects.all() if request.user.is_superuser else None,
+                        "selected_company": str(company.id) if company else "",
+                        "is_superuser_panel": request.user.is_superuser,
+                    },
+        )
 
             project = form.save(commit=False)
 
@@ -1095,9 +1144,15 @@ def group_create(request):
                 .order_by("first_name", "last_name")
             )
 
+            projects = (
+                Project.objects.filter(company=selected_company)
+                .order_by("name")
+            )
+
         else:
 
             users = User.objects.none()
+            projects = Project.objects.none()
 
     # -----------------------------
     # Company Admin
@@ -1135,6 +1190,11 @@ def group_create(request):
             .order_by("first_name", "last_name")
         )
 
+        projects = (
+            Project.objects.filter(company=selected_company)
+            .order_by("name")
+        )
+
     # -----------------------------
     # Create Group
     # -----------------------------
@@ -1149,14 +1209,17 @@ def group_create(request):
 
             return redirect("admin_group_create")
 
+        project_id = request.POST.get("project")
+
         group = Group.objects.create(
 
             name=request.POST.get("name").strip(),
 
             company=selected_company,
 
-        )
+            project_id=project_id,
 
+        )
         member_ids = request.POST.getlist("members")
 
         if member_ids:
@@ -1184,6 +1247,7 @@ def group_create(request):
             "company": selected_company,
             "companies": companies,
             "users": users,
+            "projects": projects,
             "selected_company": company_id,
             "is_superuser_panel": request.user.is_superuser,
         },
@@ -1666,7 +1730,18 @@ def role_create(request):
 
     else:
 
-        company = request.current_company
+        membership = request.user.memberships.filter(
+            role=User.ROLE_ADMIN
+        ).select_related("company").first()
+
+        if not membership:
+            messages.error(
+                request,
+                "No company assigned."
+            )
+            return redirect("dashboard")
+
+        company = membership.company
 
     # ----------------------------
     # Create Role
@@ -2150,4 +2225,110 @@ def user_project_list(request):
         {
             "projects": projects
         }
+    )
+
+@login_required
+@company_required
+@can_view_reports
+def company_reports(request):
+
+    company = request.current_company
+
+    projects = Project.objects.filter(
+        company=company,
+        is_archived=False
+    )
+
+    tasks = TodoItem.objects.filter(
+        todo_list__project__company=company
+    )
+
+    total_projects = projects.count()
+
+    active_projects = projects.filter(
+        status=Project.STATUS_ACTIVE
+    ).count()
+
+    completed_projects = projects.filter(
+        status=Project.STATUS_COMPLETED
+    ).count()
+
+    total_tasks = tasks.count()
+
+    completed_tasks = tasks.filter(
+        status=TodoItem.STATUS_DONE
+    ).count()
+
+    pending_tasks = tasks.exclude(
+        status=TodoItem.STATUS_DONE
+    ).count()
+
+    context = {
+
+        "total_projects": total_projects,
+
+        "active_projects": active_projects,
+
+        "completed_projects": completed_projects,
+
+        "total_tasks": total_tasks,
+
+        "completed_tasks": completed_tasks,
+
+        "pending_tasks": pending_tasks,
+
+        "projects": projects.order_by("-created_at")[:10],
+
+    }
+
+    return render(
+        request,
+        "dashboard/company_reports.html",
+        context,
+    )
+
+@login_required
+@company_required
+@can_view_audit_logs
+def company_audit_logs(request):
+
+    company_users = User.objects.filter(
+        memberships__company=request.current_company
+    )
+
+    logs = (
+        AuditLog.objects
+        .filter(user__in=company_users)
+        .select_related("user")
+        .order_by("-created_at")
+    )
+
+    q = request.GET.get("q", "")
+
+    if q:
+        logs = logs.filter(
+            description__icontains=q
+        )
+
+    action = request.GET.get("action", "")
+
+    if action:
+        logs = logs.filter(
+            action=action
+        )
+
+    paginator = Paginator(logs, 20)
+
+    page = request.GET.get("page")
+
+    logs = paginator.get_page(page)
+
+    return render(
+        request,
+        "dashboard/company_audit_logs.html",
+        {
+            "logs": logs,
+            "search": q,
+            "action": action,
+        },
     )
